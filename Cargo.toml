@@ -1,0 +1,7 @@
+[package]
+name = "hilbert_sqrt5"
+version = "0.1.0"
+authors = ["Sho Takemori <stakemorii@gmail.com>"]
+
+[dependencies]
+rust-gmp = { git = "https://github.com/stakemori/rust-gmp.git"}
