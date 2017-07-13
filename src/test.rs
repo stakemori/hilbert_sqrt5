@@ -1,5 +1,3 @@
-extern crate gmp;
-
 use theta_chars::points_in_ellipse;
 
 #[test]
