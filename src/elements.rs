@@ -57,7 +57,11 @@ impl HmfGen {
             debug_assert!(bd < std::i64::MAX as usize);
             let bd = bd as i64;
             for u in -bd..bd + 1 {
-                (self.fcvec.fc_inner_mut(v, u, bd)).add_mut(f1.fcvec.fc_inner(v, u, bd), f2.fcvec.fc_inner(v, u, bd));
+                Mpz::add_mut(
+                    self.fcvec.fc_inner_mut(v, u, bd),
+                    f1.fcvec.fc_inner(v, u, bd),
+                    f2.fcvec.fc_inner(v, u, bd),
+                );
             }
         }
     }
