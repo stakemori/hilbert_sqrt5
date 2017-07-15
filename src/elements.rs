@@ -8,6 +8,7 @@ use std;
 /// Σ a(u, v) exp(2piTr 1/sqrt(5) (u + v * sqrt(5))/2)
 /// where v <= prec and ε = (1 + sqrt(5))/2.
 /// a(u, v) = fc[v][a], where a = u + u_bds[v]
+#[derive(Debug)]
 pub struct HmfGen {
     pub prec: usize,
     pub fcvec: FcVec,
@@ -15,6 +16,7 @@ pub struct HmfGen {
     u_bds: UBounds,
 }
 
+#[derive(Debug)]
 pub struct FcVec {
     pub vec: Vec<Vec<Mpz>>,
 }
@@ -40,6 +42,7 @@ impl FcVec {
     }
 }
 
+#[derive(Debug)]
 struct UBounds {
     vec: Vec<usize>,
 }
