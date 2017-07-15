@@ -40,6 +40,7 @@ impl HmfGen {
     }
 
     pub fn new(prec: usize, fcvec: FcVec) -> HmfGen {
+        assert!(5 * prec * prec < std::usize::MAX);
         let u_bds = Vec::new();
         let mut a = HmfGen {
             prec: prec,
