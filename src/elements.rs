@@ -57,18 +57,37 @@ impl HmfGen {
             debug_assert!(bd < std::i64::MAX as usize);
             let bd = bd as i64;
             for u in -bd..bd + 1 {
-                (self.fcvec.fc_inner_mut(v, u, bd)).add_mut(
-                    f1.fcvec.fc_inner(
-                        v,
-                        u,
-                        bd,
-                    ),
-                    f2.fcvec.fc_inner(
-                        v,
-                        u,
-                        bd,
-                    ),
-                );
+                (self.fcvec.fc_inner_mut(v, u, bd)).add_mut(f1.fcvec.fc_inner(v, u, bd), f2.fcvec.fc_inner(v, u, bd));
+            }
+        }
+    }
+
+    /// set self = f1 * f2
+    pub fn mul_mut(&mut self, f1: &HmfGen, f2: &HmfGen) {
+        let mut tmp = Mpz::from_ui(0);
+        for (v, &bd) in self.u_bds.iter().enumerate() {
+            debug_assert!(bd < std::i64::MAX as usize);
+            let bd = bd as i64;
+            for u in -bd..(bd + 1) {
+                tmp.set_ui(0);
+
+                for v1 in 0..v {
+                    let bd1 = self.u_bds[v1] as i64;
+                    for u1 in -bd1..(bd1 + 1) {
+                        let u2 = u - u1;
+                        let v2 = v - v1;
+                        let bd2 = self.u_bds[v2] as i64;
+                        let u2abs = u2.abs() as usize;
+                        if u2abs * u2abs <= 5 * v2 * v2 {
+                            tmp.add_mut(
+                                f1.fcvec.fc_inner(v1, u1, bd1),
+                                f2.fcvec.fc_inner(v2, u2, bd2),
+                            );
+                        }
+                    }
+                }
+
+                self.fcvec.fc_inner_mut(v, u, bd).set(&tmp);
             }
         }
     }
