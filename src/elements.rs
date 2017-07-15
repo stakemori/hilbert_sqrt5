@@ -54,7 +54,6 @@ impl HmfGen {
     /// set self = f1 + f2
     pub fn add_mut(&mut self, f1: &HmfGen, f2: &HmfGen) {
         for (v, &bd) in self.u_bds.iter().enumerate() {
-            debug_assert!(bd < std::i64::MAX as usize);
             let bd = bd as i64;
             for u in -bd..bd + 1 {
                 Mpz::add_mut(
@@ -70,7 +69,6 @@ impl HmfGen {
     pub fn mul_mut(&mut self, f1: &HmfGen, f2: &HmfGen) {
         let mut tmp = Mpz::from_ui(0);
         for (v, &bd) in self.u_bds.iter().enumerate() {
-            debug_assert!(bd < std::i64::MAX as usize);
             let bd = bd as i64;
             for u in -bd..(bd + 1) {
                 tmp.set_ui(0);
