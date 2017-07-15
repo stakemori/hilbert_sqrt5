@@ -22,9 +22,14 @@ pub struct FcVec {
 }
 
 impl FcVec {
-    fn fc_inner(&self, v: usize, u: i64, bd: i64) -> Mpz {
+    fn fc_ref(&self, v: usize, u: i64, bd: i64) -> &Mpz {
         debug_assert!(u + bd >= 0);
-        self.vec[v][(u + bd) as usize]
+        &self.vec[v][(u + bd) as usize]
+    }
+
+    fn fc_ref_mut(&mut self, v: usize, u: i64, bd: i64) -> &mut Mpz {
+        debug_assert!(u + bd >= 0);
+        &mut self.vec[v][(u + bd) as usize]
     }
 
     fn new(u_bds: &UBounds) -> FcVec {
@@ -72,9 +77,9 @@ impl HmfGen {
             let bd = bd as i64;
             for u in -bd..(bd + 1) {
                 Mpz::add_mut(
-                    &mut self.fcvec.fc_inner(v, u, bd),
-                    &f1.fcvec.fc_inner(v, u, bd),
-                    &f2.fcvec.fc_inner(v, u, bd),
+                    self.fcvec.fc_ref_mut(v, u, bd),
+                    f1.fcvec.fc_ref(v, u, bd),
+                    f2.fcvec.fc_ref(v, u, bd),
                 );
             }
         }
@@ -96,15 +101,12 @@ impl HmfGen {
                         let bd2 = self.u_bds.vec[v2] as i64;
                         let u2abs = u2.abs() as usize;
                         if u2abs * u2abs <= 5 * v2 * v2 {
-                            tmp.add_mut(
-                                &f1.fcvec.fc_inner(v1, u1, bd1),
-                                &f2.fcvec.fc_inner(v2, u2, bd2),
-                            );
+                            tmp.add_mut(f1.fcvec.fc_ref(v1, u1, bd1), f2.fcvec.fc_ref(v2, u2, bd2));
                         }
                     }
                 }
 
-                self.fcvec.fc_inner(v, u, bd).set(&tmp);
+                self.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
             }
         }
     }
