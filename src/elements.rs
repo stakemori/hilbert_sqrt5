@@ -11,8 +11,8 @@ use std;
 pub struct HmfGen {
     pub prec: usize,
     pub fcvec: FcVec,
-    // vth element is (sqrt(5) * v).floor()
-    u_bds: Vec<usize>,
+    // vth element of u_bds.vec is (sqrt(5) * v).floor()
+    u_bds: UBounds,
 }
 
 pub struct FcVec {
@@ -31,29 +31,35 @@ impl FcVec {
     }
 }
 
-impl HmfGen {
-    fn init_u_bds(&mut self) {
-        let sqrt5 = 5_f64.sqrt();
-        for v in 0..self.prec {
-            self.u_bds.push((sqrt5 * v as f64).floor() as usize);
-        }
-    }
+struct UBounds {
+    vec: Vec<usize>,
+}
 
-    pub fn new(prec: usize, fcvec: FcVec) -> HmfGen {
+impl UBounds {
+    fn new(prec: usize) -> UBounds {
         assert!(5 * prec * prec < std::usize::MAX);
-        let u_bds = Vec::new();
-        let mut a = HmfGen {
+        let mut u_bds = Vec::new();
+        let sqrt5 = 5_f64.sqrt();
+        for v in 0..prec {
+            u_bds.push((sqrt5 * v as f64).floor() as usize);
+        }
+        UBounds { vec: u_bds }
+    }
+}
+
+impl HmfGen {
+    pub fn new(prec: usize, fcvec: FcVec) -> HmfGen {
+        let u_bds = UBounds::new(prec);
+        HmfGen {
             prec: prec,
             fcvec: fcvec,
             u_bds: u_bds,
-        };
-        a.init_u_bds();
-        a
+        }
     }
 
     /// set self = f1 + f2
     pub fn add_mut(&mut self, f1: &HmfGen, f2: &HmfGen) {
-        for (v, &bd) in self.u_bds.iter().enumerate() {
+        for (v, &bd) in self.u_bds.vec.iter().enumerate() {
             let bd = bd as i64;
             for u in -bd..bd + 1 {
                 Mpz::add_mut(
@@ -68,17 +74,17 @@ impl HmfGen {
     /// set self = f1 * f2
     pub fn mul_mut(&mut self, f1: &HmfGen, f2: &HmfGen) {
         let mut tmp = Mpz::from_ui(0);
-        for (v, &bd) in self.u_bds.iter().enumerate() {
+        for (v, &bd) in self.u_bds.vec.iter().enumerate() {
             let bd = bd as i64;
             for u in -bd..(bd + 1) {
                 tmp.set_ui(0);
 
                 for v1 in 0..v {
-                    let bd1 = self.u_bds[v1] as i64;
+                    let bd1 = self.u_bds.vec[v1] as i64;
                     for u1 in -bd1..(bd1 + 1) {
                         let u2 = u - u1;
                         let v2 = v - v1;
-                        let bd2 = self.u_bds[v2] as i64;
+                        let bd2 = self.u_bds.vec[v2] as i64;
                         let u2abs = u2.abs() as usize;
                         if u2abs * u2abs <= 5 * v2 * v2 {
                             tmp.add_mut(
