@@ -1,7 +1,8 @@
 extern crate gmp;
 
-use self::gmp::mpz::Mpz;
 use std;
+use self::gmp::mpz::Mpz;
+use std::ops::AddAssign;
 
 /// struct for hilbert modualr form over Q(sqrt(5))
 /// this corresponds finite sum of the q-expansion of the form
@@ -107,6 +108,20 @@ impl HmfGen {
                 }
 
                 self.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
+            }
+        }
+    }
+}
+
+impl<'a> AddAssign<&'a HmfGen> for HmfGen {
+    fn add_assign(&mut self, other: &HmfGen) {
+        for (v, &bd) in self.u_bds.vec.iter().enumerate() {
+            let bd = bd as i64;
+            for u in -bd..(bd + 1) {
+                Mpz::add_assign(
+                    self.fcvec.fc_ref_mut(v, u, bd),
+                    other.fcvec.fc_ref(v, u, bd),
+                );
             }
         }
     }
