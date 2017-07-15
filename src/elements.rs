@@ -1,6 +1,7 @@
 extern crate gmp;
 
 use self::gmp::mpz::Mpz;
+use std;
 
 /// struct for hilbert modualr form over Q(sqrt(5))
 /// this corresponds finite sum of the q-expansion of the form
@@ -25,6 +26,7 @@ impl FcVec {
     }
 
     fn fc_inner_mut(&mut self, v: usize, u: i64, bd: i64) -> &mut Mpz {
+        debug_assert!(u + bd >= 0);
         &mut self.vec[v][(u + bd) as usize]
     }
 }
@@ -51,6 +53,7 @@ impl HmfGen {
     /// set self = f1 + f2
     pub fn add_mut(&mut self, f1: &HmfGen, f2: &HmfGen) {
         for (v, &bd) in self.u_bds.iter().enumerate() {
+            debug_assert!(bd < std::i64::MAX as usize);
             let bd = bd as i64;
             for u in -bd..bd + 1 {
                 (self.fcvec.fc_inner_mut(v, u, bd)).add_mut(
