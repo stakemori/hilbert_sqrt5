@@ -29,6 +29,15 @@ impl FcVec {
         debug_assert!(u + bd >= 0);
         &mut self.vec[v][(u + bd) as usize]
     }
+
+    fn new(u_bds: &UBounds) -> FcVec {
+        let vec = u_bds
+            .vec
+            .iter()
+            .map(|&bd| (0..(2 * bd + 1)).map(|_| Mpz::new()).collect())
+            .collect();
+        FcVec { vec: vec }
+    }
 }
 
 struct UBounds {
@@ -48,8 +57,9 @@ impl UBounds {
 }
 
 impl HmfGen {
-    pub fn new(prec: usize, fcvec: FcVec) -> HmfGen {
+    pub fn new(prec: usize) -> HmfGen {
         let u_bds = UBounds::new(prec);
+        let fcvec = FcVec::new(&u_bds);
         HmfGen {
             prec: prec,
             fcvec: fcvec,
@@ -61,7 +71,7 @@ impl HmfGen {
     pub fn add_mut(&mut self, f1: &HmfGen, f2: &HmfGen) {
         for (v, &bd) in self.u_bds.vec.iter().enumerate() {
             let bd = bd as i64;
-            for u in -bd..bd + 1 {
+            for u in -bd..(bd + 1) {
                 Mpz::add_mut(
                     self.fcvec.fc_inner_mut(v, u, bd),
                     f1.fcvec.fc_inner(v, u, bd),
