@@ -57,6 +57,7 @@ impl UBounds {
 }
 
 impl HmfGen {
+    /// Return 0 q-expantion
     pub fn new(prec: usize) -> HmfGen {
         let u_bds = UBounds::new(prec);
         let fcvec = FcVec::new(&u_bds);
