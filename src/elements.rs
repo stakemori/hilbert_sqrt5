@@ -38,7 +38,7 @@ impl FcVec {
         let vec = u_bds
             .vec
             .iter()
-            .map(|&bd| (0..(2 * bd + 1)).map(|_| Mpz::new()).collect())
+            .map(|&bd| (0..(2 * bd + 1)).map(|_| Mpz::from_ui(0)).collect())
             .collect();
         FcVec { vec: vec }
     }
