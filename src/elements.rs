@@ -99,6 +99,16 @@ impl HmfGen {
             }
         }
     }
+
+    /// self = f * a
+    pub fn mul_mut_by_const(&mut self, f: &HmfGen, a: &Mpz) {
+        for (v, &bd) in self.u_bds.vec.iter().enumerate() {
+            let bd = bd as i64;
+            for u in -bd..(bd + 1) {
+                Mpz::mul_mut(self.fcvec.fc_ref_mut(v, u, bd), f.fcvec.fc_ref(v, u, bd), a)
+            }
+        }
+    }
 }
 
 impl<'a> AddAssign<&'a HmfGen> for HmfGen {
