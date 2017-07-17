@@ -3,6 +3,7 @@ extern crate gmp;
 use std;
 use self::gmp::mpz::Mpz;
 use std::ops::AddAssign;
+use std::ops::MulAssign;
 
 /// struct for hilbert modualr form over Q(sqrt(5))
 /// this corresponds finite sum of the q-expansion of the form
@@ -93,20 +94,7 @@ impl HmfGen {
             let bd = bd as i64;
             for u in -bd..(bd + 1) {
                 tmp.set_ui(0);
-
-                for v1 in 0..v {
-                    let bd1 = self.u_bds.vec[v1] as i64;
-                    for u1 in -bd1..(bd1 + 1) {
-                        let u2 = u - u1;
-                        let v2 = v - v1;
-                        let bd2 = self.u_bds.vec[v2] as i64;
-                        let u2abs = u2.abs() as usize;
-                        if u2abs * u2abs <= 5 * v2 * v2 {
-                            tmp.add_mut(f1.fcvec.fc_ref(v1, u1, bd1), f2.fcvec.fc_ref(v2, u2, bd2));
-                        }
-                    }
-                }
-
+                _mul_mut_tmp(&mut tmp, u, v, &f1.fcvec, &f2.fcvec, &self.u_bds);
                 self.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
             }
         }
@@ -122,6 +110,43 @@ impl<'a> AddAssign<&'a HmfGen> for HmfGen {
                     self.fcvec.fc_ref_mut(v, u, bd),
                     other.fcvec.fc_ref(v, u, bd),
                 );
+            }
+        }
+    }
+}
+
+/// Add (v, u) th F.C. of fc_vec1 * fc_vec2 to tmp.
+fn _mul_mut_tmp(
+    tmp: &mut Mpz,
+    u: i64,
+    v: usize,
+    fc_vec1: &FcVec,
+    fc_vec2: &FcVec,
+    u_bds: &UBounds,
+) {
+    for v1 in 0..v {
+        let bd1 = u_bds.vec[v1] as i64;
+        for u1 in -bd1..(bd1 + 1) {
+            let u2 = u - u1;
+            let v2 = v - v1;
+            let bd2 = u_bds.vec[v2] as i64;
+            let u2abs = u2.abs() as usize;
+            if u2abs * u2abs <= 5 * v2 * v2 {
+                tmp.add_mut(fc_vec1.fc_ref(v1, u1, bd1), fc_vec2.fc_ref(v2, u2, bd2));
+            }
+        }
+    }
+}
+
+impl<'a> MulAssign<&'a HmfGen> for HmfGen {
+    fn mul_assign(&mut self, other: &HmfGen) {
+        let mut tmp = Mpz::from_ui(0);
+        for (v, &bd) in self.u_bds.vec.iter().enumerate() {
+            let bd = bd as i64;
+            for u in -bd..(bd + 1) {
+                tmp.set_ui(0);
+                _mul_mut_tmp(&mut tmp, u, v, &self.fcvec, &other.fcvec, &self.u_bds);
+                self.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
             }
         }
     }
