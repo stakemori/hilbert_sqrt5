@@ -18,7 +18,7 @@ pub struct HmfGen {
     u_bds: UBounds,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct FcVec {
     pub vec: Vec<Vec<Mpz>>,
 }
