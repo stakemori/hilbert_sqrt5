@@ -52,7 +52,7 @@ impl UBounds {
         assert!(5 * prec * prec < std::usize::MAX);
         let mut u_bds = Vec::new();
         let sqrt5 = 5_f64.sqrt();
-        for v in 0..(prec+1) {
+        for v in 0..(prec + 1) {
             u_bds.push((sqrt5 * v as f64).floor() as usize);
         }
         UBounds { vec: u_bds }
@@ -91,7 +91,6 @@ impl HmfGen {
         for (v, &bd) in self.u_bds.vec.iter().enumerate() {
             let bd = bd as i64;
             for u in -bd..(bd + 1) {
-                tmp.set_ui(0);
                 _mul_mut_tmp(&mut tmp, u, v, &f1.fcvec, &f2.fcvec, &self.u_bds);
                 self.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
             }
@@ -123,15 +122,10 @@ impl<'a> AddAssign<&'a HmfGen> for HmfGen {
     }
 }
 
-/// Add (v, u) th F.C. of fc_vec1 * fc_vec2 to tmp.
-fn _mul_mut_tmp(
-    tmp: &mut Mpz,
-    u: i64,
-    v: usize,
-    fc_vec1: &FcVec,
-    fc_vec2: &FcVec,
-    u_bds: &UBounds,
-) {
+/// set (v, u) th F.C. of fc_vec1 * fc_vec2 to a.
+fn _mul_mut_tmp(a: &mut Mpz, u: i64, v: usize, fc_vec1: &FcVec, fc_vec2: &FcVec, u_bds: &UBounds) {
+    a.set_ui(0);
+    let mut tmp = Mpz::new();
     for v1 in 0..(v + 1) {
         let bd1 = u_bds.vec[v1] as i64;
         for u1 in -bd1..(bd1 + 1) {
@@ -140,7 +134,8 @@ fn _mul_mut_tmp(
             let bd2 = u_bds.vec[v2] as i64;
             let u2abs = u2.abs() as usize;
             if u2abs * u2abs <= 5 * v2 * v2 {
-                tmp.add_mut(fc_vec1.fc_ref(v1, u1, bd1), fc_vec2.fc_ref(v2, u2, bd2));
+                tmp.mul_mut(fc_vec1.fc_ref(v1, u1, bd1), fc_vec2.fc_ref(v2, u2, bd2));
+                Mpz::add_assign(a, &tmp);
             }
         }
     }
@@ -152,7 +147,6 @@ impl<'a> MulAssign<&'a HmfGen> for HmfGen {
         for (v, &bd) in self.u_bds.vec.iter().enumerate() {
             let bd = bd as i64;
             for u in -bd..(bd + 1) {
-                tmp.set_ui(0);
                 _mul_mut_tmp(&mut tmp, u, v, &self.fcvec, &other.fcvec, &self.u_bds);
                 self.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
             }
