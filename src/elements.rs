@@ -8,7 +8,7 @@ use std::ops::MulAssign;
 /// Σ a(u, v) exp(2piTr 1/sqrt(5) (u + v * sqrt(5))/2)
 /// where v <= prec and ε = (1 + sqrt(5))/2.
 /// a(u, v) = fc[v][a], where a = u + u_bds[v]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct HmfGen {
     pub prec: usize,
     pub fcvec: FcVec,
@@ -16,7 +16,7 @@ pub struct HmfGen {
     pub u_bds: UBounds,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct FcVec {
     pub vec: Vec<Vec<Mpz>>,
 }
@@ -42,7 +42,7 @@ impl FcVec {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct UBounds {
     pub vec: Vec<usize>,
 }
