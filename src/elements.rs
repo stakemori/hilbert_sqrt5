@@ -151,11 +151,13 @@ fn _mul_mut_tmp(a: &mut Mpz, u: i64, v: usize, fc_vec1: &FcVec, fc_vec2: &FcVec,
 
 impl<'a> MulAssign<&'a HmfGen> for HmfGen {
     fn mul_assign(&mut self, other: &HmfGen) {
+        // We need cloned self.
+        let f = self.clone();
         let mut tmp = Mpz::from_ui(0);
         for (v, &bd) in self.u_bds.vec.iter().enumerate() {
             let bd = bd as i64;
             for u in -bd..(bd + 1) {
-                _mul_mut_tmp(&mut tmp, u, v, &self.fcvec, &other.fcvec, &self.u_bds);
+                _mul_mut_tmp(&mut tmp, u, v, &f.fcvec, &other.fcvec, &self.u_bds);
                 self.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
             }
         }
