@@ -54,7 +54,7 @@ impl UBounds {
         assert!(5 * prec * prec < std::usize::MAX);
         let mut u_bds = Vec::new();
         let sqrt5 = 5_f64.sqrt();
-        for v in 0..prec {
+        for v in 0..(prec+1) {
             u_bds.push((sqrt5 * v as f64).floor() as usize);
         }
         UBounds { vec: u_bds }
@@ -134,7 +134,7 @@ fn _mul_mut_tmp(
     fc_vec2: &FcVec,
     u_bds: &UBounds,
 ) {
-    for v1 in 0..v {
+    for v1 in 0..(v + 1) {
         let bd1 = u_bds.vec[v1] as i64;
         for u1 in -bd1..(bd1 + 1) {
             let u2 = u - u1;
