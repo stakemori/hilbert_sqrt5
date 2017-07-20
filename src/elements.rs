@@ -1,7 +1,5 @@
-extern crate gmp;
-
 use std;
-use self::gmp::mpz::Mpz;
+use gmp::mpz::Mpz;
 use std::ops::AddAssign;
 use std::ops::MulAssign;
 
@@ -15,7 +13,7 @@ pub struct HmfGen {
     pub prec: usize,
     pub fcvec: FcVec,
     // vth element of u_bds.vec is (sqrt(5) * v).floor()
-    u_bds: UBounds,
+    pub u_bds: UBounds,
 }
 
 #[derive(Debug, PartialEq)]
@@ -24,12 +22,12 @@ pub struct FcVec {
 }
 
 impl FcVec {
-    fn fc_ref(&self, v: usize, u: i64, bd: i64) -> &Mpz {
+    pub fn fc_ref(&self, v: usize, u: i64, bd: i64) -> &Mpz {
         debug_assert!(u + bd >= 0);
         &self.vec[v][(u + bd) as usize]
     }
 
-    fn fc_ref_mut(&mut self, v: usize, u: i64, bd: i64) -> &mut Mpz {
+    pub fn fc_ref_mut(&mut self, v: usize, u: i64, bd: i64) -> &mut Mpz {
         debug_assert!(u + bd >= 0);
         &mut self.vec[v][(u + bd) as usize]
     }
@@ -45,8 +43,8 @@ impl FcVec {
 }
 
 #[derive(Debug)]
-struct UBounds {
-    vec: Vec<usize>,
+pub struct UBounds {
+    pub vec: Vec<usize>,
 }
 
 impl UBounds {
