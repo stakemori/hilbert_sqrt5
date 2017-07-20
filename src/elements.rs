@@ -71,6 +71,14 @@ impl HmfGen {
         }
     }
 
+
+    pub fn one(prec: usize) -> HmfGen {
+        let mut f = Self::new(prec);
+        f.fcvec.fc_ref_mut(0, 0, 0).set_ui(1);
+        f
+    }
+
+
     /// set self = f1 + f2
     pub fn add_mut(&mut self, f1: &HmfGen, f2: &HmfGen) {
         for (v, &bd) in self.u_bds.vec.iter().enumerate() {
