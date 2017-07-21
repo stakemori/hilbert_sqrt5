@@ -100,7 +100,6 @@ pub fn theta(prec: usize) -> HmfGen {
 mod tests {
     use super::*;
 
-    #[ignore]
     #[test]
     fn test_points_in_ellipse() {
         let r = 10000;
@@ -110,7 +109,6 @@ mod tests {
         assert_eq!(points_in_ellipse(1, 1, r).len(), 7860);
     }
 
-    #[ignore]
     #[test]
     fn test_theta_0_eps() {
         let f = theta_0_eps(5);
