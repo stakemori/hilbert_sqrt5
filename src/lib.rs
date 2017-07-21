@@ -2,8 +2,9 @@
 #![warn(deprecated)]
 extern crate gmp;
 
-pub mod theta_chars;
+#[macro_use]
 pub mod elements;
+pub mod theta_chars;
 
 #[cfg(test)]
 mod test;
