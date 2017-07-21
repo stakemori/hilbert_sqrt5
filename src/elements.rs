@@ -141,20 +141,23 @@ impl<'a> AddAssign<&'a HmfGen> for HmfGen {
 }
 
 /// set (v, u) th F.C. of fc_vec1 * fc_vec2 to a.
+/// This function take care the case when fc_vec2 is sparse.
 fn _mul_mut_tmp(a: &mut Mpz, u: i64, v: usize, fc_vec1: &FcVec, fc_vec2: &FcVec, u_bds: &UBounds) {
     a.set_ui(0);
     let mut tmp = Mpz::new();
-    for v1 in 0..(v + 1) {
-        let bd1 = u_bds.vec[v1] as i64;
-        let v1_i64 = v1 as i64;
-        for u1 in u_iter!(v1_i64, bd1) {
-            let u2 = u - u1;
-            let v2 = v - v1;
-            let bd2 = u_bds.vec[v2] as i64;
-            let u2abs = u2.abs() as usize;
-            if u2abs * u2abs <= 5 * v2 * v2 {
-                tmp.mul_mut(fc_vec1.fc_ref(v1, u1, bd1), fc_vec2.fc_ref(v2, u2, bd2));
-                Mpz::add_assign(a, &tmp);
+    for v2 in 0..(v + 1) {
+        let bd2 = u_bds.vec[v2] as i64;
+        let v2_i64 = v2 as i64;
+        for u2 in u_iter!(v2_i64, bd2) {
+            if !fc_vec2.fc_ref(v2, u2, bd2).is_zero() {
+                let u1 = u - u2;
+                let v1 = v - v2;
+                let bd1 = u_bds.vec[v1] as i64;
+                let u1abs = u1.abs() as usize;
+                if u1abs * u1abs <= 5 * v1 * v1 {
+                    tmp.mul_mut(fc_vec2.fc_ref(v2, u2, bd2), fc_vec1.fc_ref(v1, u1, bd1));
+                    Mpz::add_assign(a, &tmp);
+                }
             }
         }
     }
