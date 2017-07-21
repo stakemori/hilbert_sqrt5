@@ -110,6 +110,7 @@ mod tests {
         assert_eq!(points_in_ellipse(1, 1, r).len(), 7860);
     }
 
+    #[ignore]
     #[test]
     fn test_theta_0_eps() {
         let f = theta_0_eps(5);
