@@ -59,6 +59,27 @@ impl UBounds {
     }
 }
 
+macro_rules! u_iter {
+    ($v: expr, $bd: ident) => {
+        {
+            (-$bd..($bd+1)).filter(|&x| (x-$v) & 1 == 0)
+        }
+    }
+}
+
+macro_rules! v_u_bd_iter {
+    (($u_bds: expr, $v: ident, $u: ident, $bd: ident) $body:expr) =>
+    {
+        for ($v, &$bd) in $u_bds.vec.iter().enumerate() {
+            let $bd = $bd as i64;
+            let v_i64 = $v as i64;
+            for $u in u_iter!(v_i64, $bd) {
+                $body
+            }
+        };
+    }
+}
+
 impl HmfGen {
     /// Return 0 q-expantion
     pub fn new(prec: usize) -> HmfGen {
@@ -81,52 +102,41 @@ impl HmfGen {
 
     /// set self = f1 + f2
     pub fn add_mut(&mut self, f1: &HmfGen, f2: &HmfGen) {
-        for (v, &bd) in self.u_bds.vec.iter().enumerate() {
-            let bd = bd as i64;
-            for u in -bd..(bd + 1) {
-                Mpz::add_mut(
-                    self.fcvec.fc_ref_mut(v, u, bd),
-                    f1.fcvec.fc_ref(v, u, bd),
-                    f2.fcvec.fc_ref(v, u, bd),
-                );
-            }
-        }
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            Mpz::add_mut(
+                self.fcvec.fc_ref_mut(v, u, bd),
+                f1.fcvec.fc_ref(v, u, bd),
+                f2.fcvec.fc_ref(v, u, bd),
+            );
+        })
     }
 
     /// set self = f1 * f2
     pub fn mul_mut(&mut self, f1: &HmfGen, f2: &HmfGen) {
         let mut tmp = Mpz::from_ui(0);
-        for (v, &bd) in self.u_bds.vec.iter().enumerate() {
-            let bd = bd as i64;
-            for u in -bd..(bd + 1) {
-                _mul_mut_tmp(&mut tmp, u, v, &f1.fcvec, &f2.fcvec, &self.u_bds);
-                self.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
-            }
-        }
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            _mul_mut_tmp(&mut tmp, u, v, &f1.fcvec, &f2.fcvec, &self.u_bds);
+            self.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
+        })
     }
 
     /// self = f * a
     pub fn mul_mut_by_const(&mut self, f: &HmfGen, a: &Mpz) {
-        for (v, &bd) in self.u_bds.vec.iter().enumerate() {
-            let bd = bd as i64;
-            for u in -bd..(bd + 1) {
-                Mpz::mul_mut(self.fcvec.fc_ref_mut(v, u, bd), f.fcvec.fc_ref(v, u, bd), a)
-            }
-        }
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            Mpz::mul_mut(self.fcvec.fc_ref_mut(v, u, bd), f.fcvec.fc_ref(v, u, bd), a)
+            })
     }
 }
 
 impl<'a> AddAssign<&'a HmfGen> for HmfGen {
     fn add_assign(&mut self, other: &HmfGen) {
-        for (v, &bd) in self.u_bds.vec.iter().enumerate() {
-            let bd = bd as i64;
-            for u in -bd..(bd + 1) {
-                Mpz::add_assign(
-                    self.fcvec.fc_ref_mut(v, u, bd),
-                    other.fcvec.fc_ref(v, u, bd),
-                );
-            }
-        }
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            Mpz::add_assign(
+                self.fcvec.fc_ref_mut(v, u, bd),
+                other.fcvec.fc_ref(v, u, bd),
+            );
+
+        })
     }
 }
 
@@ -136,7 +146,8 @@ fn _mul_mut_tmp(a: &mut Mpz, u: i64, v: usize, fc_vec1: &FcVec, fc_vec2: &FcVec,
     let mut tmp = Mpz::new();
     for v1 in 0..(v + 1) {
         let bd1 = u_bds.vec[v1] as i64;
-        for u1 in -bd1..(bd1 + 1) {
+        let v1_i64 = v1 as i64;
+        for u1 in u_iter!(v1_i64, bd1) {
             let u2 = u - u1;
             let v2 = v - v1;
             let bd2 = u_bds.vec[v2] as i64;
@@ -154,12 +165,9 @@ impl<'a> MulAssign<&'a HmfGen> for HmfGen {
         // We need cloned self.
         let f = self.clone();
         let mut tmp = Mpz::from_ui(0);
-        for (v, &bd) in self.u_bds.vec.iter().enumerate() {
-            let bd = bd as i64;
-            for u in -bd..(bd + 1) {
-                _mul_mut_tmp(&mut tmp, u, v, &f.fcvec, &other.fcvec, &self.u_bds);
-                self.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
-            }
-        }
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            _mul_mut_tmp(&mut tmp, u, v, &f.fcvec, &other.fcvec, &self.u_bds);
+            self.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
+            })
     }
 }
