@@ -1,4 +1,5 @@
 use std;
+use std::fmt;
 use gmp::mpz::Mpz;
 use std::ops::AddAssign;
 use std::ops::MulAssign;
@@ -14,6 +15,42 @@ pub struct HmfGen {
     pub fcvec: FcVec,
     // vth element of u_bds.vec is (sqrt(5) * v).floor()
     pub u_bds: UBounds,
+}
+
+
+macro_rules! u_iter {
+    ($v: expr, $bd: ident) => {
+        {
+            (-$bd..($bd+1)).filter(|&x| (x-$v) & 1 == 0)
+        }
+    }
+}
+
+macro_rules! v_u_bd_iter {
+    (($u_bds: expr, $v: ident, $u: ident, $bd: ident) $body:expr) =>
+    {
+        for ($v, &$bd) in $u_bds.vec.iter().enumerate() {
+            let $bd = $bd as i64;
+            let v_i64 = $v as i64;
+            for $u in u_iter!(v_i64, $bd) {
+                $body
+            }
+        };
+    }
+}
+
+impl fmt::Display for HmfGen {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut vec = Vec::new();
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            let a = self.fcvec.fc_ref(v, u, bd);
+            if !a.is_zero() {
+                vec.push(format!("({}, {}): {}", u, v, a));
+            }
+        }
+        );
+        write!(f, "{}", vec.join("\n"))
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -56,27 +93,6 @@ impl UBounds {
             u_bds.push((sqrt5 * v as f64).floor() as usize);
         }
         UBounds { vec: u_bds }
-    }
-}
-
-macro_rules! u_iter {
-    ($v: expr, $bd: ident) => {
-        {
-            (-$bd..($bd+1)).filter(|&x| (x-$v) & 1 == 0)
-        }
-    }
-}
-
-macro_rules! v_u_bd_iter {
-    (($u_bds: expr, $v: ident, $u: ident, $bd: ident) $body:expr) =>
-    {
-        for ($v, &$bd) in $u_bds.vec.iter().enumerate() {
-            let $bd = $bd as i64;
-            let v_i64 = $v as i64;
-            for $u in u_iter!(v_i64, $bd) {
-                $body
-            }
-        };
     }
 }
 
