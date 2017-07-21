@@ -6,6 +6,7 @@ extern crate gmp;
 pub mod elements;
 pub mod theta_chars;
 pub mod eisenstein;
+pub mod misc;
 
 #[cfg(test)]
 mod test;
