@@ -85,7 +85,7 @@ pub struct UBounds {
 }
 
 impl UBounds {
-    fn new(prec: usize) -> UBounds {
+    pub fn new(prec: usize) -> UBounds {
         assert!(5 * prec * prec < std::usize::MAX);
         let mut u_bds = Vec::new();
         let sqrt5 = 5_f64.sqrt();
