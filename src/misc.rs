@@ -1,7 +1,7 @@
 use std::ops::{Mul, Add, Sub, Neg, Shr};
 
 /// corresponds to (rt + ir sqrt(5))/2.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Sqrt5Elt<T> {
     pub rt: T,
     pub ir: T,
@@ -22,12 +22,12 @@ impl<T> Sqrt5Elt<T> {
     }
 }
 
-impl<T> Add for Sqrt5Elt<T>
+impl<'a, T> Add<&'a Sqrt5Elt<T>> for Sqrt5Elt<T>
 where
-    T: Add<Output = T>,
+    T: Add<Output = T> + Copy,
 {
     type Output = Sqrt5Elt<T>;
-    fn add(self, other: Sqrt5Elt<T>) -> Sqrt5Elt<T> {
+    fn add(self, other: &Sqrt5Elt<T>) -> Sqrt5Elt<T> {
         Sqrt5Elt {
             rt: self.rt + other.rt,
             ir: self.ir + other.ir,
@@ -35,12 +35,12 @@ where
     }
 }
 
-impl<T> Sub for Sqrt5Elt<T>
+impl<'a, T> Sub<&'a Sqrt5Elt<T>> for Sqrt5Elt<T>
 where
-    T: Sub<Output = T>,
+    T: Sub<Output = T> + Copy,
 {
     type Output = Sqrt5Elt<T>;
-    fn sub(self, other: Sqrt5Elt<T>) -> Sqrt5Elt<T> {
+    fn sub(self, other: &Sqrt5Elt<T>) -> Sqrt5Elt<T> {
         Sqrt5Elt {
             rt: self.rt - other.rt,
             ir: self.ir - other.ir,
@@ -48,9 +48,9 @@ where
     }
 }
 
-impl<T> Neg for Sqrt5Elt<T>
+impl<'a, T> Neg for &'a Sqrt5Elt<T>
 where
-    T: Neg<Output = T>,
+    T: Neg<Output = T> + Copy,
 {
     type Output = Sqrt5Elt<T>;
     fn neg(self) -> Sqrt5Elt<T> {
@@ -62,7 +62,7 @@ where
 }
 
 
-impl<T> Mul for Sqrt5Elt<T>
+impl<'a, T> Mul<&'a Sqrt5Elt<T>> for Sqrt5Elt<T>
 where
     T: Mul<i64, Output = T>
         + Add<Output = T>
@@ -71,9 +71,9 @@ where
         + Copy,
 {
     type Output = Sqrt5Elt<T>;
-    fn mul(self, rhs: Sqrt5Elt<T>) -> Self::Output {
+    fn mul(self, rhs: &Sqrt5Elt<T>) -> Self::Output {
         let Sqrt5Elt { rt: a, ir: b } = self;
-        let Sqrt5Elt { rt: c, ir: d } = rhs;
+        let &Sqrt5Elt { rt: c, ir: d } = rhs;
         Sqrt5Elt {
             rt: (a * c + b * d * 5) >> 1,
             ir: (a * d + b * c) >> 1,
