@@ -1,3 +1,10 @@
+/// corresponds to (rt + ir sqrt(5))/2.
+#[derive(Debug)]
+pub struct Sqrt5Elt<T> {
+    pub rt: T,
+    pub ir: T,
+}
+
 pub fn prime_sieve(n: usize) -> Vec<u64> {
     let mut vec = Vec::with_capacity(n + 1);
     for _ in 0..(n + 1) {

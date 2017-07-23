@@ -2,6 +2,7 @@
 /// Hilbertschen Modulargruppe des Zahlkörpers Q(sqrt(5)).
 
 use elements::HmfGen;
+use misc::Sqrt5Elt;
 use gmp::mpz::Mpz;
 use std::ops::{AddAssign, SubAssign};
 
@@ -25,13 +26,6 @@ fn points_in_ellipse(a: i64, b: i64, r: i64) -> Vec<(i64, i64)> {
         }
     }
     vec
-}
-
-/// corresponds to (rt + ir sqrt(5))/2.
-#[derive(Debug)]
-struct Sqrt5Elt<T> {
-    rt: T,
-    ir: T,
 }
 
 fn theta_char(alpha: &Sqrt5Elt<i64>, beta: &Sqrt5Elt<i64>, prec: usize) -> HmfGen {
