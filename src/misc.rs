@@ -1,8 +1,84 @@
+use std::ops::{Mul, Add, Sub, Neg, Shr};
+
 /// corresponds to (rt + ir sqrt(5))/2.
 #[derive(Debug)]
 pub struct Sqrt5Elt<T> {
     pub rt: T,
     pub ir: T,
+}
+
+impl<T> Sqrt5Elt<T> {
+    pub fn norm(self) -> T
+    where
+        T: Mul<i64, Output = T>
+            + Add<Output = T>
+            + Mul<T, Output = T>
+            + Sub<Output = T>
+            + Shr<usize, Output = T>
+            + Copy,
+    {
+        let Sqrt5Elt { rt: a, ir: b } = self;
+        (a * a - b * b * 5) >> 2
+    }
+}
+
+impl<T> Add for Sqrt5Elt<T>
+where
+    T: Add<Output = T>,
+{
+    type Output = Sqrt5Elt<T>;
+    fn add(self, other: Sqrt5Elt<T>) -> Sqrt5Elt<T> {
+        Sqrt5Elt {
+            rt: self.rt + other.rt,
+            ir: self.ir + other.ir,
+        }
+    }
+}
+
+impl<T> Sub for Sqrt5Elt<T>
+where
+    T: Sub<Output = T>,
+{
+    type Output = Sqrt5Elt<T>;
+    fn sub(self, other: Sqrt5Elt<T>) -> Sqrt5Elt<T> {
+        Sqrt5Elt {
+            rt: self.rt - other.rt,
+            ir: self.ir - other.ir,
+        }
+    }
+}
+
+impl<T> Neg for Sqrt5Elt<T>
+where
+    T: Neg<Output = T>,
+{
+    type Output = Sqrt5Elt<T>;
+    fn neg(self) -> Sqrt5Elt<T> {
+        Sqrt5Elt {
+            rt: -self.rt,
+            ir: -self.ir,
+        }
+    }
+}
+
+
+impl<T> Mul for Sqrt5Elt<T>
+where
+    T: Mul<i64, Output = T>
+        + Add<Output = T>
+        + Mul<T, Output = T>
+        + Shr<usize, Output = T>
+        + Copy,
+{
+    type Output = Sqrt5Elt<T>;
+    fn mul(self, rhs: Sqrt5Elt<T>) -> Self::Output {
+        let Sqrt5Elt { rt: a, ir: b } = self;
+        let Sqrt5Elt { rt: c, ir: d } = rhs;
+        Sqrt5Elt {
+            rt: (a * c + b * d * 5) >> 1,
+            ir: (a * d + b * c) >> 1,
+        }
+    }
 }
 
 pub fn prime_sieve(n: usize) -> Vec<u64> {
