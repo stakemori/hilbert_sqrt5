@@ -20,7 +20,7 @@ fn points_in_ellipse(a: i64, b: i64, r: i64) -> Vec<(i64, i64)> {
         let n2 = n2 as i64;
         for x in (-n2 - y)..(n2 - y + 1) {
             debug_assert!(x * x + 2 * x * y + 5 * y * y <= 4 * r);
-            if (x - a) & 1 == 0 && (y - b) & 1 == 0 && (x - y - dab) & 0b11 == 0 {
+            if is_even!(x - a) && is_even!(y - b) && (x - y - dab) & 0b11 == 0 {
                 vec.push((x, y))
             }
         }
@@ -40,7 +40,7 @@ fn theta_char(alpha: &Sqrt5Elt<i64>, beta: &Sqrt5Elt<i64>, prec: usize) -> HmfGe
         let trc = (nu_1 * beta.ir + nu_2 * beta.rt) >> 1;
         let v = v as usize;
         let bd = res.u_bds.vec[v] as i64;
-        if trc & 1 == 0 {
+        if is_even!(trc) {
             Mpz::add_assign(res.fcvec.fc_ref_mut(v, u, bd), 1);
         } else {
             Mpz::sub_assign(res.fcvec.fc_ref_mut(v, u, bd), 1);

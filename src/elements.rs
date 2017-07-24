@@ -18,10 +18,14 @@ pub struct HmfGen {
 }
 
 
+macro_rules! is_even {
+    ($expr: expr) => {$expr & 1 == 0}
+}
+
 macro_rules! u_iter {
     ($v: expr, $bd: ident) => {
         {
-            (-$bd..($bd+1)).filter(|&x| (x-$v) & 1 == 0)
+            (-$bd..($bd+1)).filter(|&x| is_even!(x-$v))
         }
     }
 }
