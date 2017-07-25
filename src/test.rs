@@ -1,6 +1,9 @@
 use std::time::Instant;
 use theta_chars::theta;
+use eisenstein::eisenstein_series;
 use misc::prime_sieve;
+use gmp::mpz::Mpz;
+
 
 // Taken from http://qiita.com/pseudo_foxkeh/items/5d5226e3ffa27631e80d
 macro_rules! measure_time {
@@ -20,6 +23,15 @@ mod theta {
     #[test]
     fn theta_fun() {
         measure_time!(theta(10));
+    }
+}
+
+mod eisen {
+    use super::*;
+
+    #[test]
+    fn test_eisen() {
+        measure_time!(eisenstein_series(4, &Mpz::one(), &Mpz::from_ui(240), 30));
     }
 }
 

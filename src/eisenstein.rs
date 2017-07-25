@@ -264,7 +264,7 @@ mod tests {
 
     #[test]
     fn test_eisenstein() {
-        let f = eisenstein_series(4, &Mpz::one(), &Mpz::from_ui(240), 15);
+        let f = eisenstein_series(4, &Mpz::one(), &Mpz::from_ui(240), 30);
         // ellipti c Eisenstein sereis of weight 8
         let ell_eisen = vec![
             "1",
@@ -283,6 +283,21 @@ mod tests {
             "30119288640",
             "50993844480",
             "82051050240",
+            "129863578080",
+            "196962563520",
+            "296296921440",
+            "429058435200",
+            "619245426240",
+            "864918850560",
+            "1206645690240",
+            "1634316215040",
+            "2219855529600",
+            "2929725000480",
+            "3885388234560",
+            "5023266412800",
+            "6527607394560",
+            "8279940628800",
+            "10584585480960",
         ];
         let mut a = Mpz::new();
         assert_eq!(f.fcvec.fc_ref(0, 0, 0).to_str_radix(10), "1");
