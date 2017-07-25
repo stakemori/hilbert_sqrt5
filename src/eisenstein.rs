@@ -90,11 +90,8 @@ fn split_primes_factor(prec: usize, expt: u64, res: &mut HmfGen, u_bds: &UBounds
                 elt_ir_inv.invert_mod_mut(&elt_ir_z, &p_pow_z);
                 let mut u_init_val = (elt.rt * elt_ir_inv.into_ui().unwrap() as i64 * v as i64)
                     .abs() % p_pow;
-                if u_init_val > (p_pow + 1) >> 1 {
+                if u_init_val > p_pow >> 1 {
                     u_init_val = p_pow - u_init_val;
-                }
-                if u_init_val == 0 && is_even!(v) {
-                    mul_factor(res.fcvec.fc_ref_mut(v, 0, bd), &term_m1, &term_last_m1);
                 }
                 let v_i64 = v as i64;
                 for u in (0..)
