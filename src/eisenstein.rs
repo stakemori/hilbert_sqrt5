@@ -67,7 +67,7 @@ fn split_primes_factor(prec: usize, expt: u64, res: &mut HmfGen, u_bds: &UBounds
     {
         let mut p_pow = p as i64;
 
-        mult.set_ui(p);
+        mult.set_ui(p as u64);
         mult.set_pow_ui(expt);
         term_last.set(&mult);
         term.mul_mut(&term_last, &term_last);
@@ -135,8 +135,8 @@ fn innert_primes_factor(prec: usize, expt: u64, res: &mut HmfGen, u_bds: &UBound
         |&x| (x % 5 == 2) | (x % 5 == 3),
     )
     {
-        let mut p_pow = p as usize;
-        mult.set_ui(p);
+        let mut p_pow = p;
+        mult.set_ui(p as u64);
         mult.set_pow_ui(2 * expt);
         term_last.set(&mult);
         term.mul_mut(&term_last, &term_last);
@@ -167,7 +167,7 @@ fn innert_primes_factor(prec: usize, expt: u64, res: &mut HmfGen, u_bds: &UBound
                     mul_factor(res.fcvec.fc_ref_mut(v, -u, bd), &term_m1, &term_last_m1);
                 }
             }
-            p_pow *= p as usize;
+            p_pow *= p;
             term_last.set(&term);
             term *= &mult;
         }

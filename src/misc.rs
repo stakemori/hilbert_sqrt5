@@ -81,7 +81,7 @@ where
     }
 }
 
-pub fn prime_sieve(n: usize) -> Vec<u64> {
+pub fn prime_sieve(n: usize) -> Vec<usize> {
     let mut vec = Vec::with_capacity(n + 1);
     for _ in 0..(n + 1) {
         vec.push(true);
@@ -99,8 +99,8 @@ pub fn prime_sieve(n: usize) -> Vec<u64> {
     let mut res = vec.iter()
         .enumerate()
         .filter(|&(_, &bl)| bl)
-        .map(&|(i, _)| i as u64)
-        .collect::<Vec<u64>>();
+        .map(&|(i, _)| i as usize)
+        .collect::<Vec<usize>>();
     res.remove(0);
     res.remove(0);
     res
