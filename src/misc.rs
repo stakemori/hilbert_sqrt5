@@ -8,7 +8,7 @@ pub struct Sqrt5Elt<T> {
 }
 
 impl<T> Sqrt5Elt<T> {
-    pub fn norm(self) -> T
+    pub fn norm(&self) -> T
     where
         T: Mul<i64, Output = T>
             + Add<Output = T>
@@ -17,7 +17,7 @@ impl<T> Sqrt5Elt<T> {
             + Shr<usize, Output = T>
             + Copy,
     {
-        let Sqrt5Elt { rt: a, ir: b } = self;
+        let &Sqrt5Elt { rt: a, ir: b } = self;
         (a * a - b * b * 5) >> 2
     }
 }
@@ -62,7 +62,7 @@ where
 }
 
 
-impl<'a, T> Mul<&'a Sqrt5Elt<T>> for Sqrt5Elt<T>
+impl<'a, 'b, T> Mul<&'a Sqrt5Elt<T>> for &'b Sqrt5Elt<T>
 where
     T: Mul<i64, Output = T>
         + Add<Output = T>
@@ -72,7 +72,7 @@ where
 {
     type Output = Sqrt5Elt<T>;
     fn mul(self, rhs: &Sqrt5Elt<T>) -> Self::Output {
-        let Sqrt5Elt { rt: a, ir: b } = self;
+        let &Sqrt5Elt { rt: a, ir: b } = self;
         let &Sqrt5Elt { rt: c, ir: d } = rhs;
         Sqrt5Elt {
             rt: (a * c + b * d * 5) >> 1,
