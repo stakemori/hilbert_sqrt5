@@ -6,7 +6,9 @@ use gmp::mpz::Mpz;
 use misc::{Sqrt5Elt, prime_sieve};
 use std::ops::MulAssign;
 
-
+/// Return Eisenstein series of weight k. Asumes l_val_num and l_val_denom are
+/// numerator and denominator of 4 * L(1-k, 𝛘) 𝛇(1-k) where 𝛘 is the quadratic
+/// Diriechlet char of modulo 5.
 pub fn eisenstein_series(k: u64, l_val_num: &Mpz, l_val_denom: &Mpz, prec: usize) -> HmfGen {
     assert!((prec as f64) < (::std::i64::MAX as f64) * 5_f64.sqrt());
     let u_bds = UBounds::new(prec);
