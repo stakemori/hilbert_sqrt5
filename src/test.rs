@@ -42,7 +42,7 @@ mod eisen {
         }
         )
     }
-    
+
     #[test]
     fn test_eisenstein_diagonal() {
         let f = eisenstein_series(4, 100);
