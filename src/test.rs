@@ -1,5 +1,6 @@
 use std::time::Instant;
 use theta_chars::theta;
+use elements::HmfGen;
 use eisenstein::eisenstein_series;
 use misc::prime_sieve;
 use gmp::mpz::Mpz;
@@ -31,8 +32,20 @@ mod eisen {
     use std::ops::AddAssign;
 
     #[test]
+    fn test_e2_sqaured() {
+        let e2 = eisenstein_series(2, 20);
+        let e4 = eisenstein_series(4, 20);
+        let mut f = HmfGen::new(20);
+        measure_time!(f.mul_mut(&e2, &e2));
+        v_u_bd_iter!((f.u_bds, v, u, bd) {
+            assert_eq!(f.fcvec.fc_ref(v, u, bd), e4.fcvec.fc_ref(v, u, bd));
+        }
+        )
+    }
+    
+    #[test]
     fn test_eisenstein_diagonal() {
-        let f = eisenstein_series(4, &Mpz::one(), &Mpz::from_ui(240), 100);
+        let f = eisenstein_series(4, 100);
         // ellipti c Eisenstein sereis of weight 8
         let ell_eisen = vec![
             "1",
@@ -152,7 +165,7 @@ mod eisen {
 
     #[test]
     fn test_eisen() {
-        measure_time!(eisenstein_series(4, &Mpz::one(), &Mpz::from_ui(240), 30));
+        measure_time!(eisenstein_series(4, 30));
     }
 }
 

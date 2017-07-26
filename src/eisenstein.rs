@@ -6,10 +6,44 @@ use gmp::mpz::Mpz;
 use misc::{Sqrt5Elt, prime_sieve};
 use std::ops::MulAssign;
 
+const L_VALS: [(&'static str, &'static str); 15] =
+    [
+        ("120", "1"),
+        ("240", "1"),
+        ("2520", "67"),
+        ("480", "361"),
+        ("6600", "412751"),
+        ("65520", "795286411"),
+        ("120", "568591843"),
+        ("16320", "54701427071177"),
+        ("143640", "571363169189645713"),
+        ("13200", "98510726938027364651"),
+        ("2760", "58282448789678207092153"),
+        ("131040", "11364600197977872303826339891"),
+        ("120", "60097244486962154421889002337"),
+        ("6960", "27553534229181632149212403498558667"),
+        ("4296600", "179897691732312705009829008469165679351567"),
+    ];
+
+/// Return normalized Eisenstein series of weight k
+pub fn eisenstein_series(k: u64, prec: usize) -> HmfGen {
+    assert!(is_even!(k) && 2 <= k && k <= 30);
+    let idx = ((k - 2) >> 1) as usize;
+    let (dns, nms) = L_VALS[idx];
+    let dnm = Mpz::from_str_radix(dns, 10).unwrap();
+    let nm = Mpz::from_str_radix(nms, 10).unwrap();
+    eisenstein_series_from_lvals(k, &nm, &dnm, prec)
+}
+
 /// Return Eisenstein series of weight k. Asumes l_val_num and l_val_denom are
 /// numerator and denominator of 4 * L(1-k, 𝛘) 𝛇(1-k) where 𝛘 is the quadratic
 /// Diriechlet char of modulo 5.
-pub fn eisenstein_series(k: u64, l_val_num: &Mpz, l_val_denom: &Mpz, prec: usize) -> HmfGen {
+pub fn eisenstein_series_from_lvals(
+    k: u64,
+    l_val_num: &Mpz,
+    l_val_denom: &Mpz,
+    prec: usize,
+) -> HmfGen {
     assert!((prec as f64) < (::std::i64::MAX as f64) * 5_f64.sqrt());
     let u_bds = UBounds::new(prec);
     let mut res = HmfGen::new(prec);
