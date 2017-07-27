@@ -19,6 +19,28 @@ macro_rules! measure_time {
   };
 }
 
+mod theta_eisen_relatioin {
+    use super::*;
+
+    #[test]
+    fn test_relation() {
+        let prec = 10;
+        let g5 = theta(prec);
+        println!("{}", g5);
+        let e2 = eisenstein_series(2, prec);
+        let e6 = eisenstein_series(6, prec);
+        let e10 = eisenstein_series(10, prec);
+        let mut tmp = HmfGen::new(prec);
+        tmp.pow_mut(&e2, 5);
+        let f10_1 = tmp.clone();
+        tmp.pow_mut(&e2, 2);
+        let f10_2 = &tmp * &e6;
+        let g5_sq = &g5 * &g5;
+        let g10 = &(&e10 + &(&f10_1 * &Mpz::from_ui(355404))) + &(&f10_2 * &Mpz::from_si(-11465));
+        assert_eq!(&g10 * &Mpz::from_ui(4), &g5_sq * &Mpz::from_ui(5315625));
+    }
+}
+
 mod elements {
     use super::*;
 
