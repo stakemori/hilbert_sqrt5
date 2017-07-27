@@ -201,6 +201,16 @@ impl HmfGen {
             self.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
             })
     }
+
+    pub fn is_zero(&self) -> bool {
+        let mut res = true;
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            if !self.fcvec.fc_ref(v, u, bd).is_zero() {
+                res = false;
+            }
+        });
+        res
+    }
 }
 
 impl<'a> AddAssign<&'a HmfGen> for HmfGen {

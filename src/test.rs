@@ -39,6 +39,18 @@ mod elements {
         tmp.pow_mut(&e2, 7);
         assert_eq!(tmp, g);
     }
+
+    #[test]
+    fn test_op() {
+        let e2 = eisenstein_series(2, 20);
+        let mut tmp = HmfGen::new(20);
+        tmp.mul_mut_by_const(&e2, &Mpz::from_ui(2));
+        assert_eq!(tmp, &e2 + &e2);
+        assert!(!tmp.is_zero());
+        tmp.mul_mut_by_const(&e2, &Mpz::from_ui(0));
+        assert!(tmp.is_zero());
+        assert!((&e2 - &e2).is_zero());
+    }
 }
 
 mod theta {
