@@ -211,6 +211,17 @@ impl HmfGen {
         });
         res
     }
+
+    pub fn fourier_coefficient(&self, v: usize, u: i64) -> Mpz {
+        let bd = self.u_bds.vec[v] as i64;
+        let mut a = Mpz::new();
+        a.set(self.fcvec.fc_ref(v, u, bd));
+        a
+    }
+
+    pub fn fourier_coefficients(&self, vec: &Vec<(usize, i64)>) -> Vec<Mpz> {
+        vec.iter().map(|&(v, u)| self.fourier_coefficient(v, u)).collect()
+    }
 }
 
 impl<'a> AddAssign<&'a HmfGen> for HmfGen {
