@@ -42,6 +42,19 @@ macro_rules! v_u_bd_iter {
     }
 }
 
+macro_rules! v_u_bd_iter_non_const {
+    (($u_bds: expr, $v: ident, $u: ident, $bd: ident) $body:expr) =>
+    {
+        for ($v, &$bd) in $u_bds.vec.iter().enumerate().skip(1) {
+            let $bd = $bd as i64;
+            let v_i64 = $v as i64;
+            for $u in u_iter!(v_i64, $bd) {
+                $body
+            }
+        };
+    }
+}
+
 impl fmt::Display for HmfGen {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let mut vec = Vec::new();
@@ -120,7 +133,7 @@ impl HmfGen {
 
 
     pub fn set_one(&mut self) {
-        v_u_bd_iter!((self.u_bds, v, u, bd) {
+        v_u_bd_iter_non_const!((self.u_bds, v, u, bd) {
             self.fcvec.fc_ref_mut(v, u, bd).set_ui(0);
         });
         self.fcvec.fc_ref_mut(0, 0, 0).set_ui(1);
