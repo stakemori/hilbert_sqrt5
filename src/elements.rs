@@ -1,8 +1,7 @@
 use std;
 use std::fmt;
 use gmp::mpz::Mpz;
-use std::ops::AddAssign;
-use std::ops::MulAssign;
+use std::ops::{AddAssign, MulAssign, Mul, Sub, Neg, Add};
 
 /// struct for hilbert modualr form over Q(sqrt(5))
 /// this corresponds finite sum of the q-expansion of the form
@@ -120,10 +119,28 @@ impl HmfGen {
     }
 
 
+    pub fn set_one(&mut self) {
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            self.fcvec.fc_ref_mut(v, u, bd).set_ui(0);
+        });
+        self.fcvec.fc_ref_mut(0, 0, 0).set_ui(1);
+    }
+
     /// set self = f1 + f2
     pub fn add_mut(&mut self, f1: &HmfGen, f2: &HmfGen) {
         v_u_bd_iter!((self.u_bds, v, u, bd) {
             Mpz::add_mut(
+                self.fcvec.fc_ref_mut(v, u, bd),
+                f1.fcvec.fc_ref(v, u, bd),
+                f2.fcvec.fc_ref(v, u, bd),
+            );
+        })
+    }
+
+    /// set self = f1 - f2
+    pub fn sub_mut(&mut self, f1: &HmfGen, f2: &HmfGen) {
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            Mpz::sub_mut(
                 self.fcvec.fc_ref_mut(v, u, bd),
                 f1.fcvec.fc_ref(v, u, bd),
                 f2.fcvec.fc_ref(v, u, bd),
@@ -146,6 +163,31 @@ impl HmfGen {
             Mpz::mul_mut(self.fcvec.fc_ref_mut(v, u, bd), f.fcvec.fc_ref(v, u, bd), a)
             })
     }
+
+    pub fn pow_mut(&mut self, f: &HmfGen, a: usize) {
+        self.set_one();
+        let s = format!("{:b}", a);
+        let bts = s.into_bytes();
+        let strs: Vec<char> = bts.iter().rev().map(|&i| i as char).collect();
+        let mut tmp = f.clone();
+        for &c in strs.iter() {
+            if c == '0' {
+                tmp.square();
+            } else if c == '1' {
+                Self::mul_assign(self, &tmp);
+                tmp.square();
+            }
+        }
+    }
+
+    fn square(&mut self) {
+        let f = self.clone();
+        let mut tmp = Mpz::from_ui(0);
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            _mul_mut_tmp(&mut tmp, u, v, &f.fcvec, &f.fcvec, &self.u_bds);
+            self.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
+            })
+    }
 }
 
 impl<'a> AddAssign<&'a HmfGen> for HmfGen {
@@ -159,6 +201,58 @@ impl<'a> AddAssign<&'a HmfGen> for HmfGen {
         })
     }
 }
+
+impl<'a, 'b> Add<&'a HmfGen> for &'b HmfGen {
+    type Output = HmfGen;
+    fn add(self, other: &HmfGen) -> HmfGen {
+        let mut res = HmfGen::new(self.prec);
+        res.add_mut(self, other);
+        res
+    }
+}
+
+impl<'a, 'b> Mul<&'a HmfGen> for &'b HmfGen {
+    type Output = HmfGen;
+    fn mul(self, other: &HmfGen) -> HmfGen {
+        let mut res = HmfGen::new(self.prec);
+        res.mul_mut(self, other);
+        res
+    }
+}
+
+impl<'a, 'b> Sub<&'a HmfGen> for &'b HmfGen {
+    type Output = HmfGen;
+    fn sub(self, other: &HmfGen) -> HmfGen {
+        let mut res = HmfGen::new(self.prec);
+        res.sub_mut(self, other);
+        res
+    }
+}
+
+impl<'a> Neg for &'a HmfGen {
+    type Output = HmfGen;
+    fn neg(self) -> HmfGen {
+        let mut res = HmfGen::new(self.prec);
+        let mone = Mpz::from_si(-1);
+        res.mul_mut_by_const(&self, &mone);
+        res
+    }
+}
+
+impl PartialEq for HmfGen {
+    fn eq(&self, other: &HmfGen) -> bool {
+        let mut res = true;
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            if self.fcvec.fc_ref(v, u, bd) != other.fcvec.fc_ref(v, u, bd) {
+                res = false;
+                break;
+            }
+        }
+        );
+        res
+    }
+}
+
 
 /// set (v, u) th F.C. of fc_vec1 * fc_vec2 to a.
 /// This function take care the case when fc_vec2 is sparse.

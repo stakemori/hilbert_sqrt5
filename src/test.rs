@@ -18,6 +18,29 @@ macro_rules! measure_time {
     }
   };
 }
+
+mod elements {
+    use super::*;
+
+    #[test]
+    fn test_pow() {
+        let e2 = eisenstein_series(2, 20);
+        let e4 = eisenstein_series(4, 20);
+        let mut tmp = HmfGen::new(20);
+        let f = &e2 * &e2;
+        assert_eq!(f, e4);
+        let g = &f * &e2;
+        tmp.pow_mut(&e2, 3);
+        assert_eq!(tmp, g);
+        let g = &e2 * &(&e2 * &(&e2 * &(&e2 * &(&e2 * &e2))));
+        tmp.pow_mut(&e2, 6);
+        assert_eq!(tmp, g);
+        let g = &e2 * &(&e2 * &(&e2 * &(&e2 * &(&e2 * &(&e2 * &e2)))));
+        tmp.pow_mut(&e2, 7);
+        assert_eq!(tmp, g);
+    }
+}
+
 mod theta {
     use super::*;
 
