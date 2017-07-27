@@ -254,6 +254,15 @@ impl<'a, 'b> Mul<&'a HmfGen> for &'b HmfGen {
     }
 }
 
+impl<'a, 'b> Mul<&'a Mpz> for &'b HmfGen {
+    type Output = HmfGen;
+    fn mul(self, other: &Mpz) -> HmfGen {
+        let mut res = HmfGen::new(self.prec);
+        res.mul_mut_by_const(self, other);
+        res
+    }
+}
+
 impl<'a, 'b> Sub<&'a HmfGen> for &'b HmfGen {
     type Output = HmfGen;
     fn sub(self, other: &HmfGen) -> HmfGen {
