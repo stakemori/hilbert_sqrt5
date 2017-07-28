@@ -1,7 +1,7 @@
 use std;
 use std::fmt;
 use gmp::mpz::Mpz;
-use std::ops::{AddAssign, MulAssign, Mul, Sub, Neg, Add};
+use std::ops::{AddAssign, MulAssign, DivAssign, Mul, Sub, Neg, Add};
 
 /// struct for hilbert modualr form over Q(sqrt(5))
 /// this corresponds finite sum of the q-expansion of the form
@@ -150,6 +150,15 @@ impl HmfGen {
         })
     }
 
+    pub fn is_divisible_by_const(&self, a: &Mpz) -> bool {
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            if !self.fcvec.fc_ref(v, u, bd).is_multiple_of(&a) {
+                return false;
+            }
+        });
+        true
+    }
+
     /// set self = f1 - f2
     pub fn sub_mut(&mut self, f1: &HmfGen, f2: &HmfGen) {
         v_u_bd_iter!((self.u_bds, v, u, bd) {
@@ -221,6 +230,14 @@ impl HmfGen {
 
     pub fn fourier_coefficients(&self, vec: &Vec<(usize, i64)>) -> Vec<Mpz> {
         vec.iter().map(|&(v, u)| self.fourier_coefficient(v, u)).collect()
+    }
+}
+
+impl<'a> DivAssign<&'a Mpz> for HmfGen {
+    fn div_assign(&mut self, num: &Mpz) {
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            self.fcvec.fc_ref_mut(v, u, bd).set_divexact(&num);
+        })
     }
 }
 
