@@ -25,7 +25,9 @@ mod theta_eisen_relatioin {
     #[test]
     fn test_relation() {
         let prec = 10;
-        let g5 = theta(prec);
+        let mut g5 = theta(prec);
+        assert!(g5.is_divisible_by_const(&Mpz::from_ui(64)));
+        g5 /= &Mpz::from_ui(64);
         println!("{}", g5);
         let e2 = eisenstein_series(2, prec);
         let e6 = eisenstein_series(6, prec);
@@ -36,8 +38,10 @@ mod theta_eisen_relatioin {
         tmp.pow_mut(&e2, 2);
         let f10_2 = &tmp * &e6;
         let g5_sq = &g5 * &g5;
-        let g10 = &(&e10 + &(&f10_1 * &Mpz::from_ui(355404))) + &(&f10_2 * &Mpz::from_si(-11465));
-        assert_eq!(&g10 * &Mpz::from_ui(4), &g5_sq * &Mpz::from_ui(5315625));
+        let mut g10 = &(&e10 + &(&f10_1 * &Mpz::from_ui(355404))) + &(&f10_2 * &Mpz::from_si(-11465));
+        assert!(g10.is_divisible_by_const(&Mpz::from_ui(5315625)));
+        g10 /= &(&Mpz::from_ui(5315625) * &Mpz::from_ui(1024));
+        assert_eq!(&g10, &g5_sq);
     }
 }
 
