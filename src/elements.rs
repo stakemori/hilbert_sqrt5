@@ -212,13 +212,12 @@ impl HmfGen {
     }
 
     pub fn is_zero(&self) -> bool {
-        let mut res = true;
         v_u_bd_iter!((self.u_bds, v, u, bd) {
             if !self.fcvec.fc_ref(v, u, bd).is_zero() {
-                res = false;
+                return false;
             }
         });
-        res
+        true
     }
 
     pub fn fourier_coefficient(&self, v: usize, u: i64) -> Mpz {
@@ -301,15 +300,13 @@ impl<'a> Neg for &'a HmfGen {
 
 impl PartialEq for HmfGen {
     fn eq(&self, other: &HmfGen) -> bool {
-        let mut res = true;
         v_u_bd_iter!((self.u_bds, v, u, bd) {
             if self.fcvec.fc_ref(v, u, bd) != other.fcvec.fc_ref(v, u, bd) {
-                res = false;
-                break;
+                return false;
             }
         }
         );
-        res
+        true
     }
 }
 
