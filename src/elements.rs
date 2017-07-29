@@ -103,6 +103,7 @@ pub struct UBounds {
 impl UBounds {
     pub fn new(prec: usize) -> UBounds {
         assert!(5 * prec * prec < std::usize::MAX);
+        assert!(prec < std::i64::MAX as usize);
         let mut u_bds = Vec::new();
         let sqrt5 = 5_f64.sqrt();
         for v in 0..(prec + 1) {
@@ -228,7 +229,9 @@ impl HmfGen {
     }
 
     pub fn fourier_coefficients(&self, vec: &Vec<(usize, i64)>) -> Vec<Mpz> {
-        vec.iter().map(|&(v, u)| self.fourier_coefficient(v, u)).collect()
+        vec.iter()
+            .map(|&(v, u)| self.fourier_coefficient(v, u))
+            .collect()
     }
 }
 
