@@ -1,10 +1,12 @@
 /// Implemention of Theta in Satz 2, Gundlach, Die Bestimmung der Functionen zur
 /// Hilbertschen Modulargruppe des Zahlkörpers Q(sqrt(5)).
 
-use elements::HmfGen;
+use elements::{HmfGen, UBounds};
+use eisenstein::eisenstein_series;
 use misc::Sqrt5Elt;
 use gmp::mpz::Mpz;
 use std::ops::{AddAssign, SubAssign};
+use std::cmp::min;
 
 /// Return vec of (x, y) s.t. (x^2 + 2xy + 5y^2)/4 <= r and x equiv a, y equiv b
 /// mod 2, (x-a)/2 equiv (x-b)/2 mod 2.
@@ -90,10 +92,116 @@ pub fn theta(prec: usize) -> HmfGen {
     res
 }
 
+fn theta_squared(prec: usize) -> HmfGen {
+    let e2 = eisenstein_series(2, prec);
+    let e6 = eisenstein_series(6, prec);
+    let e10 = eisenstein_series(10, prec);
+    let mut tmp = HmfGen::new(prec);
+    tmp.pow_mut(&e2, 5);
+    let f10_1 = tmp.clone();
+    tmp.pow_mut(&e2, 2);
+    let f10_2 = &tmp * &e6;
+    let mut g10 = &(&e10 + &(&f10_1 * &Mpz::from_ui(355404))) + &(&f10_2 * &Mpz::from_si(-11465));
+    g10 /= &Mpz::from_ui(5443200000);
+    g10
+}
+/// Assuming g and h are symmetric (invariant under (u -> -u)),
+/// Add v_g + v_h coefficient (Laurant polynomial of e(u)) of f
+/// by the product of g[v_g], h[v_h] and c.
+fn add_mul_mut(
+    f_vec: &mut Vec<Mpz>,
+    g_vec: &Vec<Mpz>,
+    h_vec: &Vec<Mpz>,
+    v_g: usize,
+    v_h: usize,
+    u_bds: &UBounds,
+) {
+    let mut tmp = Mpz::from_ui(0);
+    let bd_g = u_bds.vec[v_g];
+    let bd_h = u_bds.vec[v_h];
+    let bd_gh = u_bds.vec[v_g + v_h];
+    // naive implementation of polynomial multiplication
+    if is_even!(v_g + v_h) {
+        tmp.set_ui(0);
+        for i in (1..(min(bd_g, bd_h) + 1)).filter(|&x| is_even!(v_g + x)) {
+            tmp.mul_mut(&g_vec[i + bd_g], &h_vec[i + bd_h]);
+            tmp <<= 1;
+            Mpz::add_assign(&mut f_vec[0 + bd_gh], &tmp);
+            if !tmp.is_zero() {
+                println!("{}, {}", i, &tmp);
+            }
+        }
+    }
+
+    for i in (0..(bd_g + 1)).filter(|&x| is_even!(v_g + x)) {
+        for j in (0..(bd_h + 1)).filter(|&x| is_even!(v_h + x)) {
+            f_vec[i + j + bd_gh].addmul_mut(&g_vec[i + bd_g], &h_vec[j + bd_h]);
+        }
+    }
+
+    for i in (1..(bd_g + 1)).filter(|&x| is_even!(v_g + x)) {
+        for j in ((i + 1)..(bd_h + 1)).filter(|&x| is_even!(v_h + x)) {
+            f_vec[j - i + bd_gh].addmul_mut(&g_vec[i + bd_g], &h_vec[j + bd_h]);
+        }
+    }
+
+    for j in (1..(bd_h + 1)).filter(|&x| is_even!(v_h + x)) {
+        for i in ((j + 1)..(bd_g + 1)).filter(|&x| is_even!(v_g + x)) {
+            f_vec[i - j + bd_gh].addmul_mut(&g_vec[i + bd_g], &h_vec[j + bd_h]);
+        }
+    }
+
+    let bd_ghi = bd_gh as i64;
+    for i in (1..(bd_gh + 1)).filter(|&x| is_even!(x + v_g + v_h)) {
+        tmp.set(&f_vec[i + bd_gh]);
+        let i = i as i64;
+        Mpz::add_assign(&mut f_vec[(-i + bd_ghi) as usize], &tmp);
+    }
+}
+
+/// set f = g / (q_1 - q_1^(-1))^2, where q_1 = e(u).
+fn divide_by_squared(f: &mut HmfGen, g: &HmfGen) {
+    let prec = g.prec;
+    for v in 2..(prec + 1) {
+        let bd = g.u_bds.vec[v] - 2;
+        let v_mod2 = if is_even!(v) { 0 as usize } else { 1 as usize };
+        let bd_i = bd as i64;
+        let mut tmp = Mpz::new();
+        if is_even!(bd + v_mod2) {
+            f.fcvec.fc_ref_mut(v, bd_i, bd_i + 2).set(g.fcvec.fc_ref(
+                v,
+                bd_i + 2,
+                bd_i + 2,
+            ));
+        }
+
+        let bd_i = bd as i64;
+        for u in (0..bd).filter(|&x| is_even!(x + v_mod2 + bd - 1)) {
+            let u_i = bd_i - 1 - (u as i64);
+            tmp.set(g.fcvec.fc_ref(v, u_i + 2, bd_i + 2));
+            if u_i + 4 <= bd_i {
+                tmp -= f.fcvec.fc_ref(v, u_i + 4, bd_i + 2);
+            }
+            if u_i + 2 <= bd_i {
+                tmp += f.fcvec.fc_ref(v, u_i + 2, bd_i + 2);
+                tmp += f.fcvec.fc_ref(v, u_i + 2, bd_i + 2);
+            }
+            f.fcvec.fc_ref_mut(v, u_i, bd_i + 2).set(&tmp);
+        }
+
+        for u in (1..(bd + 1)).filter(|&x| is_even!(x + v_mod2)) {
+            let u_i = u as i64;
+            tmp.set(f.fcvec.fc_ref(v, u_i, bd_i + 2));
+            f.fcvec.fc_ref_mut(v, -u_i, bd_i + 2).set(&tmp);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    #[ignore]
     #[test]
     fn test_points_in_ellipse() {
         let r = 10000;
@@ -103,6 +211,7 @@ mod tests {
         assert_eq!(points_in_ellipse(1, 1, r).len(), 7860);
     }
 
+    #[ignore]
     #[test]
     fn test_theta_0_eps() {
         let f = theta_0_eps(5);
@@ -112,5 +221,52 @@ mod tests {
                 assert!(u & 0b111 == 0 && v & 0b111 == 0);
             }
         });
+    }
+
+    fn print_vth_cf(f: &HmfGen, v: usize) {
+        let bd = f.u_bds.vec[v] as i64;
+        let v_i = v as i64;
+        let mut res = Vec::new();
+        for u in (-bd..(bd + 1)).filter(|u| is_even!(v_i + u)) {
+            let a = f.fcvec.fc_ref(v, u, bd);
+            if !a.is_zero() {
+                res.push(format!("({}) * q1**({})", a, u));
+            }
+        }
+        println!("{}", res.join(" + "));
+    }
+
+    #[ignore]
+    #[test]
+    fn test_divide() {
+        let mut f = HmfGen::new(10);
+        let g = theta_squared(10);
+        divide_by_squared(&mut f, &g);
+        for v in 2..11 {
+            println!("{}", v);
+            print_vth_cf(&g, v);
+            print_vth_cf(&f, v);
+        }
+    }
+
+    #[ignore]
+    #[test]
+    fn test_add_mul_mut() {
+        let mut f = HmfGen::new(10);
+        let g = eisenstein_series(2, 10);
+        let h = eisenstein_series(4, 10);
+        let v_g = 2;
+        let v_h = 4;
+        add_mul_mut(
+            &mut f.fcvec.vec[v_g + v_h],
+            &g.fcvec.vec[v_g],
+            &h.fcvec.vec[v_h],
+            v_g,
+            v_h,
+            &f.u_bds,
+        );
+        print_vth_cf(&g, v_g);
+        print_vth_cf(&h, v_h);
+        print_vth_cf(&f, v_g + v_h);
     }
 }
