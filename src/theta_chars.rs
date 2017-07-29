@@ -105,57 +105,100 @@ fn theta_squared(prec: usize) -> HmfGen {
     g10 /= &Mpz::from_ui(5443200000);
     g10
 }
-/// Assuming g and h are symmetric (invariant under (u -> -u)),
-/// Add v_g + v_h coefficient (Laurant polynomial of e(u)) of f
-/// by the product of g[v_g], h[v_h] and c.
-fn add_mul_mut(
-    f_vec: &mut Vec<Mpz>,
-    g_vec: &Vec<Mpz>,
-    h_vec: &Vec<Mpz>,
-    v_g: usize,
-    v_h: usize,
-    u_bds: &UBounds,
-) {
-    let mut tmp = Mpz::from_ui(0);
-    let bd_g = u_bds.vec[v_g];
-    let bd_h = u_bds.vec[v_h];
-    let bd_gh = u_bds.vec[v_g + v_h];
-    // naive implementation of polynomial multiplication
-    if is_even!(v_g + v_h) {
-        tmp.set_ui(0);
-        for i in (1..(min(bd_g, bd_h) + 1)).filter(|&x| is_even!(v_g + x)) {
-            tmp.mul_mut(&g_vec[i + bd_g], &h_vec[i + bd_h]);
-            tmp <<= 1;
-            Mpz::add_assign(&mut f_vec[0 + bd_gh], &tmp);
-            if !tmp.is_zero() {
-                println!("{}, {}", i, &tmp);
+
+
+/// Return normalized cusp form of weight that is propotional to the return
+/// value of theta(prec).
+pub fn theta1(prec: usize) -> HmfGen {
+    let g10 = theta_squared(prec);
+
+    let mut res = HmfGen::new(prec);
+    {
+        let bd1 = res.u_bds.vec[1] as i64;
+        for u in 1..(bd1 + 1) {
+            res.fcvec.fc_ref_mut(1, u, bd1 as i64);
+            res.fcvec.fc_ref_mut(1, -u, bd1 as i64);
+        }
+    }
+    let mut g10_divd = HmfGen::new(prec);
+    divide_by_squared(&mut g10_divd, &g10);
+    let mut g10_divd_2 = g10_divd.clone();
+    g10_divd_2 <<= 1;
+    for v in 2..(prec + 1) {
+        let v_d = v >> 1;
+    }
+    res
+}
+
+
+mod fcvec {
+    use super::*;
+    pub fn sub_assign(f_vec: &mut Vec<Mpz>, g_vec: &Vec<Mpz>, v: usize, u_bds: &UBounds) {
+        let bd = u_bds.vec[v];
+        for i in (0..(bd + 1)).filter(|x| is_even!(x + v)) {
+            Mpz::sub_assign(&mut f_vec[bd + i], &g_vec[bd + i]);
+        }
+        for i in (1..(bd + 1)).filter(|x| is_even!(x + v)) {
+            let idx = bd - i;
+            Mpz::sub_assign(&mut f_vec[idx], &g_vec[idx])
+        }
+    }
+
+    /// Assuming g and h are symmetric (invariant under (u -> -u)), set v_g +
+    /// v_h coefficient (Laurant polynomial of e(u)) to the product of g[v_g],
+    /// h[v_h] and c.
+    pub fn mul_mut(
+        f_vec: &mut Vec<Mpz>,
+        g_vec: &Vec<Mpz>,
+        h_vec: &Vec<Mpz>,
+        v_g: usize,
+        v_h: usize,
+        u_bds: &UBounds,
+    ) {
+        let mut tmp = Mpz::from_ui(0);
+        let bd_g = u_bds.vec[v_g];
+        let bd_h = u_bds.vec[v_h];
+        let bd_gh = u_bds.vec[v_g + v_h];
+
+        for i in (0..(bd_gh + 1)).filter(|&x| is_even!(v_g + v_h + x)) {
+            f_vec[i + bd_gh].set_ui(0);
+            f_vec[bd_gh - i].set_ui(0);
+        }
+
+        // naive implementation of polynomial multiplication
+        if is_even!(v_g + v_h) {
+            tmp.set_ui(0);
+            for i in (1..(min(bd_g, bd_h) + 1)).filter(|&x| is_even!(v_g + x)) {
+                tmp.mul_mut(&g_vec[i + bd_g], &h_vec[i + bd_h]);
+                tmp <<= 1;
+                Mpz::add_assign(&mut f_vec[0 + bd_gh], &tmp);
             }
         }
-    }
 
-    for i in (0..(bd_g + 1)).filter(|&x| is_even!(v_g + x)) {
-        for j in (0..(bd_h + 1)).filter(|&x| is_even!(v_h + x)) {
-            f_vec[i + j + bd_gh].addmul_mut(&g_vec[i + bd_g], &h_vec[j + bd_h]);
+        for i in (0..(bd_g + 1)).filter(|&x| is_even!(v_g + x)) {
+            for j in (0..(bd_h + 1)).filter(|&x| is_even!(v_h + x)) {
+                f_vec[i + j + bd_gh].addmul_mut(&g_vec[i + bd_g], &h_vec[j + bd_h]);
+            }
         }
-    }
 
-    for i in (1..(bd_g + 1)).filter(|&x| is_even!(v_g + x)) {
-        for j in ((i + 1)..(bd_h + 1)).filter(|&x| is_even!(v_h + x)) {
-            f_vec[j - i + bd_gh].addmul_mut(&g_vec[i + bd_g], &h_vec[j + bd_h]);
+        for i in (1..(bd_g + 1)).filter(|&x| is_even!(v_g + x)) {
+            for j in ((i + 1)..(bd_h + 1)).filter(|&x| is_even!(v_h + x)) {
+                f_vec[j - i + bd_gh].addmul_mut(&g_vec[i + bd_g], &h_vec[j + bd_h]);
+            }
         }
-    }
 
-    for j in (1..(bd_h + 1)).filter(|&x| is_even!(v_h + x)) {
-        for i in ((j + 1)..(bd_g + 1)).filter(|&x| is_even!(v_g + x)) {
-            f_vec[i - j + bd_gh].addmul_mut(&g_vec[i + bd_g], &h_vec[j + bd_h]);
+        for j in (1..(bd_h + 1)).filter(|&x| is_even!(v_h + x)) {
+            for i in ((j + 1)..(bd_g + 1)).filter(|&x| is_even!(v_g + x)) {
+                f_vec[i - j + bd_gh].addmul_mut(&g_vec[i + bd_g], &h_vec[j + bd_h]);
+            }
         }
-    }
 
-    let bd_ghi = bd_gh as i64;
-    for i in (1..(bd_gh + 1)).filter(|&x| is_even!(x + v_g + v_h)) {
-        tmp.set(&f_vec[i + bd_gh]);
-        let i = i as i64;
-        Mpz::add_assign(&mut f_vec[(-i + bd_ghi) as usize], &tmp);
+        let bd_ghi = bd_gh as i64;
+        for i in (1..(bd_gh + 1)).filter(|&x| is_even!(x + v_g + v_h)) {
+            tmp.set(&f_vec[i + bd_gh]);
+            let i = i as i64;
+            f_vec[(-i + bd_ghi) as usize].set(&tmp);
+        }
     }
 }
 
@@ -249,15 +292,14 @@ mod tests {
         }
     }
 
-    #[ignore]
     #[test]
-    fn test_add_mul_mut() {
+    fn test_mul_mut() {
         let mut f = HmfGen::new(10);
         let g = eisenstein_series(2, 10);
         let h = eisenstein_series(4, 10);
         let v_g = 2;
         let v_h = 4;
-        add_mul_mut(
+        fcvec::mul_mut(
             &mut f.fcvec.vec[v_g + v_h],
             &g.fcvec.vec[v_g],
             &h.fcvec.vec[v_h],
