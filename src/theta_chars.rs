@@ -109,7 +109,7 @@ fn theta_squared(prec: usize) -> HmfGen {
 
 /// Return normalized cusp form of weight that is propotional to the return
 /// value of theta(prec).
-pub fn theta1(prec: usize) -> HmfGen {
+pub fn g5(prec: usize) -> HmfGen {
     let prec = prec + 1;
     let g10 = theta_squared(prec);
     let mut f10 = HmfGen::new(prec);
@@ -127,7 +127,7 @@ pub fn theta1(prec: usize) -> HmfGen {
 
     let u_bds = g10.u_bds;
     for v in 3..(prec + 1) {
-        let v_d = if is_even!(v) {v >> 1} else {(v >> 1) + 1};
+        let v_d = if is_even!(v) { v >> 1 } else { (v >> 1) + 1 };
         if is_even!(v) {
             fcvec::mul_mut(
                 &mut tmp.fcvec.vec[v],
@@ -248,7 +248,7 @@ mod fcvec {
         let bd_h = u_bds.vec[v_h];
         let bd_gh = u_bds.vec[v_g + v_h];
 
-        for i in (0..(bd_gh + 1)).filter(|&x| is_even!(v_g + v_h + x + parity_gh + 1)) {
+        for i in (0..(bd_gh + 1)).filter(|&x| is_even!(v_g + v_h + x + parity_gh)) {
             f_vec[i + gap_gh].set_ui(0);
             f_vec[gap_gh - i].set_ui(0);
         }
@@ -326,19 +326,6 @@ fn divide_by_squared(f: &mut HmfGen, g: &HmfGen) {
     }
 }
 
-fn print_vth_cf(f: &HmfGen, v: usize) {
-    let bd = f.u_bds.vec[v] as i64;
-    let v_i = v as i64;
-    let mut res = Vec::new();
-    for u in (-bd..(bd + 1)).filter(|u| is_even!(v_i + u)) {
-        let a = f.fcvec.fc_ref(v, u, bd);
-        if !a.is_zero() {
-            res.push(format!("({}) * q1**({})", a, u));
-        }
-    }
-    println!("{}", res.join(" + "));
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -364,6 +351,20 @@ mod tests {
             }
         });
     }
+
+    fn print_vth_cf(f: &HmfGen, v: usize) {
+        let bd = f.u_bds.vec[v] as i64;
+        let v_i = v as i64;
+        let mut res = Vec::new();
+        for u in (-bd..(bd + 1)).filter(|u| is_even!(v_i + u)) {
+            let a = f.fcvec.fc_ref(v, u, bd);
+            if !a.is_zero() {
+                res.push(format!("({}) * q1**({})", a, u));
+            }
+        }
+        println!("{}", res.join(" + "));
+    }
+
 
     #[ignore]
     #[test]

@@ -1,5 +1,5 @@
 use std::time::Instant;
-use theta_chars::{theta, theta1};
+use theta_chars::{theta, g5};
 use elements::HmfGen;
 use eisenstein::eisenstein_series;
 use misc::prime_sieve;
@@ -83,20 +83,28 @@ mod theta_fast {
     use super::*;
 
     #[test]
-    fn test_theta1() {
-        let mut f = theta(10);
-        assert!(f.is_divisible_by_const(&Mpz::from_ui(64)));
-        f /= &Mpz::from_ui(64);
-        println!("{}", f);
+    fn test_g5() {
+        let prec = 15;
+        let f = g5(prec);
+        let mut g = theta(prec);
+        g /= &Mpz::from_ui(64);
+        v_u_bd_iter!((f.u_bds, v, u, bd) {
+            assert_eq!(f.fcvec.fc_ref(v, u, bd), g.fcvec.fc_ref(v, u, bd));
+        });
     }
 }
 
-mod theta {
+mod theta_char {
     use super::*;
 
     #[test]
     fn theta_fun() {
         measure_time!(theta(10));
+    }
+
+    #[test]
+    fn theta_fun1() {
+        measure_time!(g5(50));
     }
 }
 
