@@ -1,6 +1,7 @@
 use std;
 use std::fmt;
 use gmp::mpz::Mpz;
+use misc::{pow_mut, PowGen};
 use std::ops::{AddAssign, MulAssign, DivAssign, ShlAssign, Mul, Sub, Neg, Add};
 
 /// struct for hilbert modualr form over Q(sqrt(5))
@@ -113,6 +114,24 @@ impl UBounds {
     }
 }
 
+impl PowGen for HmfGen {
+    fn set_one(&mut self) {
+        v_u_bd_iter_non_const!((self.u_bds, v, u, bd) {
+            self.fcvec.fc_ref_mut(v, u, bd).set_ui(0);
+        });
+        self.fcvec.fc_ref_mut(0, 0, 0).set_ui(1);
+    }
+
+    fn square(&mut self) {
+        let f = self.clone();
+        let mut tmp = Mpz::from_ui(0);
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            _mul_mut_tmp(&mut tmp, u, v, &f.fcvec, &f.fcvec, &self.u_bds);
+            self.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
+            })
+    }
+}
+
 impl HmfGen {
     /// Return 0 q-expantion
     pub fn new(prec: usize) -> HmfGen {
@@ -130,14 +149,6 @@ impl HmfGen {
         let mut f = Self::new(prec);
         f.fcvec.fc_ref_mut(0, 0, 0).set_ui(1);
         f
-    }
-
-
-    pub fn set_one(&mut self) {
-        v_u_bd_iter_non_const!((self.u_bds, v, u, bd) {
-            self.fcvec.fc_ref_mut(v, u, bd).set_ui(0);
-        });
-        self.fcvec.fc_ref_mut(0, 0, 0).set_ui(1);
     }
 
     /// set self = f1 + f2
@@ -188,28 +199,7 @@ impl HmfGen {
     }
 
     pub fn pow_mut(&mut self, f: &HmfGen, a: usize) {
-        self.set_one();
-        let s = format!("{:b}", a);
-        let bts = s.into_bytes();
-        let strs: Vec<char> = bts.iter().rev().map(|&i| i as char).collect();
-        let mut tmp = f.clone();
-        for &c in strs.iter() {
-            if c == '0' {
-                tmp.square();
-            } else if c == '1' {
-                Self::mul_assign(self, &tmp);
-                tmp.square();
-            }
-        }
-    }
-
-    pub fn square(&mut self) {
-        let f = self.clone();
-        let mut tmp = Mpz::from_ui(0);
-        v_u_bd_iter!((self.u_bds, v, u, bd) {
-            _mul_mut_tmp(&mut tmp, u, v, &f.fcvec, &f.fcvec, &self.u_bds);
-            self.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
-            })
+        pow_mut(self, f, a);
     }
 
     pub fn is_zero(&self) -> bool {

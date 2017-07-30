@@ -1,4 +1,29 @@
-use std::ops::{Mul, Add, Sub, Neg, Shr};
+use std::ops::{Mul, Add, Sub, Neg, Shr, MulAssign};
+
+pub trait PowGen {
+    fn set_one(&mut self);
+    fn square(&mut self);
+}
+
+pub fn pow_mut<T>(res: &mut T, f: &T, a: usize)
+where
+    for<'a> T: MulAssign<&'a T>,
+    T: Clone + PowGen,
+{
+    res.set_one();
+    let s = format!("{:b}", a);
+    let bts = s.into_bytes();
+    let strs: Vec<char> = bts.iter().rev().map(|&i| i as char).collect();
+    let mut tmp = f.clone();
+    for &c in strs.iter() {
+        if c == '0' {
+            tmp.square();
+        } else if c == '1' {
+            T::mul_assign(res, &tmp);
+            tmp.square();
+        }
+    }
+}
 
 /// corresponds to (rt + ir sqrt(5))/2.
 #[derive(Debug, Clone)]

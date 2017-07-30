@@ -3,7 +3,7 @@
 
 use elements::{HmfGen, UBounds};
 use eisenstein::eisenstein_series;
-use misc::Sqrt5Elt;
+use misc::{Sqrt5Elt, PowGen};
 use gmp::mpz::Mpz;
 use std::ops::{AddAssign, SubAssign};
 use std::cmp::min;
