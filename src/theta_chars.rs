@@ -95,15 +95,19 @@ pub fn theta(prec: usize) -> HmfGen {
 fn theta_squared(prec: usize) -> HmfGen {
     let e2 = eisenstein_series(2, prec);
     let e6 = eisenstein_series(6, prec);
-    let e10 = eisenstein_series(10, prec);
+    let mut res= eisenstein_series(10, prec);
     let mut tmp = HmfGen::new(prec);
-    tmp.pow_mut(&e2, 5);
-    let f10_1 = tmp.clone();
     tmp.pow_mut(&e2, 2);
-    let f10_2 = &tmp * &e6;
-    let mut g10 = &(&e10 + &(&f10_1 * &Mpz::from_ui(355404))) + &(&f10_2 * &Mpz::from_si(-11465));
-    g10 /= &Mpz::from_ui(5443200000);
-    g10
+    let mut f10_2 = &tmp * &e6;
+    tmp.square();
+    tmp *= &e2;
+    let mut f10_1 = tmp.clone();
+    f10_2 *= &Mpz::from_si(-11465);
+    f10_1 *= &Mpz::from_ui(355404);
+    res += &f10_2;
+    res += &f10_1;
+    res /= &Mpz::from_ui(5443200000);
+    res
 }
 
 
