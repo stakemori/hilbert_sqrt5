@@ -110,22 +110,83 @@ fn theta_squared(prec: usize) -> HmfGen {
 /// Return normalized cusp form of weight that is propotional to the return
 /// value of theta(prec).
 pub fn theta1(prec: usize) -> HmfGen {
+    let prec = prec + 1;
     let g10 = theta_squared(prec);
+    let mut f10 = HmfGen::new(prec);
+    divide_by_squared(&mut f10, &g10);
 
-    let mut res = HmfGen::new(prec);
+    let mut tmp = HmfGen::new(prec);
+    let mut res = HmfGen::new(prec - 1);
     {
         let bd1 = res.u_bds.vec[1] as i64;
         for u in 1..(bd1 + 1) {
-            res.fcvec.fc_ref_mut(1, u, bd1 as i64);
-            res.fcvec.fc_ref_mut(1, -u, bd1 as i64);
+            res.fcvec.fc_ref_mut(1, u, bd1 as i64).set_ui(1);
+            res.fcvec.fc_ref_mut(1, -u, bd1 as i64).set_si(-1);
         }
     }
-    let mut g10_divd = HmfGen::new(prec);
-    divide_by_squared(&mut g10_divd, &g10);
-    let mut g10_divd_2 = g10_divd.clone();
-    g10_divd_2 <<= 1;
-    for v in 2..(prec + 1) {
-        let v_d = v >> 1;
+
+    let u_bds = g10.u_bds;
+    for v in 3..(prec + 1) {
+        let v_d = if is_even!(v) {v >> 1} else {(v >> 1) + 1};
+        if is_even!(v) {
+            fcvec::mul_mut(
+                &mut tmp.fcvec.vec[v],
+                &f10.fcvec.vec[v_d + 1],
+                &f10.fcvec.vec[v_d + 1],
+                v_d,
+                v_d,
+                u_bds.vec[v_d + 1],
+                u_bds.vec[v_d + 1],
+                u_bds.vec[v],
+                &u_bds,
+                1,
+                1,
+                0,
+            );
+            fcvec::sub_assign(&mut f10.fcvec.vec[v], &tmp.fcvec.vec[v], v, &u_bds);
+        }
+        fcvec::shr_assign(&mut f10.fcvec.vec[v], v, &u_bds, 1);
+        for i in 2..v_d {
+            fcvec::mul_mut(
+                &mut tmp.fcvec.vec[v],
+                &f10.fcvec.vec[i + 1],
+                &f10.fcvec.vec[v - i + 1],
+                i,
+                v - i,
+                u_bds.vec[i + 1],
+                u_bds.vec[v - i + 1],
+                u_bds.vec[v],
+                &u_bds,
+                1,
+                1,
+                0,
+            );
+            fcvec::sub_assign(&mut f10.fcvec.vec[v], &tmp.fcvec.vec[v], v, &u_bds);
+        }
+    }
+
+    let mut tmp_z = Mpz::new();
+    for v in 2..prec {
+        let bd = u_bds.vec[v] as i64;
+        let bd_1 = u_bds.vec[v + 1] as i64;
+        let v_i = v as i64;
+        if is_even!(v_i + bd) {
+            res.fcvec.fc_ref_mut(v, bd, bd).set(f10.fcvec.fc_ref(
+                v + 1,
+                bd - 1,
+                bd_1,
+            ));
+        }
+        for u in (1..bd).filter(|i| is_even!(i + v_i)) {
+            tmp_z.set(f10.fcvec.fc_ref(v + 1, u - 1, bd_1));
+            tmp_z -= f10.fcvec.fc_ref(v + 1, u + 1, bd_1);
+            res.fcvec.fc_ref_mut(v, u, bd).set(&tmp_z);
+        }
+        for u in (1..(bd + 1)).filter(|i| is_even!(i + v_i)) {
+            tmp_z.set(res.fcvec.fc_ref(v, u, bd));
+            tmp_z.negate();
+            res.fcvec.fc_ref_mut(v, -u, bd).set(&tmp_z);
+        }
     }
     res
 }
@@ -133,6 +194,27 @@ pub fn theta1(prec: usize) -> HmfGen {
 
 mod fcvec {
     use super::*;
+    #[allow(dead_code)]
+    pub fn shl_assign(f_vec: &mut Vec<Mpz>, v: usize, u_bds: &UBounds, a: usize) {
+        let bd = u_bds.vec[v];
+        for i in (0..(bd + 1)).filter(|x| is_even!(x + v)) {
+            f_vec[bd + i] <<= a;
+        }
+        for i in (1..(bd + 1)).filter(|x| is_even!(x + v)) {
+            f_vec[bd - i] <<= a;
+        }
+    }
+
+    pub fn shr_assign(f_vec: &mut Vec<Mpz>, v: usize, u_bds: &UBounds, a: usize) {
+        let bd = u_bds.vec[v];
+        for i in (0..(bd + 1)).filter(|x| is_even!(x + v)) {
+            f_vec[bd + i] >>= a;
+        }
+        for i in (1..(bd + 1)).filter(|x| is_even!(x + v)) {
+            f_vec[bd - i] >>= a;
+        }
+    }
+
     pub fn sub_assign(f_vec: &mut Vec<Mpz>, g_vec: &Vec<Mpz>, v: usize, u_bds: &UBounds) {
         let bd = u_bds.vec[v];
         for i in (0..(bd + 1)).filter(|x| is_even!(x + v)) {
@@ -153,51 +235,55 @@ mod fcvec {
         h_vec: &Vec<Mpz>,
         v_g: usize,
         v_h: usize,
+        gap_g: usize,
+        gap_h: usize,
+        gap_gh: usize,
         u_bds: &UBounds,
+        parity_g: usize,
+        parity_h: usize,
+        parity_gh: usize,
     ) {
         let mut tmp = Mpz::from_ui(0);
         let bd_g = u_bds.vec[v_g];
         let bd_h = u_bds.vec[v_h];
         let bd_gh = u_bds.vec[v_g + v_h];
 
-        for i in (0..(bd_gh + 1)).filter(|&x| is_even!(v_g + v_h + x)) {
-            f_vec[i + bd_gh].set_ui(0);
-            f_vec[bd_gh - i].set_ui(0);
+        for i in (0..(bd_gh + 1)).filter(|&x| is_even!(v_g + v_h + x + parity_gh + 1)) {
+            f_vec[i + gap_gh].set_ui(0);
+            f_vec[gap_gh - i].set_ui(0);
         }
 
         // naive implementation of polynomial multiplication
-        if is_even!(v_g + v_h) {
+        if is_even!(v_g + v_h + parity_gh) {
             tmp.set_ui(0);
-            for i in (1..(min(bd_g, bd_h) + 1)).filter(|&x| is_even!(v_g + x)) {
-                tmp.mul_mut(&g_vec[i + bd_g], &h_vec[i + bd_h]);
+            for i in (1..(min(bd_g, bd_h) + 1)).filter(|&x| is_even!(v_g + x + parity_g)) {
+                tmp.mul_mut(&g_vec[i + gap_g], &h_vec[i + gap_h]);
                 tmp <<= 1;
-                Mpz::add_assign(&mut f_vec[0 + bd_gh], &tmp);
+                Mpz::add_assign(&mut f_vec[0 + gap_gh], &tmp);
             }
         }
 
-        for i in (0..(bd_g + 1)).filter(|&x| is_even!(v_g + x)) {
-            for j in (0..(bd_h + 1)).filter(|&x| is_even!(v_h + x)) {
-                f_vec[i + j + bd_gh].addmul_mut(&g_vec[i + bd_g], &h_vec[j + bd_h]);
+        for i in (0..(bd_g + 1)).filter(|&x| is_even!(v_g + x + parity_g)) {
+            for j in (0..(bd_h + 1)).filter(|&x| is_even!(v_h + x + parity_h)) {
+                f_vec[i + j + gap_gh].addmul_mut(&g_vec[i + gap_g], &h_vec[j + gap_h]);
             }
         }
 
-        for i in (1..(bd_g + 1)).filter(|&x| is_even!(v_g + x)) {
-            for j in ((i + 1)..(bd_h + 1)).filter(|&x| is_even!(v_h + x)) {
-                f_vec[j - i + bd_gh].addmul_mut(&g_vec[i + bd_g], &h_vec[j + bd_h]);
+        for i in (1..(bd_g + 1)).filter(|&x| is_even!(v_g + x + parity_g)) {
+            for j in ((i + 1)..(bd_h + 1)).filter(|&x| is_even!(v_h + x + parity_h)) {
+                f_vec[j - i + gap_gh].addmul_mut(&g_vec[i + gap_g], &h_vec[j + gap_h]);
             }
         }
 
-        for j in (1..(bd_h + 1)).filter(|&x| is_even!(v_h + x)) {
-            for i in ((j + 1)..(bd_g + 1)).filter(|&x| is_even!(v_g + x)) {
-                f_vec[i - j + bd_gh].addmul_mut(&g_vec[i + bd_g], &h_vec[j + bd_h]);
+        for j in (1..(bd_h + 1)).filter(|&x| is_even!(v_h + x + parity_h)) {
+            for i in ((j + 1)..(bd_g + 1)).filter(|&x| is_even!(v_g + x + parity_g)) {
+                f_vec[i - j + gap_gh].addmul_mut(&g_vec[i + gap_g], &h_vec[j + gap_h]);
             }
         }
 
-        let bd_ghi = bd_gh as i64;
-        for i in (1..(bd_gh + 1)).filter(|&x| is_even!(x + v_g + v_h)) {
-            tmp.set(&f_vec[i + bd_gh]);
-            let i = i as i64;
-            f_vec[(-i + bd_ghi) as usize].set(&tmp);
+        for i in (1..(bd_gh + 1)).filter(|&x| is_even!(x + v_g + v_h + parity_gh)) {
+            tmp.set(&f_vec[i + gap_gh]);
+            f_vec[gap_gh - i].set(&tmp);
         }
     }
 }
@@ -240,6 +326,19 @@ fn divide_by_squared(f: &mut HmfGen, g: &HmfGen) {
     }
 }
 
+fn print_vth_cf(f: &HmfGen, v: usize) {
+    let bd = f.u_bds.vec[v] as i64;
+    let v_i = v as i64;
+    let mut res = Vec::new();
+    for u in (-bd..(bd + 1)).filter(|u| is_even!(v_i + u)) {
+        let a = f.fcvec.fc_ref(v, u, bd);
+        if !a.is_zero() {
+            res.push(format!("({}) * q1**({})", a, u));
+        }
+    }
+    println!("{}", res.join(" + "));
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -264,19 +363,6 @@ mod tests {
                 assert!(u & 0b111 == 0 && v & 0b111 == 0);
             }
         });
-    }
-
-    fn print_vth_cf(f: &HmfGen, v: usize) {
-        let bd = f.u_bds.vec[v] as i64;
-        let v_i = v as i64;
-        let mut res = Vec::new();
-        for u in (-bd..(bd + 1)).filter(|u| is_even!(v_i + u)) {
-            let a = f.fcvec.fc_ref(v, u, bd);
-            if !a.is_zero() {
-                res.push(format!("({}) * q1**({})", a, u));
-            }
-        }
-        println!("{}", res.join(" + "));
     }
 
     #[ignore]
@@ -305,7 +391,13 @@ mod tests {
             &h.fcvec.vec[v_h],
             v_g,
             v_h,
+            f.u_bds.vec[v_g],
+            f.u_bds.vec[v_h],
+            f.u_bds.vec[v_g + v_h],
             &f.u_bds,
+            0,
+            0,
+            0,
         );
         print_vth_cf(&g, v_g);
         print_vth_cf(&h, v_h);
