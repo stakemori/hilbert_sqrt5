@@ -5,3 +5,4 @@ authors = ["Sho Takemori <stakemorii@gmail.com>"]
 
 [dependencies]
 rust-gmp = { path = "/home/sho/work/rust/rust-gmp/"}
+libc = "0.2"
