@@ -77,6 +77,13 @@ mod elements {
         assert!(tmp.is_zero());
         assert!((&e2 - &e2).is_zero());
     }
+
+    #[test]
+    fn test_op_time() {
+        let f = eisenstein_series(2, 50);
+        let g = f.clone();
+        measure_time!(&f * &g);
+    }
 }
 
 mod theta_fast {
