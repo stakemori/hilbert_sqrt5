@@ -349,6 +349,14 @@ impl<'a> MulAssign<&'a HmfGen> for HmfGen {
     }
 }
 
+impl<'a> MulAssign<&'a Mpz> for HmfGen {
+    fn mul_assign(&mut self, other: &Mpz) {
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            Mpz::mul_assign(self.fcvec.fc_ref_mut(v, u, bd), other);
+        }
+        )
+    }
+}
 
 impl ShlAssign<usize> for HmfGen {
     fn shl_assign(&mut self, other: usize) {
