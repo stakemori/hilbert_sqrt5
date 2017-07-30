@@ -203,7 +203,7 @@ impl HmfGen {
         }
     }
 
-    fn square(&mut self) {
+    pub fn square(&mut self) {
         let f = self.clone();
         let mut tmp = Mpz::from_ui(0);
         v_u_bd_iter!((self.u_bds, v, u, bd) {
