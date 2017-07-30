@@ -9,7 +9,5 @@ use test::Bencher;
 
 #[bench]
 fn prime_sieve_bench(b: &mut Bencher) {
-    b.iter(|| {
-        prime_sieve(10000);
-    })
+    b.iter(|| { prime_sieve(10000); })
 }

@@ -38,7 +38,8 @@ mod theta_eisen_relatioin {
         tmp.pow_mut(&e2, 2);
         let f10_2 = &tmp * &e6;
         let g5_sq = &g5 * &g5;
-        let mut g10 = &(&e10 + &(&f10_1 * &Mpz::from_ui(355404))) + &(&f10_2 * &Mpz::from_si(-11465));
+        let mut g10 = &(&e10 + &(&f10_1 * &Mpz::from_ui(355404))) +
+            &(&f10_2 * &Mpz::from_si(-11465));
         assert!(g10.is_divisible_by_const(&Mpz::from_ui(5315625)));
         g10 /= &(&Mpz::from_ui(5315625) * &Mpz::from_ui(1024));
         assert_eq!(&g10, &g5_sq);

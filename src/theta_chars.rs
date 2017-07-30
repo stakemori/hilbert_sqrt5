@@ -95,7 +95,7 @@ pub fn theta(prec: usize) -> HmfGen {
 fn theta_squared(prec: usize) -> HmfGen {
     let e2 = eisenstein_series(2, prec);
     let e6 = eisenstein_series(6, prec);
-    let mut res= eisenstein_series(10, prec);
+    let mut res = eisenstein_series(10, prec);
     let mut tmp = HmfGen::new(prec);
     tmp.pow_mut(&e2, 2);
     let mut f10_2 = &tmp * &e6;
