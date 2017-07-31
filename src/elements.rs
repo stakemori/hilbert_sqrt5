@@ -230,6 +230,12 @@ impl HmfGen {
             self.fcvec.fc_ref_mut(v, u, bd).set(other.fcvec.fc_ref(v, u, bd));
         })
     }
+
+    pub fn negate(&mut self) {
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            self.fcvec.fc_ref_mut(v, u, bd).negate();
+        })
+    }
 }
 
 impl<'a> DivAssign<&'a Mpz> for HmfGen {
