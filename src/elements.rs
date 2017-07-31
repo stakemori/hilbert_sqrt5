@@ -223,6 +223,12 @@ impl HmfGen {
             .map(|&(v, u)| self.fourier_coefficient(v, u))
             .collect()
     }
+
+    pub fn set(&mut self, other: &Self) {
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            self.fcvec.fc_ref_mut(v, u, bd).set(other.fcvec.fc_ref(v, u, bd));
+        })
+    }
 }
 
 impl<'a> DivAssign<&'a Mpz> for HmfGen {
