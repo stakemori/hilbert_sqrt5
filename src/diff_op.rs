@@ -87,7 +87,7 @@ impl Sqrt5Elt<Mpz> {
         *a >>= 1;
     }
 
-    pub fn norm_mut(self: &Self, res: &mut Mpz) {
+    pub fn minus_norm_mut(self: &Self, res: &mut Mpz) {
         let &Sqrt5Elt {
             rt: ref a,
             ir: ref b,
@@ -96,6 +96,7 @@ impl Sqrt5Elt<Mpz> {
         *res *= -5 as c_long;
         res.addmul_mut(a, a);
         *res >>= 2;
+        res.negate();
     }
 }
 
@@ -141,7 +142,7 @@ mod tests {
             }
         );
 
-        a.norm_mut(&mut tmp);
-        assert_eq!(tmp.to_str_radix(10), "420707233300201");
+        a.minus_norm_mut(&mut tmp);
+        assert_eq!(tmp.to_str_radix(10), "-420707233300201");
     }
 }
