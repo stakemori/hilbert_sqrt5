@@ -5,6 +5,7 @@ use libc::{c_ulong, c_long};
 use std::cmp::min;
 use eisenstein::eisenstein_series;
 use theta_chars::g5_normalized;
+use misc::PowGen;
 
 impl PartialEq for Sqrt5Elt<Mpz> {
     fn eq(&self, other: &Self) -> bool {
@@ -108,6 +109,25 @@ fn expt_to_chars(expt: usize) -> Vec<char> {
 }
 
 
+pub fn monom_g2_g6_g10(prec: usize, expt1: usize, expt2: usize, expt3: usize) -> HmfGen {
+    let mut tmp = HmfGen::new(prec);
+    let mut res = HmfGen::new(prec);
+    let g2 = eisenstein_series(2, prec);
+    let g6 = eisenstein_series(6, prec);
+    let mut g10 = g5_normalized(prec);
+    g10.square();
+    res.pow_mut(&g2, expt1);
+    tmp.pow_mut(&g6, expt2);
+    if expt2 != 0 {
+        res *= &tmp;
+    }
+    tmp.pow_mut(&g10, expt3);
+    if expt3 != 0 {
+        res *= &tmp;
+    }
+    res
+}
+
 pub fn g15_normalized(prec: usize) -> HmfGen {
     let g2 = eisenstein_series(2, prec);
     let g6 = eisenstein_series(6, prec);
@@ -116,8 +136,7 @@ pub fn g15_normalized(prec: usize) -> HmfGen {
     let mut tmp2 = HmfGen::new(prec);
     g15_term(&mut tmp1, 2, &g2, &g5, &g6);
     g15_term(&mut tmp2, 5, &g5, &g2, &g6);
-    tmp2.negate();
-    tmp1 += &tmp2;
+    tmp1 -= &tmp2;
     g15_term(&mut tmp2, 6, &g6, &g2, &g5);
     tmp1 += &tmp2;
     let a = Mpz::from_si(-86400);

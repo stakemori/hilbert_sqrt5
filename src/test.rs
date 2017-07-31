@@ -4,6 +4,7 @@ use elements::HmfGen;
 use eisenstein::eisenstein_series;
 use misc::prime_sieve;
 use gmp::mpz::Mpz;
+use diff_op::{g15_normalized, monom_g2_g6_g10};
 
 
 // Taken from http://qiita.com/pseudo_foxkeh/items/5d5226e3ffa27631e80d
@@ -17,6 +18,66 @@ macro_rules! measure_time {
       result
     }
   };
+}
+
+mod g15_squared {
+    use super::*;
+    use misc::PowGen;
+
+    #[allow(dead_code)]
+    fn fc_vec(f: &HmfGen, num: usize) -> Vec<Mpz> {
+        let mut tpls = Vec::new();
+        v_u_bd_iter!((f.u_bds, v, u, bd) {
+            if u >= 0 {
+                tpls.push((v, u));
+            }
+        });
+        tpls = tpls.into_iter().take(num).collect();
+        f.fourier_coefficients(&tpls)
+    }
+
+    #[test]
+    fn test_g15() {
+        let prec = 10;
+        let mut g30 = g15_normalized(prec);
+        g30.square();
+        let f0 = monom_g2_g6_g10(prec, 0, 0, 3);
+        let f1 = monom_g2_g6_g10(prec, 2, 1, 2);
+        let f2 = monom_g2_g6_g10(prec, 5, 0, 2);
+        let f3 = monom_g2_g6_g10(prec, 1, 3, 1);
+        let f4 = monom_g2_g6_g10(prec, 4, 2, 1);
+        let f5 = monom_g2_g6_g10(prec, 7, 1, 1);
+        let f6 = monom_g2_g6_g10(prec, 10, 0, 1);
+        let f7 = monom_g2_g6_g10(prec, 0, 5, 0);
+        let f8 = monom_g2_g6_g10(prec, 3, 4, 0);
+        let f9 = monom_g2_g6_g10(prec, 6, 3, 0);
+        let f10 = monom_g2_g6_g10(prec, 9, 2, 0);
+        let f11 = monom_g2_g6_g10(prec, 12, 1, 0);
+        let f12 = monom_g2_g6_g10(prec, 15, 0, 0);
+        let forms = vec![f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, g30];
+        let v = vec![Mpz::from_str_radix("272097792000000000000000", 10).unwrap(),
+                     Mpz::from_str_radix("251942400000000000", 10).unwrap(),
+                     Mpz::from_str_radix("-11438184960000000000", 10).unwrap(),
+                     Mpz::from_str_radix("-972000000", 10).unwrap(),
+                     Mpz::from_str_radix("172044000000", 10).unwrap(),
+                     Mpz::from_str_radix("-9963972000000", 10).unwrap(),
+                     Mpz::from_str_radix("187622244000000", 10).unwrap(),
+                     Mpz::from_str_radix("1", 10).unwrap(),
+                     Mpz::from_str_radix("-310", 10).unwrap(),
+                     Mpz::from_str_radix("38190", 10).unwrap(),
+                     Mpz::from_str_radix("-2334280", 10).unwrap(),
+                     Mpz::from_str_radix("70679305", 10).unwrap(),
+                     Mpz::from_str_radix("-846347082", 10).unwrap(),
+                     Mpz::from_str_radix("-87071293440000000000", 10).unwrap()];
+        let mut tmp = HmfGen::new(prec);
+        let mut tmp1 = HmfGen::new(prec);
+        tmp.mul_mut_by_const(&forms[0], &v[0]);
+        for (f, a) in forms.iter().zip(v.iter()).skip(1) {
+            tmp1.mul_mut_by_const(&f, &a);
+            tmp += &tmp1;
+        }
+        assert!(tmp.is_zero());
+    }
 }
 
 mod theta_eisen_relatioin {
