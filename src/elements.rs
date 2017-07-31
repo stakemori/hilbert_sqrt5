@@ -3,7 +3,7 @@ use std::fmt;
 use gmp::mpz::Mpz;
 use misc::{pow_mut, PowGen};
 use libc::{c_ulong, c_long};
-use std::ops::{AddAssign, MulAssign, DivAssign, ShlAssign, Mul, Sub, Neg, Add};
+use std::ops::{AddAssign, MulAssign, DivAssign, ShlAssign, ShrAssign, Mul, Sub, Neg, Add};
 
 /// struct for hilbert modualr form over Q(sqrt(5))
 /// this corresponds finite sum of the q-expansion of the form
@@ -377,6 +377,16 @@ impl ShlAssign<usize> for HmfGen {
     fn shl_assign(&mut self, other: usize) {
         v_u_bd_iter!((self.u_bds, v, u, bd) {
             Mpz::shl_assign(self.fcvec.fc_ref_mut(v, u, bd), other);
+        }
+        );
+    }
+}
+
+
+impl ShrAssign<usize> for HmfGen {
+    fn shr_assign(&mut self, other: usize) {
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            Mpz::shr_assign(self.fcvec.fc_ref_mut(v, u, bd), other);
         }
         );
     }
