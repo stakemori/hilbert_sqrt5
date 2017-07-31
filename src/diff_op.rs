@@ -140,5 +140,8 @@ mod tests {
                 ir: Mpz::from_ui(142989825),
             }
         );
+
+        a.norm_mut(&mut tmp);
+        assert_eq!(tmp.to_str_radix(10), "420707233300201");
     }
 }
