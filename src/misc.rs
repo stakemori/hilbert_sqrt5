@@ -27,12 +27,18 @@ where
 
 /// corresponds to (rt + ir sqrt(5))/2.
 #[derive(Debug, Clone)]
-pub struct Sqrt5Elt<T> {
+pub struct Sqrt5Elt<T>
+where
+    T: Clone,
+{
     pub rt: T,
     pub ir: T,
 }
 
-impl<T> Sqrt5Elt<T> {
+impl<T> Sqrt5Elt<T>
+where
+    T: Clone,
+{
     pub fn norm(&self) -> T
     where
         T: Mul<i64, Output = T>
