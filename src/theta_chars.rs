@@ -113,7 +113,7 @@ fn theta_squared(prec: usize) -> HmfGen {
 
 /// Return normalized cusp form of weight 5 that is propotional to the return
 /// value of theta(prec).
-pub fn g5(prec: usize) -> HmfGen {
+pub fn g5_normalized(prec: usize) -> HmfGen {
     let prec = prec + 1;
     let g10 = theta_squared(prec);
     let mut f10 = HmfGen::new(prec);
