@@ -3,7 +3,8 @@ use std::fmt;
 use gmp::mpz::Mpz;
 use misc::{pow_mut, PowGen};
 use libc::{c_ulong, c_long};
-use std::ops::{AddAssign, MulAssign, DivAssign, SubAssign, ShlAssign, ShrAssign, Mul, Sub, Neg, Add};
+use std::ops::{AddAssign, MulAssign, DivAssign, SubAssign, ShlAssign, ShrAssign, Mul, Sub, Neg,
+               Add};
 
 /// struct for hilbert modualr form over Q(sqrt(5))
 /// this corresponds finite sum of the q-expansion of the form
@@ -200,7 +201,13 @@ impl HmfGen {
     }
 
     pub fn pow_mut(&mut self, f: &HmfGen, a: usize) {
-        pow_mut(self, f, a);
+        if a == 0 {
+            self.set_one();
+        } else if a == 1 {
+            self.set(&f);
+        } else {
+            pow_mut(self, f, a)
+        };
     }
 
     pub fn is_zero(&self) -> bool {
