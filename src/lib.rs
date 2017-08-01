@@ -7,7 +7,7 @@ pub mod elements;
 pub mod theta_chars;
 pub mod eisenstein;
 pub mod diff_op;
-mod misc;
+pub mod misc;
 
 #[cfg(test)]
 mod test;
