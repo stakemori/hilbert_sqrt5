@@ -9,7 +9,7 @@ use std::ops::{AddAssign, MulAssign, DivAssign, SubAssign, ShlAssign, ShrAssign,
 /// struct for hilbert modualr form over Q(sqrt(5))
 /// this corresponds finite sum of the q-expansion of the form
 /// Σ a(u, v) exp(2piTr 1/sqrt(5) (u + v * sqrt(5))/2)
-/// where v <= prec and ε = (1 + sqrt(5))/2.
+/// where v <= prec.
 /// a(u, v) = fc[v][a], where a = u + u_bds[v]
 #[derive(Debug, Clone)]
 pub struct HmfGen {
