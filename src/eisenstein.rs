@@ -292,4 +292,18 @@ mod tests {
             assert!(sqrd.norm() % (p * p) == 0);
         }
     }
+
+    #[test]
+    fn test_g6() {
+        let prec = 10;
+        let g2 = eisenstein_series(2, prec);
+        let g6 = eisenstein_series(6, prec);
+        let mut f6 = HmfGen::new(prec);
+        f6.pow_mut(&g2, 3);
+        f6 *= &Mpz::from_ui(67);
+        f6 -= &g6;
+        assert!(f6.is_divisible_by_const(&Mpz::from_ui(21600)));
+        f6 /= &Mpz::from_ui(21600);
+        println!("{}", f6);
+    }
 }
