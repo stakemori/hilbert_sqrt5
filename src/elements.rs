@@ -36,6 +36,14 @@ macro_rules! u_iter {
     }
 }
 
+macro_rules! u_iter_pos {
+    ($v: expr, $bd: ident) => {
+        {
+            (1..($bd+1)).filter(|&x| is_even!(x-$v))
+        }
+    }
+}
+
 macro_rules! v_u_bd_iter {
     (($u_bds: expr, $v: ident, $u: ident, $bd: ident) $body:expr) =>
     {
