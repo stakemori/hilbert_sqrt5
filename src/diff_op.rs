@@ -348,6 +348,39 @@ pub fn bracket_proj(f: &HmfGen, g15: &HmfGen) -> Result<HmfGen, NotHhmError> {
     }
 }
 
+macro_rules! define_rankin_cohen {
+    ($fun: ident, $mul_fun: ident) => {
+        pub fn $fun(m: usize, f: &HmfGen, g: &HmfGen) -> Result<HmfGen, NotHhmError> {
+            assert_eq!(f.prec, g.prec);
+            let mut res = HmfGen::new(f.prec);
+            let mut tmp = HmfGen::new(f.prec);
+            let mut tmp_z = Mpz::new();
+            let mut tmp_z1 = Mpz::new();
+            let mut tmp_z2 = Mpz::new();
+            if !f.weight.is_none() && !g.weight.is_none() {
+                let (_, k2) = f.weight.unwrap();
+                let (_, l2) = g.weight.unwrap();
+                for i in 0..(m + 1) {
+                    tmp_z1.set_ui((m + k2 - 1) as c_ulong);
+                    tmp_z.bin_ui_mut(&tmp_z1, (m - i) as c_ulong);
+                    tmp_z1.set_ui((m + l2 - 1) as c_ulong);
+                    tmp_z2.bin_ui_mut(&tmp_z1, i as c_ulong);
+                    tmp_z *= &tmp_z2;
+                    $mul_fun(&mut tmp, (0, i), (0, m - i), &f, &g);
+                    tmp *= &tmp_z;
+                    res += &tmp;
+                }
+                Ok(res)
+            } else {
+                Err(NotHhmError{})
+            }
+        }
+    }
+}
+
+define_rankin_cohen!(rankin_cohen_rt, diff_mul_mut_rt);
+define_rankin_cohen!(rankin_cohen_ir, diff_mul_mut_ir);
+
 #[cfg(test)]
 mod tests {
     use super::*;
