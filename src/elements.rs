@@ -7,6 +7,8 @@ use std::ops::{AddAssign, MulAssign, DivAssign, SubAssign, ShlAssign, ShrAssign,
                Add};
 use std::cmp::min;
 
+type Weight = Option<(usize, usize)>;
+
 /// struct for hilbert modualr form over Q(sqrt(5))
 /// this corresponds finite sum of the q-expansion of the form
 /// Σ a(u, v) exp(2piTr 1/sqrt(5) (u + v * sqrt(5))/2)
@@ -16,6 +18,7 @@ use std::cmp::min;
 pub struct HmfGen {
     pub prec: usize,
     pub fcvec: FcVec,
+    pub weight: Weight,
     // vth element of u_bds.vec is (sqrt(5) * v).floor()
     pub u_bds: UBounds,
 }
@@ -118,7 +121,7 @@ impl UBounds {
 
     pub fn take(&self, n: usize) -> UBounds {
         let v = self.vec.iter().map(|&x| x).take(n).collect();
-        UBounds {vec: v}
+        UBounds { vec: v }
     }
 }
 
@@ -128,10 +131,12 @@ impl PowGen for HmfGen {
             self.fcvec.fc_ref_mut(v, u, bd).set_ui(0);
         });
         self.fcvec.fc_ref_mut(0, 0, 0).set_ui(1);
+        self.weight = Some((0, 0));
     }
 
     fn square(&mut self) {
         let f = self.clone();
+        self.weight = weight_pow(self.weight, 2);
         let mut tmp = Mpz::from_ui(0);
         v_u_bd_iter!((self.u_bds, v, u, bd) {
             _mul_mut_tmp(&mut tmp, u, v, &f.fcvec, &f.fcvec, &self.u_bds);
@@ -140,12 +145,29 @@ impl PowGen for HmfGen {
     }
 }
 
+fn weight_mul(a: Weight, b: Weight) -> Weight {
+    a.and_then(|x| b.and_then(|y| Some((x.0 + y.0, x.1 + y.1))))
+}
+
+fn weight_add(a: Weight, b: Weight) -> Weight {
+    a.and_then(|x| b.and_then(|y| if x == y { Some(x) } else { None }))
+}
+
+fn weight_pow(a: Weight, n: usize) -> Weight {
+    a.and_then(|(k1, k2)| Some((k1 * n, k2 * n)))
+}
+
+pub fn weight_div(a: Weight, b: Weight) -> Weight {
+    a.and_then(|x| b.and_then(|y| Some((x.0 - y.0, x.1 - y.1))))
+}
+
 impl HmfGen {
     /// Return 0 q-expantion
     pub fn new(prec: usize) -> HmfGen {
         let u_bds = UBounds::new(prec);
         let fcvec = FcVec::new(&u_bds);
         HmfGen {
+            weight: None,
             prec: prec,
             fcvec: fcvec,
             u_bds: u_bds,
@@ -168,6 +190,7 @@ impl HmfGen {
     pub fn add_mut(&mut self, f1: &HmfGen, f2: &HmfGen) {
         let prec = min(f1.prec, f2.prec);
         self.decrease_prec(prec);
+        self.weight = weight_add(f1.weight, f2.weight);
         v_u_bd_iter!((self.u_bds, v, u, bd) {
             Mpz::add_mut(
                 self.fcvec.fc_ref_mut(v, u, bd),
@@ -190,6 +213,7 @@ impl HmfGen {
     pub fn sub_mut(&mut self, f1: &HmfGen, f2: &HmfGen) {
         let prec = min(f1.prec, f2.prec);
         self.decrease_prec(prec);
+        self.weight = weight_add(f1.weight, f2.weight);
         v_u_bd_iter!((self.u_bds, v, u, bd) {
             Mpz::sub_mut(
                 self.fcvec.fc_ref_mut(v, u, bd),
@@ -204,6 +228,7 @@ impl HmfGen {
         let mut tmp = Mpz::from_ui(0);
         let prec = min(f1.prec, f2.prec);
         self.decrease_prec(prec);
+        self.weight = weight_mul(f1.weight, f2.weight);
         v_u_bd_iter!((self.u_bds, v, u, bd) {
             _mul_mut_tmp(&mut tmp, u, v, &f1.fcvec, &f2.fcvec, &self.u_bds);
             self.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
@@ -212,6 +237,7 @@ impl HmfGen {
 
     /// self = f * a
     pub fn mul_mut_by_const(&mut self, f: &HmfGen, a: &Mpz) {
+        self.weight = f.weight;
         v_u_bd_iter!((self.u_bds, v, u, bd) {
             Mpz::mul_mut(self.fcvec.fc_ref_mut(v, u, bd), f.fcvec.fc_ref(v, u, bd), a)
             })
@@ -225,6 +251,7 @@ impl HmfGen {
         } else {
             pow_mut(self, f, a)
         };
+        self.weight = weight_pow(f.weight, a);
     }
 
     pub fn is_zero(&self) -> bool {
@@ -278,6 +305,7 @@ impl<'a> DivAssign<&'a Mpz> for HmfGen {
 
 impl<'a> AddAssign<&'a HmfGen> for HmfGen {
     fn add_assign(&mut self, other: &HmfGen) {
+        self.weight = weight_add(self.weight, other.weight);
         let prec = min(self.prec, other.prec);
         self.decrease_prec(prec);
         v_u_bd_iter!((self.u_bds, v, u, bd) {
@@ -292,6 +320,7 @@ impl<'a> AddAssign<&'a HmfGen> for HmfGen {
 
 impl<'a> SubAssign<&'a HmfGen> for HmfGen {
     fn sub_assign(&mut self, other: &HmfGen) {
+        self.weight = weight_add(self.weight, other.weight);
         let prec = min(self.prec, other.prec);
         self.decrease_prec(prec);
         v_u_bd_iter!((self.u_bds, v, u, bd) {
@@ -389,6 +418,7 @@ fn _mul_mut_tmp(a: &mut Mpz, u: i64, v: usize, fc_vec1: &FcVec, fc_vec2: &FcVec,
 impl<'a> MulAssign<&'a HmfGen> for HmfGen {
     fn mul_assign(&mut self, other: &HmfGen) {
         let prec = min(self.prec, other.prec);
+        self.weight = weight_mul(self.weight, other.weight);
         self.decrease_prec(prec);
         // We need cloned self.
         let f = self.clone();
@@ -443,5 +473,20 @@ impl ShrAssign<usize> for HmfGen {
             Mpz::shr_assign(self.fcvec.fc_ref_mut(v, u, bd), other);
         }
         );
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_weight_add_mul() {
+        let a: Weight = Some((1, 2));
+        let b: Weight = Some((3, 2));
+        assert_eq!(weight_mul(a, b), Some((4, 4)));
+        assert_eq!(weight_mul(a, None), None);
+        assert_eq!(weight_add(a, b), None);
+        assert_eq!(weight_add(a, a), a);
     }
 }

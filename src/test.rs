@@ -41,6 +41,7 @@ mod g15_squared {
         let prec = 10;
         let mut g30 = g15_normalized(prec);
         g30.square();
+        assert_eq!(g30.weight, Some((30, 30)));
         let f0 = monom_g2_g6_g10(prec, 0, 0, 3);
         let f1 = monom_g2_g6_g10(prec, 2, 1, 2);
         let f2 = monom_g2_g6_g10(prec, 5, 0, 2);
@@ -55,6 +56,9 @@ mod g15_squared {
         let f11 = monom_g2_g6_g10(prec, 12, 1, 0);
         let f12 = monom_g2_g6_g10(prec, 15, 0, 0);
         let forms = vec![f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, g30];
+        for f in forms.iter() {
+            assert_eq!(f.weight, Some((30, 30)));
+        }
         let v = vec![Mpz::from_str_radix("272097792000000000000000", 10).unwrap(),
                      Mpz::from_str_radix("251942400000000000", 10).unwrap(),
                      Mpz::from_str_radix("-11438184960000000000", 10).unwrap(),

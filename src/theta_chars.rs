@@ -191,6 +191,7 @@ pub fn g5_normalized(prec: usize) -> HmfGen {
             res.fcvec.fc_ref_mut(v, -u, bd).set(&tmp_z);
         }
     }
+    res.weight = Some((5, 5));
     res
 }
 

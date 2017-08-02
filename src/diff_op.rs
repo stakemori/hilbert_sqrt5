@@ -1,4 +1,4 @@
-use elements::HmfGen;
+use elements::{HmfGen, weight_div};
 use misc::Sqrt5Elt;
 use gmp::mpz::Mpz;
 use libc::{c_ulong, c_long};
@@ -143,6 +143,7 @@ pub fn g15_normalized(prec: usize) -> HmfGen {
     let a = Mpz::from_si(-86400);
     assert!(tmp1.is_divisible_by_const(&a));
     tmp1 /= &a;
+    tmp1.weight = Some((15, 15));
     tmp1
 }
 
@@ -259,12 +260,13 @@ fn diff_mut_minus_norm(res: &mut HmfGen, expt: usize, f: &HmfGen) {
 }
 
 /// set set = f/g15
-pub fn divide_by_g15(res: &mut HmfGen, f: &HmfGen, g15: &HmfGen) {
+fn divide_by_g15(res: &mut HmfGen, f: &HmfGen, g15: &HmfGen) {
     let prec = g15.prec;
     res.prec = prec - 2;
     let mut f_cloned = f.clone();
     let mut tmp = HmfGen::new(prec);
     res.decrease_prec(prec - 2);
+    res.weight = weight_div(f.weight, g15.weight);
     res.set_zero();
     let ref u_bds = f_cloned.u_bds;
     for v in 3..(prec + 1) {
@@ -361,6 +363,7 @@ mod tests {
         let mut res = HmfGen::new(prec - 2);
         divide_by_g15(&mut res, &f, &g15);
         e2.decrease_prec(prec - 2);
+        assert_eq!(res.weight, Some((2, 2)));
         assert_eq!(e2, res);
     }
 }

@@ -72,6 +72,7 @@ pub fn eisenstein_series_from_lvals(
             Mpz::mul_assign(res.fcvec.fc_ref_mut(v, u, bd), l_val_denom);
         }
     }
+    res.weight = Some((k as usize, k as usize));
     res
 }
 
@@ -304,6 +305,7 @@ mod tests {
         f6 -= &g6;
         assert!(f6.is_divisible_by_const(&Mpz::from_ui(21600)));
         f6 /= &Mpz::from_ui(21600);
+        assert_eq!(f6.weight, Some((6, 6)));
         println!("{}", f6);
     }
 }
