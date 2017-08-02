@@ -8,6 +8,6 @@ pub mod theta_chars;
 pub mod eisenstein;
 pub mod diff_op;
 pub mod misc;
-
+mod fcvec;
 #[cfg(test)]
 mod test;
