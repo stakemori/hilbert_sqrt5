@@ -1,7 +1,6 @@
 use gmp::mpz::Mpz;
 use elements::UBounds;
-use std::ops::{AddAssign, SubAssign};
-use std::cmp::min;
+use std::ops::SubAssign;
 
 #[allow(dead_code)]
 pub fn shl_assign(f_vec: &mut Vec<Mpz>, v: usize, u_bds: &UBounds, a: usize) {
@@ -35,9 +34,8 @@ pub fn sub_assign(f_vec: &mut Vec<Mpz>, g_vec: &Vec<Mpz>, v: usize, u_bds: &UBou
     }
 }
 
-/// Assuming g and h are symmetric (invariant under (u -> -u)), set v_g +
-/// v_h coefficient (Laurant polynomial of e(u)) to the product of g[v_g],
-/// h[v_h] and c.
+/// set v_g + v_h coefficient (Laurant polynomial of e(u)) to the product of
+/// g[v_g], h[v_h].
 pub fn mul_mut(
     f_vec: &mut Vec<Mpz>,
     g_vec: &Vec<Mpz>,
@@ -52,46 +50,23 @@ pub fn mul_mut(
     parity_h: usize,
     parity_gh: usize,
 ) {
-    let mut tmp = Mpz::from_ui(0);
     let bd_g = u_bds.vec[v_g];
     let bd_h = u_bds.vec[v_h];
     let bd_gh = u_bds.vec[v_g + v_h];
 
     for i in (0..(bd_gh + 1)).filter(|&x| is_even!(v_g + v_h + x + parity_gh)) {
-        f_vec[i + gap_gh].set_ui(0);
-        f_vec[gap_gh - i].set_ui(0);
+        f_vec[(i + gap_gh) as usize].set_ui(0);
+        f_vec[(gap_gh - i) as usize].set_ui(0);
     }
 
     // naive implementation of polynomial multiplication
-    if is_even!(v_g + v_h + parity_gh) {
-        tmp.set_ui(0);
-        for i in (1..(min(bd_g, bd_h) + 1)).filter(|&x| is_even!(v_g + x + parity_g)) {
-            tmp.mul_mut(&g_vec[i + gap_g], &h_vec[i + gap_h]);
-            tmp <<= 1;
-            Mpz::add_assign(&mut f_vec[0 + gap_gh], &tmp);
+    // i -> i - bd_g
+    for i in (0..(2 * bd_g + 1)).filter(|&x| is_even!(v_g + x + bd_g + parity_g)) {
+        for j in (0..(2 * bd_h + 1)).filter(|&x| is_even!(v_h + x + bd_h + parity_h)) {
+            f_vec[gap_gh + i + j - bd_g - bd_h].addmul_mut(
+                &g_vec[i + gap_g - bd_g],
+                &h_vec[j + gap_h - bd_h],
+            );
         }
-    }
-
-    for i in (0..(bd_g + 1)).filter(|&x| is_even!(v_g + x + parity_g)) {
-        for j in (0..(bd_h + 1)).filter(|&x| is_even!(v_h + x + parity_h)) {
-            f_vec[i + j + gap_gh].addmul_mut(&g_vec[i + gap_g], &h_vec[j + gap_h]);
-        }
-    }
-
-    for i in (1..(bd_g + 1)).filter(|&x| is_even!(v_g + x + parity_g)) {
-        for j in ((i + 1)..(bd_h + 1)).filter(|&x| is_even!(v_h + x + parity_h)) {
-            f_vec[j - i + gap_gh].addmul_mut(&g_vec[i + gap_g], &h_vec[j + gap_h]);
-        }
-    }
-
-    for j in (1..(bd_h + 1)).filter(|&x| is_even!(v_h + x + parity_h)) {
-        for i in ((j + 1)..(bd_g + 1)).filter(|&x| is_even!(v_g + x + parity_g)) {
-            f_vec[i - j + gap_gh].addmul_mut(&g_vec[i + gap_g], &h_vec[j + gap_h]);
-        }
-    }
-
-    for i in (1..(bd_gh + 1)).filter(|&x| is_even!(x + v_g + v_h + parity_gh)) {
-        tmp.set(&f_vec[i + gap_gh]);
-        f_vec[gap_gh - i].set(&tmp);
     }
 }
