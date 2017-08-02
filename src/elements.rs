@@ -5,6 +5,7 @@ use misc::{pow_mut, PowGen};
 use libc::{c_ulong, c_long};
 use std::ops::{AddAssign, MulAssign, DivAssign, SubAssign, ShlAssign, ShrAssign, Mul, Sub, Neg,
                Add};
+use std::cmp::min;
 
 /// struct for hilbert modualr form over Q(sqrt(5))
 /// this corresponds finite sum of the q-expansion of the form
@@ -114,6 +115,11 @@ impl UBounds {
         }
         UBounds { vec: u_bds }
     }
+
+    pub fn take(&self, n: usize) -> UBounds {
+        let v = self.vec.iter().map(|&x| x).take(n).collect();
+        UBounds {vec: v}
+    }
 }
 
 impl PowGen for HmfGen {
@@ -146,6 +152,11 @@ impl HmfGen {
         }
     }
 
+    /// Decrease prec to prec.
+    pub fn decrease_prec(&mut self, prec: usize) {
+        self.u_bds = self.u_bds.take(prec + 1);
+        self.prec = prec;
+    }
 
     pub fn one(prec: usize) -> HmfGen {
         let mut f = Self::new(prec);
@@ -155,6 +166,8 @@ impl HmfGen {
 
     /// set self = f1 + f2
     pub fn add_mut(&mut self, f1: &HmfGen, f2: &HmfGen) {
+        let prec = min(f1.prec, f2.prec);
+        self.decrease_prec(prec);
         v_u_bd_iter!((self.u_bds, v, u, bd) {
             Mpz::add_mut(
                 self.fcvec.fc_ref_mut(v, u, bd),
@@ -175,6 +188,8 @@ impl HmfGen {
 
     /// set self = f1 - f2
     pub fn sub_mut(&mut self, f1: &HmfGen, f2: &HmfGen) {
+        let prec = min(f1.prec, f2.prec);
+        self.decrease_prec(prec);
         v_u_bd_iter!((self.u_bds, v, u, bd) {
             Mpz::sub_mut(
                 self.fcvec.fc_ref_mut(v, u, bd),
@@ -187,6 +202,8 @@ impl HmfGen {
     /// set self = f1 * f2
     pub fn mul_mut(&mut self, f1: &HmfGen, f2: &HmfGen) {
         let mut tmp = Mpz::from_ui(0);
+        let prec = min(f1.prec, f2.prec);
+        self.decrease_prec(prec);
         v_u_bd_iter!((self.u_bds, v, u, bd) {
             _mul_mut_tmp(&mut tmp, u, v, &f1.fcvec, &f2.fcvec, &self.u_bds);
             self.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
@@ -261,6 +278,8 @@ impl<'a> DivAssign<&'a Mpz> for HmfGen {
 
 impl<'a> AddAssign<&'a HmfGen> for HmfGen {
     fn add_assign(&mut self, other: &HmfGen) {
+        let prec = min(self.prec, other.prec);
+        self.decrease_prec(prec);
         v_u_bd_iter!((self.u_bds, v, u, bd) {
             Mpz::add_assign(
                 self.fcvec.fc_ref_mut(v, u, bd),
@@ -273,6 +292,8 @@ impl<'a> AddAssign<&'a HmfGen> for HmfGen {
 
 impl<'a> SubAssign<&'a HmfGen> for HmfGen {
     fn sub_assign(&mut self, other: &HmfGen) {
+        let prec = min(self.prec, other.prec);
+        self.decrease_prec(prec);
         v_u_bd_iter!((self.u_bds, v, u, bd) {
             *self.fcvec.fc_ref_mut(v, u, bd) -= other.fcvec.fc_ref(v, u, bd);
         })
@@ -282,7 +303,8 @@ impl<'a> SubAssign<&'a HmfGen> for HmfGen {
 impl<'a, 'b> Add<&'a HmfGen> for &'b HmfGen {
     type Output = HmfGen;
     fn add(self, other: &HmfGen) -> HmfGen {
-        let mut res = HmfGen::new(self.prec);
+        let prec = min(self.prec, other.prec);
+        let mut res = HmfGen::new(prec);
         res.add_mut(self, other);
         res
     }
@@ -291,7 +313,8 @@ impl<'a, 'b> Add<&'a HmfGen> for &'b HmfGen {
 impl<'a, 'b> Mul<&'a HmfGen> for &'b HmfGen {
     type Output = HmfGen;
     fn mul(self, other: &HmfGen) -> HmfGen {
-        let mut res = HmfGen::new(self.prec);
+        let prec = min(self.prec, other.prec);
+        let mut res = HmfGen::new(prec);
         res.mul_mut(self, other);
         res
     }
@@ -309,7 +332,8 @@ impl<'a, 'b> Mul<&'a Mpz> for &'b HmfGen {
 impl<'a, 'b> Sub<&'a HmfGen> for &'b HmfGen {
     type Output = HmfGen;
     fn sub(self, other: &HmfGen) -> HmfGen {
-        let mut res = HmfGen::new(self.prec);
+        let prec = min(self.prec, other.prec);
+        let mut res = HmfGen::new(prec);
         res.sub_mut(self, other);
         res
     }
@@ -327,7 +351,8 @@ impl<'a> Neg for &'a HmfGen {
 
 impl PartialEq for HmfGen {
     fn eq(&self, other: &HmfGen) -> bool {
-        v_u_bd_iter!((self.u_bds, v, u, bd) {
+        let prec = min(self.prec, other.prec);
+        v_u_bd_iter!((self.u_bds.take(prec + 1), v, u, bd) {
             if self.fcvec.fc_ref(v, u, bd) != other.fcvec.fc_ref(v, u, bd) {
                 return false;
             }
@@ -363,6 +388,8 @@ fn _mul_mut_tmp(a: &mut Mpz, u: i64, v: usize, fc_vec1: &FcVec, fc_vec2: &FcVec,
 
 impl<'a> MulAssign<&'a HmfGen> for HmfGen {
     fn mul_assign(&mut self, other: &HmfGen) {
+        let prec = min(self.prec, other.prec);
+        self.decrease_prec(prec);
         // We need cloned self.
         let f = self.clone();
         let mut tmp = Mpz::from_ui(0);
