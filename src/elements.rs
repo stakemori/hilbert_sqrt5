@@ -238,6 +238,12 @@ impl HmfGen {
         })
     }
 
+    pub fn set_zero(&mut self) {
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            self.fcvec.fc_ref_mut(v, u, bd).set_ui(0);
+        })
+    }
+
     pub fn negate(&mut self) {
         v_u_bd_iter!((self.u_bds, v, u, bd) {
             self.fcvec.fc_ref_mut(v, u, bd).negate();
