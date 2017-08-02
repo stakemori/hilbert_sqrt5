@@ -20,6 +20,26 @@ macro_rules! measure_time {
   };
 }
 
+mod g15_part {
+    use super::*;
+    use diff_op::bracket_proj;
+    use misc::PowGen;
+
+    #[test]
+    fn test_bracket_proj() {
+        let prec = 10;
+        let g15 = g15_normalized(prec);
+        let mut g5 = g5_normalized(prec);
+        let mut e20 = eisenstein_series(10, prec);
+        e20.square();
+        let f = &e20 + &(&g5 * &g15);
+        assert_eq!(f.weight, Some((20, 20)));
+        let f5 = bracket_proj(&f, &g15).unwrap();
+        g5.decrease_prec(f5.prec);
+        assert_eq!(g5, f5);
+    }
+}
+
 mod g15_squared {
     use super::*;
     use misc::PowGen;

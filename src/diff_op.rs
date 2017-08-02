@@ -405,12 +405,21 @@ mod tests {
     fn test_divide_byg15() {
         let prec = 15;
         let g15 = g15_normalized(prec);
-        let mut e2 = eisenstein_series(2, prec);
-        let f = &g15 * &e2;
+        let mut g5 = g5_normalized(prec);
+        {
+            let mut e4 = eisenstein_series(4, prec);
+            let f = &g15 * &e4;
+            let mut res = HmfGen::new(prec - 2);
+            divide_by_g15(&mut res, &f, &g15);
+            e4.decrease_prec(prec - 2);
+            assert_eq!(res.weight, e4.weight);
+            assert_eq!(e4, res);
+        }
+
         let mut res = HmfGen::new(prec - 2);
-        divide_by_g15(&mut res, &f, &g15);
-        e2.decrease_prec(prec - 2);
-        assert_eq!(res.weight, Some((2, 2)));
-        assert_eq!(e2, res);
+        let g = &g15 * &g5;
+        divide_by_g15(&mut res, &g, &g15);
+        g5.decrease_prec(prec - 2);
+        assert_eq!(g5, res);
     }
 }
