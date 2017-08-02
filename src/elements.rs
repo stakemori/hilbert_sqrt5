@@ -92,12 +92,12 @@ pub struct FcVec {
 impl FcVec {
     pub fn fc_ref(&self, v: usize, u: i64, bd: i64) -> &Mpz {
         debug_assert!(u + bd >= 0);
-        &self.vec[v][(u + bd) as usize]
+        self.vec[v].get((u + bd) as usize).unwrap()
     }
 
     pub fn fc_ref_mut(&mut self, v: usize, u: i64, bd: i64) -> &mut Mpz {
         debug_assert!(u + bd >= 0);
-        &mut self.vec[v][(u + bd) as usize]
+        self.vec[v].get_mut((u + bd) as usize).unwrap()
     }
 
     fn new(u_bds: &UBounds) -> FcVec {
