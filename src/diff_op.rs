@@ -261,7 +261,8 @@ fn diff_mut_minus_norm(res: &mut HmfGen, expt: usize, f: &HmfGen) {
 
 /// set set = f/g15
 fn divide_by_g15(res: &mut HmfGen, f: &HmfGen, g15: &HmfGen) {
-    let prec = g15.prec;
+    let prec = f.prec;
+    assert_eq!(prec, g15.prec);
     res.prec = prec - 2;
     let mut f_cloned = f.clone();
     let mut tmp = HmfGen::new(prec);
