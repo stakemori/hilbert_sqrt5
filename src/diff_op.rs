@@ -6,6 +6,7 @@ use std::cmp::min;
 use eisenstein::eisenstein_series;
 use theta_chars::g5_normalized;
 use misc::PowGen;
+use fcvec;
 
 impl PartialEq for Sqrt5Elt<Mpz> {
     fn eq(&self, other: &Self) -> bool {
@@ -257,10 +258,52 @@ fn diff_mut_minus_norm(res: &mut HmfGen, expt: usize, f: &HmfGen) {
     });
 }
 
+/// set set = f/g15
+pub fn divide_by_g15(res: &mut HmfGen, f: &HmfGen, g15: &HmfGen) {
+    let prec = g15.prec;
+    res.prec = prec - 2;
+    let mut f_cloned = f.clone();
+    let mut tmp = HmfGen::new(prec);
+    res.decrease_prec(prec - 2);
+    res.set_zero();
+    let ref u_bds = f_cloned.u_bds;
+    for v in 3..(prec + 1) {
+        for i in 3..(v + 1) {
+            fcvec::mul_mut(
+                &mut tmp.fcvec.vec[v],
+                &g15.fcvec.vec[i],
+                &f_cloned.fcvec.vec[v - i + 2],
+                i,
+                v - i,
+                u_bds.vec[i],
+                u_bds.vec[v - i + 2],
+                u_bds.vec[v],
+                u_bds,
+                0,
+                0,
+                0,
+            );
+            fcvec::sub_assign(&mut f_cloned.fcvec.vec[v], &tmp.fcvec.vec[v], v, u_bds);
+        }
+    }
+    for (v, &bd1) in u_bds.vec.iter().enumerate().skip(2) {
+        let v_i = v as i64;
+        let bd = u_bds.vec[v-2] as i64;
+        let bd1 = bd1 as i64;
+        for u in u_iter!(v_i, bd) {
+            res.fcvec.fc_ref_mut(v-2, u, bd).set(
+                f_cloned.fcvec.fc_ref_mut(v, u, bd1)
+            );
+        }
+    }
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    #[ignore]
     #[test]
     fn g15() {
         let f = g15_normalized(10);
@@ -307,5 +350,17 @@ mod tests {
 
         a.minus_norm_mut(&mut tmp);
         assert_eq!(tmp.to_str_radix(10), "-420707233300201");
+    }
+
+    #[test]
+    fn test_divide_byg15() {
+        let prec = 15;
+        let g15 = g15_normalized(prec);
+        let mut e2 = eisenstein_series(2, prec);
+        let f = &g15 * &e2;
+        let mut res = HmfGen::new(prec - 2);
+        divide_by_g15(&mut res, &f, &g15);
+        e2.decrease_prec(prec - 2);
+        assert_eq!(e2, res);
     }
 }
