@@ -161,9 +161,7 @@ mod theta_fast {
         let f = g5_normalized(prec);
         let mut g = theta(prec);
         g /= &Mpz::from_ui(64);
-        v_u_bd_iter!((f.u_bds, v, u, bd) {
-            assert_eq!(f.fcvec.fc_ref(v, u, bd), g.fcvec.fc_ref(v, u, bd));
-        });
+        assert_eq!(f.fcvec.vec, g.fcvec.vec);
     }
 }
 

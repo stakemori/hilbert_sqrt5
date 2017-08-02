@@ -122,10 +122,8 @@ pub fn g5_normalized(prec: usize) -> HmfGen {
     let mut res = HmfGen::new(prec - 1);
     {
         let bd1 = res.u_bds.vec[1] as i64;
-        for u in 1..(bd1 + 1) {
-            res.fcvec.fc_ref_mut(1, u, bd1 as i64).set_ui(1);
-            res.fcvec.fc_ref_mut(1, -u, bd1 as i64).set_si(-1);
-        }
+        res.fcvec.fc_ref_mut(1, 1, bd1 as i64).set_ui(1);
+        res.fcvec.fc_ref_mut(1, -1, bd1 as i64).set_si(-1);
     }
 
     let u_bds = g10.u_bds;
