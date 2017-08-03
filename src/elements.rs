@@ -6,6 +6,7 @@ use libc::{c_ulong, c_long};
 use std::ops::{AddAssign, MulAssign, DivAssign, SubAssign, ShlAssign, ShrAssign, Mul, Sub, Neg,
                Add};
 use std::cmp::min;
+use misc::Sqrt5Elt;
 
 type Weight = Option<(usize, usize)>;
 
@@ -301,6 +302,13 @@ impl HmfGen {
             self.fcvec.fc_ref_mut(v, u, bd).negate();
         })
     }
+
+    pub fn into_sqrt5_coeff(&self) -> Sqrt5Elt<Self> {
+        let mut f = self.clone();
+        f <<= 1;
+        let g = Self::new(self.prec);
+        Sqrt5Elt::<HmfGen> { rt: f, ir: g }
+    }
 }
 
 impl<'a> DivAssign<&'a Mpz> for HmfGen {
@@ -483,6 +491,50 @@ impl ShrAssign<usize> for HmfGen {
         );
     }
 }
+
+impl Sqrt5Elt<HmfGen> {
+    /// Return 0 q-expansion
+    pub fn new(prec: usize) -> Self {
+        let f = HmfGen::new(prec);
+        let g = HmfGen::new(prec);
+        Self { rt: f, ir: g }
+    }
+
+    /// Decrease prec to prec.
+    pub fn decrease_prec(&mut self, prec: usize) {
+        self.rt.decrease_prec(prec);
+        self.ir.decrease_prec(prec);
+    }
+
+    pub fn u_bds(&self) -> &UBounds {
+        &self.rt.u_bds
+    }
+
+    pub fn weight(&self) -> Weight {
+        self.rt.weight
+    }
+
+    pub fn prec(&self) -> usize {
+        self.rt.prec
+    }
+}
+
+impl fmt::Display for Sqrt5Elt<HmfGen> {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut vec = Vec::new();
+        v_u_bd_iter!((self.u_bds(), v, u, bd) {
+            let rt = self.rt.fcvec.fc_ref(v, u, bd);
+            let ir = self.ir.fcvec.fc_ref(v, u, bd);
+            if !rt.is_zero() | !ir.is_zero() {
+                vec.push(format!("({}, {}): ({}, {})", u, v, rt, ir));
+            }
+        }
+        );
+        write!(f, "{}", vec.join("\n"))
+    }
+}
+
+
 
 #[cfg(test)]
 mod tests {
