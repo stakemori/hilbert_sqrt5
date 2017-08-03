@@ -46,7 +46,7 @@ where
             + Mul<T, Output = T>
             + Sub<Output = T>
             + Shr<usize, Output = T>
-            + Copy,
+            + Clone,
     {
         let &Sqrt5Elt { rt: a, ir: b } = self;
         (a * a - b * b * 5) >> 2
@@ -55,7 +55,7 @@ where
 
 impl<'a, T> Add<&'a Sqrt5Elt<T>> for Sqrt5Elt<T>
 where
-    T: Add<Output = T> + Copy,
+    T: Add<Output = T> + Clone,
 {
     type Output = Sqrt5Elt<T>;
     fn add(self, other: &Sqrt5Elt<T>) -> Sqrt5Elt<T> {
@@ -68,7 +68,7 @@ where
 
 impl<'a, T> Sub<&'a Sqrt5Elt<T>> for Sqrt5Elt<T>
 where
-    T: Sub<Output = T> + Copy,
+    T: Sub<Output = T> + Clone,
 {
     type Output = Sqrt5Elt<T>;
     fn sub(self, other: &Sqrt5Elt<T>) -> Sqrt5Elt<T> {
@@ -81,7 +81,7 @@ where
 
 impl<'a, T> Neg for &'a Sqrt5Elt<T>
 where
-    T: Neg<Output = T> + Copy,
+    T: Neg<Output = T> + Clone,
 {
     type Output = Sqrt5Elt<T>;
     fn neg(self) -> Sqrt5Elt<T> {
@@ -99,7 +99,7 @@ where
         + Add<Output = T>
         + Mul<T, Output = T>
         + Shr<usize, Output = T>
-        + Copy,
+        + Clone,
 {
     type Output = Sqrt5Elt<T>;
     fn mul(self, rhs: &Sqrt5Elt<T>) -> Self::Output {
