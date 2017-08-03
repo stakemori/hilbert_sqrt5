@@ -31,7 +31,7 @@ macro_rules! is_even {
 macro_rules! u_iter {
     ($v: expr, $bd: ident) => {
         {
-            (-$bd..($bd+1)).filter(|&x| is_even!(x-$v))
+            (-$bd..($bd+1)).filter(|&x| is_even!(x+$v))
         }
     }
 }
@@ -39,7 +39,7 @@ macro_rules! u_iter {
 macro_rules! u_iter_pos {
     ($v: expr, $bd: ident) => {
         {
-            (1..($bd+1)).filter(|&x| is_even!(x-$v))
+            (1..($bd+1)).filter(|&x| is_even!(x+$v))
         }
     }
 }
