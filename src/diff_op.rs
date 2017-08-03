@@ -381,18 +381,33 @@ macro_rules! define_rankin_cohen {
 define_rankin_cohen!(rankin_cohen_rt, diff_mul_mut_rt);
 define_rankin_cohen!(rankin_cohen_ir, diff_mul_mut_ir);
 
-pub fn star_op(res: &mut HmfGen, f: &HmfGen) {
-    let (k1, k2) = f.weight.unwrap();
+pub fn rankin_cohen(m: usize, f: &HmfGen, g: &HmfGen) -> Result<Sqrt5Elt<HmfGen>, NotHhmError> {
+    let res_rt = rankin_cohen_rt(m, &f, &g)?;
+    let res_ir = rankin_cohen_ir(m, &f, &g)?;
+    Ok(Sqrt5Elt::<HmfGen> {
+        rt: res_rt,
+        ir: res_ir,
+    })
+}
+
+pub fn star_op(res: &mut Sqrt5Elt<HmfGen>, f: &Sqrt5Elt<HmfGen>) {
+    let (k1, k2) = f.weight().unwrap();
     if is_even!((k1 + k2) >> 1) {
-        v_u_bd_iter!((f.u_bds, v, u, bd) {
-            res.fcvec.fc_ref_mut(v, u, bd).set(f.fcvec.fc_ref(v, -u, bd));
+        v_u_bd_iter!((f.u_bds(), v, u, bd) {
+            res.rt.fcvec.fc_ref_mut(v, u, bd).set(f.rt.fcvec.fc_ref(v, -u, bd));
+            res.ir.fcvec.fc_ref_mut(v, u, bd).set(f.ir.fcvec.fc_ref(v, -u, bd));
         });
     } else {
         let mut tmp = Mpz::new();
-        v_u_bd_iter!((f.u_bds, v, u, bd) {
-            tmp.set(f.fcvec.fc_ref(v, -u, bd));
+        v_u_bd_iter!((f.u_bds(), v, u, bd) {
+
+            tmp.set(f.rt.fcvec.fc_ref(v, -u, bd));
             tmp.negate();
-            res.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
+            res.rt.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
+
+            tmp.set(f.ir.fcvec.fc_ref(v, -u, bd));
+            tmp.negate();
+            res.ir.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
         });
     }
 }
