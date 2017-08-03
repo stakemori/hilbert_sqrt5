@@ -32,11 +32,16 @@ mod g15_part {
         let mut g5 = g5_normalized(prec);
         let mut e20 = eisenstein_series(10, prec);
         e20.square();
+        let mut e2 = eisenstein_series(2, prec);
         let f = &e20 + &(&g5 * &g15);
+        let g = &e2 * &g15;
         assert_eq!(f.weight, Some((20, 20)));
         let f5 = bracket_proj(&f, &g15).unwrap();
+        let f2 = bracket_proj(&g, &g15).unwrap();
         g5.decrease_prec(f5.prec);
+        e2.decrease_prec(f2.prec);
         assert_eq!(g5, f5);
+        assert_eq!(e2, f2);
     }
 }
 
@@ -79,20 +84,22 @@ mod g15_squared {
         for f in forms.iter() {
             assert_eq!(f.weight, Some((30, 30)));
         }
-        let v = vec![Mpz::from_str_radix("272097792000000000000000", 10).unwrap(),
-                     Mpz::from_str_radix("251942400000000000", 10).unwrap(),
-                     Mpz::from_str_radix("-11438184960000000000", 10).unwrap(),
-                     Mpz::from_str_radix("-972000000", 10).unwrap(),
-                     Mpz::from_str_radix("172044000000", 10).unwrap(),
-                     Mpz::from_str_radix("-9963972000000", 10).unwrap(),
-                     Mpz::from_str_radix("187622244000000", 10).unwrap(),
-                     Mpz::from_str_radix("1", 10).unwrap(),
-                     Mpz::from_str_radix("-310", 10).unwrap(),
-                     Mpz::from_str_radix("38190", 10).unwrap(),
-                     Mpz::from_str_radix("-2334280", 10).unwrap(),
-                     Mpz::from_str_radix("70679305", 10).unwrap(),
-                     Mpz::from_str_radix("-846347082", 10).unwrap(),
-                     Mpz::from_str_radix("-87071293440000000000", 10).unwrap()];
+        let v = vec![
+            Mpz::from_str_radix("272097792000000000000000", 10).unwrap(),
+            Mpz::from_str_radix("251942400000000000", 10).unwrap(),
+            Mpz::from_str_radix("-11438184960000000000", 10).unwrap(),
+            Mpz::from_str_radix("-972000000", 10).unwrap(),
+            Mpz::from_str_radix("172044000000", 10).unwrap(),
+            Mpz::from_str_radix("-9963972000000", 10).unwrap(),
+            Mpz::from_str_radix("187622244000000", 10).unwrap(),
+            Mpz::from_str_radix("1", 10).unwrap(),
+            Mpz::from_str_radix("-310", 10).unwrap(),
+            Mpz::from_str_radix("38190", 10).unwrap(),
+            Mpz::from_str_radix("-2334280", 10).unwrap(),
+            Mpz::from_str_radix("70679305", 10).unwrap(),
+            Mpz::from_str_radix("-846347082", 10).unwrap(),
+            Mpz::from_str_radix("-87071293440000000000", 10).unwrap(),
+        ];
         let mut tmp = HmfGen::new(prec);
         let mut tmp1 = HmfGen::new(prec);
         tmp.mul_mut_by_const(&forms[0], &v[0]);
