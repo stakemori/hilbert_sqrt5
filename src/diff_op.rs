@@ -155,7 +155,6 @@ fn g15_term(res: &mut HmfGen, wt: c_ulong, f: &HmfGen, g: &HmfGen, h: &HmfGen) {
 
 /// Rt part of ∂^(a1 + a2)/(∂^a1∂^a2)f1 * ∂^(b1 + b2)/(∂^b1∂^b2)f2, where
 /// (a1, a2) = expt1, (b1, b2) = expt2.
-#[allow(dead_code)]
 fn diff_mul_mut_rt(
     res: &mut HmfGen,
     expt1: (usize, usize),
@@ -358,8 +357,8 @@ macro_rules! define_rankin_cohen {
             let mut tmp_z1 = Mpz::new();
             let mut tmp_z2 = Mpz::new();
             if !f.weight.is_none() && !g.weight.is_none() {
-                let (_, k2) = f.weight.unwrap();
-                let (_, l2) = g.weight.unwrap();
+                let (k1, k2) = f.weight.unwrap();
+                let (l1, l2) = g.weight.unwrap();
                 for i in 0..(m + 1) {
                     tmp_z1.set_ui((m + k2 - 1) as c_ulong);
                     tmp_z.bin_ui_mut(&tmp_z1, (m - i) as c_ulong);
@@ -370,6 +369,7 @@ macro_rules! define_rankin_cohen {
                     tmp *= &tmp_z;
                     res += &tmp;
                 }
+                res.weight = Some((k1 + l1, k2 + l2 + 2 * m));
                 Ok(res)
             } else {
                 Err(NotHhmError{})
@@ -380,6 +380,22 @@ macro_rules! define_rankin_cohen {
 
 define_rankin_cohen!(rankin_cohen_rt, diff_mul_mut_rt);
 define_rankin_cohen!(rankin_cohen_ir, diff_mul_mut_ir);
+
+pub fn star_op(res: &mut HmfGen, f: &HmfGen) {
+    let (k1, k2) = f.weight.unwrap();
+    if is_even!((k1 + k2) >> 1) {
+        v_u_bd_iter!((f.u_bds, v, u, bd) {
+            res.fcvec.fc_ref_mut(v, u, bd).set(f.fcvec.fc_ref(v, -u, bd));
+        });
+    } else {
+        let mut tmp = Mpz::new();
+        v_u_bd_iter!((f.u_bds, v, u, bd) {
+            tmp.set(f.fcvec.fc_ref(v, -u, bd));
+            tmp.negate();
+            res.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
+        });
+    }
+}
 
 #[cfg(test)]
 mod tests {
