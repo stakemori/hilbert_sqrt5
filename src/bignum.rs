@@ -157,10 +157,10 @@ impl BigNumber for Sqrt5Mpz {
     }
 
     fn mul_mut_g(&mut self, x: &Self, y: &Self) {
-        self.rt.addmul_mut(&x.ir, &y.ir);
+        self.rt.mul_mut(&x.ir, &y.ir);
         self.rt *= 5 as c_ulong;
         self.rt.addmul_mut(&x.rt, &y.rt);
-        self.ir.addmul_mut(&x.rt, &y.ir);
+        self.ir.mul_mut(&x.rt, &y.ir);
         self.ir.addmul_mut(&x.ir, &y.rt);
         self.rt >>= 1;
         self.ir >>= 1;
@@ -306,7 +306,7 @@ mod tests {
 
     #[test]
     fn test_mul_mut() {
-        let mut res = Sqrt5Mpz::new_g();
+        let mut res = Sqrt5Mpz::from_sisi(2, 4);
         let mut tmp = Mpz::new();
         let mut a = Sqrt5Mpz{rt: Mpz::from_si(5), ir: Mpz::from_si(1)};
         let b = Sqrt5Mpz{rt: Mpz::from_si(3), ir: Mpz::from_si(7)};
