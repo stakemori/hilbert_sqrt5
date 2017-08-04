@@ -47,14 +47,31 @@ mod g15_part {
 
 mod rankin_cohen {
     use super::*;
-    use bignum::Sqrt5Mpz;
+    use bignum::{Sqrt5Mpz, RealQuadElement};
 
     #[test]
     fn test_rankin_cohen1() {
         let prec = 10;
         let g2 = eisenstein_series(2, prec);
-        let f = rankin_cohen_sqrt5(1, &g2, &g2).unwrap();
-        assert!(f.is_zero());
+        let g6 = eisenstein_series(6, prec);
+        let g5 = g5_normalized(prec);
+        {
+            let f = rankin_cohen_sqrt5(1, &g2, &g2).unwrap();
+            assert!(f.is_zero());
+        }
+
+        let g15: HmfGen<Sqrt5Mpz> = {
+            let g15 = g15_normalized(prec);
+            From::from(&g15)
+        };
+
+        let g7_9 = rankin_cohen_sqrt5(1, &g2, &g5).unwrap();
+        let g8_10 = rankin_cohen_sqrt5(1, &g2, &g6).unwrap();
+        let f2 = bracket_inner_prod(&g7_9, &g8_10, &g15).unwrap();
+        assert!(f2.rt_part().is_zero());
+        let mut f2 = f2.ir_part();
+        f2 /= &Mpz::from_si(-172800);
+        assert_eq!(f2, g2);
     }
 
     #[test]
