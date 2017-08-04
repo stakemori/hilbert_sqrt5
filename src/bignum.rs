@@ -119,7 +119,10 @@ impl Sqrt5Mpz {
     }
 
     pub fn from_sisi(rt: c_long, ir: c_long) -> Self {
-        Self {rt: Mpz::from_si(rt), ir: Mpz::from_si(ir)}
+        Self {
+            rt: Mpz::from_si(rt),
+            ir: Mpz::from_si(ir),
+        }
     }
 }
 
@@ -318,11 +321,23 @@ mod tests {
 
     #[test]
     fn test_set_divexact_g() {
-        let a = Sqrt5Mpz{rt: Mpz::from_ui(1), ir: Mpz::from_ui(3)};
-        let mut b = Sqrt5Mpz{rt: Mpz::from_ui(22), ir: Mpz::from_si(0)};
+        let a = Sqrt5Mpz {
+            rt: Mpz::from_ui(1),
+            ir: Mpz::from_ui(3),
+        };
+        let mut b = Sqrt5Mpz {
+            rt: Mpz::from_ui(22),
+            ir: Mpz::from_si(0),
+        };
         let mut tmp = Mpz::new();
         b.set_divexact_g(&a, &mut tmp);
-        assert_eq!(b, Sqrt5Mpz{rt: Mpz::from_si(-1), ir: Mpz::from_si(3)});
+        assert_eq!(
+            b,
+            Sqrt5Mpz {
+                rt: Mpz::from_si(-1),
+                ir: Mpz::from_si(3),
+            }
+        );
     }
 
     #[test]
@@ -347,8 +362,14 @@ mod tests {
     fn test_mul_mut() {
         let mut res = Sqrt5Mpz::from_sisi(2, 4);
         let mut tmp = Mpz::new();
-        let mut a = Sqrt5Mpz{rt: Mpz::from_si(5), ir: Mpz::from_si(1)};
-        let b = Sqrt5Mpz{rt: Mpz::from_si(3), ir: Mpz::from_si(7)};
+        let mut a = Sqrt5Mpz {
+            rt: Mpz::from_si(5),
+            ir: Mpz::from_si(1),
+        };
+        let b = Sqrt5Mpz {
+            rt: Mpz::from_si(3),
+            ir: Mpz::from_si(7),
+        };
         res.mul_mut_g(&a, &b);
         a.mul_assign_g(&b, &mut tmp);
         assert_eq!(res, a);
@@ -363,11 +384,17 @@ mod tests {
         assert!(a.is_multiple_of_g(&b, tmpelt, tmp));
         let b = Sqrt5Mpz::from_ui_g(3);
         assert!(!a.is_multiple_of_g(&b, tmpelt, tmp));
-        let a = Sqrt5Mpz{rt: Mpz::from_si(2), ir: Mpz::from_si(4)};
+        let a = Sqrt5Mpz {
+            rt: Mpz::from_si(2),
+            ir: Mpz::from_si(4),
+        };
         let b = Sqrt5Mpz::from_ui_g(2);
         assert!(!a.is_multiple_of_g(&b, tmpelt, tmp));
         let a = Sqrt5Mpz::from_ui_g(33);
-        let b = Sqrt5Mpz{rt: Mpz::from_si(-1), ir: Mpz::from_si(3)};
+        let b = Sqrt5Mpz {
+            rt: Mpz::from_si(-1),
+            ir: Mpz::from_si(3),
+        };
         assert!(a.is_multiple_of_g(&b, tmpelt, tmp));
     }
 }
