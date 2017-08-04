@@ -18,6 +18,7 @@ pub trait BigNumber {
     fn negate_g(&mut self);
     fn set_divexact_g(&mut self, x: &Self, tmp: &mut Mpz);
     fn mul_assign_g(&mut self, other: &Self, tmp: &mut Mpz);
+    fn addmul_mut_g(&mut self, x: &Self, y: &Self, tmp: &mut Mpz);
 }
 
 impl BigNumber for Mpz {
@@ -75,6 +76,10 @@ impl BigNumber for Mpz {
 
     fn mul_assign_g(&mut self, other: &Mpz, _tmp: &mut Mpz) {
         *self *= other;
+    }
+
+    fn addmul_mut_g(&mut self, x: &Mpz, y: &Mpz, _tmp: &mut Mpz) {
+        self.addmul_mut(x, y);
     }
 }
 
@@ -223,6 +228,18 @@ impl BigNumber for Sqrt5Mpz {
         a.addmul_mut(tmp, d);
         *a >>= 1;
     }
+
+    fn addmul_mut_g(&mut self, x: &Self, y: &Self, tmp: &mut Mpz) {
+        tmp.mul_mut(&x.ir, &y.ir);
+        *tmp *= 5 as c_ulong;
+        tmp.addmul_mut(&x.rt, &y.rt);
+        *tmp >>= 1;
+        self.rt += tmp as &Mpz;
+        tmp.mul_mut(&x.rt, &y.ir);
+        tmp.addmul_mut(&x.ir, &y.rt);
+        *tmp >>= 1;
+        self.ir += tmp as &Mpz;
+    }
 }
 
 impl fmt::Display for Sqrt5Mpz {
@@ -302,6 +319,16 @@ mod tests {
         let mut b = Sqrt5Mpz::new_g();
         b.set_si_g(3);
         assert_eq!(a, b);
+    }
+
+    #[test]
+    fn test_addmul_mut() {
+        let mut tmp = Mpz::new();
+        let a = Sqrt5Mpz::from_sisi(3, 5);
+        let b = Sqrt5Mpz::from_sisi(7, 1);
+        let mut res = Sqrt5Mpz::from_sisi(4, 6);
+        res.addmul_mut_g(&a, &b, &mut tmp);
+        assert_eq!(res, Sqrt5Mpz::from_sisi(27, 25));
     }
 
     #[test]
