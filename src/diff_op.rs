@@ -422,17 +422,11 @@ where
     T: BigNumber,
 {
     let (k1, k2) = f.weight.unwrap();
-    if is_even!((k1 + k2) >> 1) {
-        v_u_bd_iter!((f.u_bds, v, u, bd) {
-            res.fcvec.fc_ref_mut(v, u, bd).set_g(f.fcvec.fc_ref(v, -u, bd));
-        });
-    } else {
-        let mut tmp = T::new_g();
-        v_u_bd_iter!((f.u_bds, v, u, bd) {
-            tmp.set_g(f.fcvec.fc_ref(v, -u, bd));
-            tmp.negate_g();
-            res.fcvec.fc_ref_mut(v, u, bd).set_g(&tmp);
-        });
+    v_u_bd_iter!((f.u_bds, v, u, bd) {
+        res.fcvec.fc_ref_mut(v, u, bd).set_g(f.fcvec.fc_ref(v, -u, bd));
+    });
+    if !is_even!((k1 + k2) >> 1) {
+        res.negate();
     }
     res.weight = Some((k2, k1));
 }
