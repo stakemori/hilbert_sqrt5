@@ -400,7 +400,7 @@ macro_rules! define_rankin_cohen {
 
 define_rankin_cohen!(rankin_cohen_rt, diff_mul_mut_rt);
 define_rankin_cohen!(rankin_cohen_ir, diff_mul_mut_ir);
-
+// TODO: make this function generic
 pub fn rankin_cohen_sqrt5(
     m: usize,
     f: &HmfGen<Mpz>,
@@ -409,6 +409,7 @@ pub fn rankin_cohen_sqrt5(
     let mut res = HmfGen::<Sqrt5Mpz>::new(f.prec);
     let res_rt = rankin_cohen_rt(m, &f, &g)?;
     let res_ir = rankin_cohen_ir(m, &f, &g)?;
+    res.weight = res_rt.weight;
     v_u_bd_iter!((f.u_bds, v, u, bd) {
         res.fcvec.fc_ref_mut(v, u, bd).rt.set(res_rt.fcvec.fc_ref(v, u, bd));
         res.fcvec.fc_ref_mut(v, u, bd).ir.set(res_ir.fcvec.fc_ref(v, u, bd));
