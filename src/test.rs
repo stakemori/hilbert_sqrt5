@@ -50,22 +50,27 @@ mod rankin_cohen {
     use bignum::Sqrt5Mpz;
 
     #[test]
-    fn test_rankin_cohen() {
+    fn test_rankin_cohen1() {
+        let prec = 10;
+        let g2 = eisenstein_series(2, prec);
+        let f = rankin_cohen_sqrt5(1, &g2, &g2).unwrap();
+        assert!(f.is_zero());
+    }
+
+    #[test]
+    fn test_rankin_cohen2() {
         let prec = 10;
         let g2 = eisenstein_series(2, prec);
         let g5 = g5_normalized(prec);
-        let mut f = rankin_cohen_sqrt5(2, &g2, &g2).unwrap();
-        let mut g = rankin_cohen_sqrt5(2, &g2, &g5).unwrap();
-        let a = Sqrt5Mpz::from_sisi(2160, 720);
-        assert!(f.is_divisible_by_const(&a));
-        f /= &a;
-        let b = Sqrt5Mpz::from_sisi(9, -3);
-        assert!(g.is_divisible_by_const(&b));
-        g /= &b;
+        let f = rankin_cohen_sqrt5(2, &g2, &g2).unwrap();
+        let g = rankin_cohen_sqrt5(2, &g2, &g5).unwrap();
         let g15 = g15_normalized(prec);
         let g15: HmfGen<Sqrt5Mpz> = From::from(&g15);
         let h = bracket_inner_prod(&f, &g, &g15).unwrap();
-        println!("{}", h);
+        assert_eq!(h.prec, prec - 2);
+        let mut const_form: HmfGen<Sqrt5Mpz> = HmfGen::one(h.prec);
+        const_form *= &h.fourier_coefficient(0, 0);
+        assert_eq!(h, const_form);
     }
 }
 

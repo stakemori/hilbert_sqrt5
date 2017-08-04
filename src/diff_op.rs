@@ -376,6 +376,7 @@ macro_rules! define_rankin_cohen {
             let mut tmp_z = Mpz::new();
             let mut tmp_z1 = Mpz::new();
             let mut tmp_z2 = Mpz::new();
+            let mut sgn = 1 as c_long;
             if !f.weight.is_none() && !g.weight.is_none() {
                 let (k1, k2) = f.weight.unwrap();
                 let (l1, l2) = g.weight.unwrap();
@@ -385,6 +386,8 @@ macro_rules! define_rankin_cohen {
                     tmp_z1.set_ui((m + l2 - 1) as c_ulong);
                     tmp_z2.bin_ui_mut(&tmp_z1, i as c_ulong);
                     tmp_z *= &tmp_z2;
+                    tmp_z *= sgn;
+                    sgn *= -1;
                     $mul_fun(&mut tmp, (0, i), (0, m - i), &f, &g);
                     tmp *= &tmp_z;
                     res += &tmp;
@@ -520,5 +523,19 @@ mod tests {
         divide_by_g15(&mut res, &g, &g15);
         g5.decrease_prec(prec - 2);
         assert_eq!(g5, res);
+    }
+
+    #[test]
+    fn test_diff_prod() {
+        let prec = 10;
+        let g2 = eisenstein_series(2, prec);
+        let mut res1 = HmfGen::new(prec);
+        let mut res2 = HmfGen::new(prec);
+        diff_mul_mut_rt(&mut res1, (0, 0), (0, 1), &g2, &g2);
+        diff_mul_mut_rt(&mut res2, (0, 1), (0, 0), &g2, &g2);
+        assert_eq!(res1, res2);
+        diff_mul_mut_ir(&mut res1, (0, 0), (0, 1), &g2, &g2);
+        diff_mul_mut_ir(&mut res2, (0, 1), (0, 0), &g2, &g2);
+        assert_eq!(res1, res2);
     }
 }
