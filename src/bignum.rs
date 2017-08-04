@@ -100,6 +100,10 @@ impl Sqrt5Mpz {
         res.addmul_mut(a, a);
         *res >>= 2;
     }
+
+    pub fn from_sisi(rt: c_long, ir: c_long) -> Self {
+        Self {rt: Mpz::from_si(rt), ir: Mpz::from_si(ir)}
+    }
 }
 
 impl BigNumber for Sqrt5Mpz {
