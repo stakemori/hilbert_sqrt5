@@ -81,8 +81,8 @@ impl BigNumber for Mpz {
 /// (rt + ir sqrt(5))/2
 #[derive(Debug, Clone)]
 pub struct Sqrt5Mpz {
-    rt: Mpz,
-    ir: Mpz,
+    pub rt: Mpz,
+    pub ir: Mpz,
 }
 
 impl Sqrt5Mpz {
