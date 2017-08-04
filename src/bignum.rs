@@ -90,6 +90,18 @@ pub struct Sqrt5Mpz {
     pub ir: Mpz,
 }
 
+impl<'a> From<&'a Mpz> for Sqrt5Mpz {
+    fn from(a: &Mpz) -> Self {
+        let mut rt = Mpz::new();
+        rt.set(&a);
+        rt <<= 1;
+        Self {
+            rt: rt,
+            ir: Mpz::zero(),
+        }
+    }
+}
+
 impl Sqrt5Mpz {
     pub fn conj_mut(&mut self) {
         self.ir.negate();
