@@ -7,6 +7,7 @@ use std::ops::{AddAssign, MulAssign, DivAssign, SubAssign, ShlAssign, ShrAssign,
 use std::cmp::min;
 use bignum::BigNumber;
 use gmp::mpz::Mpz;
+use std::convert::From;
 
 type Weight = Option<(usize, usize)>;
 /// struct for hilbert modualr form over Q(sqrt(5))
@@ -90,6 +91,20 @@ where
 #[derive(Debug, PartialEq, Clone)]
 pub struct FcVec<T> {
     pub vec: Vec<Vec<T>>,
+}
+
+impl<'a, T> From<&'a FcVec<Mpz>> for FcVec<T>
+where
+    for<'b> T: From<&'b Mpz>,
+{
+    fn from(a: &FcVec<Mpz>) -> FcVec<T> {
+        Self {
+            vec: a.vec
+                .iter()
+                .map(|v| v.iter().map(|x| From::from(x)).collect())
+                .collect(),
+        }
+    }
 }
 
 impl<T> FcVec<T>
@@ -177,6 +192,22 @@ fn weight_pow(a: Weight, n: usize) -> Weight {
 
 pub fn weight_div(a: Weight, b: Weight) -> Weight {
     a.and_then(|x| b.and_then(|y| Some((x.0 - y.0, x.1 - y.1))))
+}
+
+impl<'a, T> From<&'a HmfGen<Mpz>> for HmfGen<T>
+where
+    for<'b> T: From<&'b Mpz>,
+{
+    fn from(f: &HmfGen<Mpz>) -> Self {
+        let fcvec = From::from(&f.fcvec);
+        let u_bds = f.u_bds.clone();
+        Self {
+            fcvec: fcvec,
+            weight: f.weight,
+            prec: f.prec,
+            u_bds: u_bds,
+        }
+    }
 }
 
 impl<T> HmfGen<T>
