@@ -3,6 +3,11 @@ use gmp::mpz::Mpz;
 use std::fmt;
 use std::ops::{AddAssign, SubAssign, ShlAssign, ShrAssign, MulAssign};
 
+pub trait RealQuadElement<S> {
+    fn rt_part(&self) -> S;
+    fn ir_part(&self) -> S;
+}
+
 pub trait BigNumber {
     fn is_zero_g(&self) -> bool;
     fn from_ui_g(x: c_ulong) -> Self;
@@ -99,6 +104,16 @@ impl<'a> From<&'a Mpz> for Sqrt5Mpz {
             rt: rt,
             ir: Mpz::zero(),
         }
+    }
+}
+
+impl RealQuadElement<Mpz> for Sqrt5Mpz {
+    fn rt_part(&self) -> Mpz {
+        self.rt.clone()
+    }
+
+    fn ir_part(&self) -> Mpz {
+        self.ir.clone()
     }
 }
 

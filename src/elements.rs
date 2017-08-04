@@ -5,7 +5,7 @@ use libc::{c_ulong, c_long};
 use std::ops::{AddAssign, MulAssign, DivAssign, SubAssign, ShlAssign, ShrAssign, Mul, Sub, Neg,
                Add};
 use std::cmp::min;
-use bignum::BigNumber;
+use bignum::{BigNumber, RealQuadElement};
 use gmp::mpz::Mpz;
 use std::convert::From;
 
@@ -104,6 +104,27 @@ where
                 .map(|v| v.iter().map(|x| From::from(x)).collect())
                 .collect(),
         }
+    }
+}
+
+impl<T> RealQuadElement<FcVec<Mpz>> for FcVec<T>
+where
+    T: RealQuadElement<Mpz>,
+{
+    fn ir_part(&self) -> FcVec<Mpz> {
+        let vec = self.vec
+            .iter()
+            .map(|v| v.iter().map(|x| x.ir_part()).collect())
+            .collect();
+        FcVec::<Mpz> { vec: vec }
+    }
+
+    fn rt_part(&self) -> FcVec<Mpz> {
+        let vec = self.vec
+            .iter()
+            .map(|v| v.iter().map(|x| x.rt_part()).collect())
+            .collect();
+        FcVec::<Mpz> { vec: vec }
     }
 }
 
