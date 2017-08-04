@@ -7,6 +7,7 @@ use eisenstein::eisenstein_series;
 use theta_chars::g5_normalized;
 use misc::PowGen;
 use fcvec;
+use bignum::Sqrt5Mpz;
 
 impl PartialEq for Sqrt5Elt<Mpz> {
     fn eq(&self, other: &Self) -> bool {
@@ -196,7 +197,12 @@ fn diff_mul_mut_ir(
     *res >>= 1;
 }
 
-fn diff_mut(res_rt: &mut HmfGen<Mpz>, res_ir: &mut HmfGen<Mpz>, expt: (usize, usize), f: &HmfGen<Mpz>) {
+fn diff_mut(
+    res_rt: &mut HmfGen<Mpz>,
+    res_ir: &mut HmfGen<Mpz>,
+    expt: (usize, usize),
+    f: &HmfGen<Mpz>,
+) {
     let norm_expt = min(expt.0, expt.1);
     if norm_expt > 0 {
         diff_mut_minus_norm(res_rt, norm_expt, f);
@@ -350,7 +356,9 @@ pub fn bracket_proj(f: &HmfGen<Mpz>, g15: &HmfGen<Mpz>) -> Result<HmfGen<Mpz>, N
 
 macro_rules! define_rankin_cohen {
     ($fun: ident, $mul_fun: ident) => {
-        pub fn $fun(m: usize, f: &HmfGen<Mpz>, g: &HmfGen<Mpz>) -> Result<HmfGen<Mpz>, NotHhmError> {
+        pub fn $fun(m: usize,
+                    f: &HmfGen<Mpz>,
+                    g: &HmfGen<Mpz>) -> Result<HmfGen<Mpz>, NotHhmError> {
             assert_eq!(f.prec, g.prec);
             let mut res = HmfGen::new(f.prec);
             let mut tmp = HmfGen::new(f.prec);
@@ -381,6 +389,21 @@ macro_rules! define_rankin_cohen {
 
 define_rankin_cohen!(rankin_cohen_rt, diff_mul_mut_rt);
 define_rankin_cohen!(rankin_cohen_ir, diff_mul_mut_ir);
+
+pub fn rankin_cohen_sqrt5(
+    m: usize,
+    f: &HmfGen<Mpz>,
+    g: &HmfGen<Mpz>,
+) -> Result<HmfGen<Sqrt5Mpz>, NotHhmError> {
+    let mut res = HmfGen::<Sqrt5Mpz>::new(f.prec);
+    let res_rt = rankin_cohen_rt(m, &f, &g)?;
+    let res_ir = rankin_cohen_ir(m, &f, &g)?;
+    v_u_bd_iter!((f.u_bds, v, u, bd) {
+        res.fcvec.fc_ref_mut(v, u, bd).rt.set(res_rt.fcvec.fc_ref(v, u, bd));
+        res.fcvec.fc_ref_mut(v, u, bd).ir.set(res_ir.fcvec.fc_ref(v, u, bd));
+    });
+    Ok(res)
+}
 
 #[cfg(test)]
 mod tests {

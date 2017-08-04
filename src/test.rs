@@ -4,7 +4,7 @@ use elements::HmfGen;
 use eisenstein::eisenstein_series;
 use misc::prime_sieve;
 use gmp::mpz::Mpz;
-use diff_op::{g15_normalized, monom_g2_g6_g10};
+use diff_op::{g15_normalized, monom_g2_g6_g10, rankin_cohen_sqrt5};
 
 
 // Taken from http://qiita.com/pseudo_foxkeh/items/5d5226e3ffa27631e80d
@@ -42,6 +42,22 @@ mod g15_part {
         e2.decrease_prec(f2.prec);
         assert_eq!(g5, f5);
         assert_eq!(e2, f2);
+    }
+}
+
+mod rankin_cohen {
+    use super::*;
+    use bignum::Sqrt5Mpz;
+
+    #[test]
+    fn test_rankin_cohen() {
+        let prec = 10;
+        let g2 = eisenstein_series(2, prec);
+        let mut f = rankin_cohen_sqrt5(2, &g2, &g2).unwrap();
+        let a = Sqrt5Mpz::from_sisi(2160, 720);
+        assert!(f.is_divisible_by_const(&a));
+        f /= &a;
+        println!("{}", f);
     }
 }
 
