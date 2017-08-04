@@ -231,6 +231,29 @@ where
     }
 }
 
+impl<T> RealQuadElement<HmfGen<Mpz>> for HmfGen<T>
+where
+    T: RealQuadElement<Mpz>,
+{
+    fn rt_part(&self) -> HmfGen<Mpz> {
+        HmfGen::<Mpz> {
+            weight: self.weight,
+            prec: self.prec,
+            fcvec: self.fcvec.rt_part(),
+            u_bds: self.u_bds.clone(),
+        }
+    }
+
+    fn ir_part(&self) -> HmfGen<Mpz> {
+        HmfGen::<Mpz> {
+            weight: self.weight,
+            prec: self.prec,
+            fcvec: self.fcvec.ir_part(),
+            u_bds: self.u_bds.clone(),
+        }
+    }
+}
+
 impl<T> HmfGen<T>
 where
     T: BigNumber,
