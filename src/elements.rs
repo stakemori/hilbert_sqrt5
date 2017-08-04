@@ -6,6 +6,7 @@ use std::ops::{AddAssign, MulAssign, DivAssign, SubAssign, ShlAssign, ShrAssign,
                Add};
 use std::cmp::min;
 use bignum::BigNumber;
+use gmp::mpz::Mpz;
 
 type Weight = Option<(usize, usize)>;
 /// struct for hilbert modualr form over Q(sqrt(5))
@@ -221,8 +222,13 @@ where
     }
 
     pub fn is_divisible_by_const(&self, a: &T) -> bool {
+        let mut tmpelt = T::new_g();
+        let mut tmp = Mpz::new();
         v_u_bd_iter!((self.u_bds, v, u, bd) {
-            if !self.fcvec.fc_ref(v, u, bd).is_multiple_of_g(a) {
+            if !self.fcvec.fc_ref(v, u, bd).is_multiple_of_g(
+                a,
+                &mut tmpelt,
+                &mut tmp) {
                 return false;
             }
         });
@@ -326,8 +332,9 @@ where
     T: BigNumber,
 {
     fn div_assign(&mut self, num: &T) {
+        let mut tmp = Mpz::new();
         v_u_bd_iter!((self.u_bds, v, u, bd) {
-            self.fcvec.fc_ref_mut(v, u, bd).set_divexact_g(&num);
+            self.fcvec.fc_ref_mut(v, u, bd).set_divexact_g(&num, &mut tmp);
         })
     }
 }
@@ -503,11 +510,11 @@ where
 impl<'a, T> MulAssign<&'a T> for HmfGen<T>
 where
     T: BigNumber,
-    for<'b> T: MulAssign<&'b T>,
 {
     fn mul_assign(&mut self, other: &T) {
+        let mut tmp = Mpz::new();
         v_u_bd_iter!((self.u_bds, v, u, bd) {
-            T::mul_assign(self.fcvec.fc_ref_mut(v, u, bd), other);
+            self.fcvec.fc_ref_mut(v, u, bd).mul_assign_g(&other, &mut tmp);
         }
         )
     }

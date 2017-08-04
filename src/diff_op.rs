@@ -14,6 +14,7 @@ impl PartialEq for Sqrt5Elt<Mpz> {
     }
 }
 
+/// TODO: Remove duplicate of code.
 impl Sqrt5Elt<Mpz> {
     pub fn new() -> Self {
         Sqrt5Elt {
