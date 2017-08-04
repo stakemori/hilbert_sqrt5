@@ -223,7 +223,11 @@ impl BigNumber for Sqrt5Mpz {
 
 impl fmt::Display for Sqrt5Mpz {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "({}, {})", self.rt, self.ir)
+        if self.ir.is_zero() {
+            write!(f, "{}", &self.rt >> 1)
+        } else {
+            write!(f, "({}, {})", self.rt, self.ir)
+        }
     }
 }
 
