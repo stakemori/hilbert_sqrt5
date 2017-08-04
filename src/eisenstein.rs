@@ -26,7 +26,7 @@ const L_VALS: [(&'static str, &'static str); 15] =
     ];
 
 /// Return normalized Eisenstein series of weight k
-pub fn eisenstein_series(k: u64, prec: usize) -> HmfGen {
+pub fn eisenstein_series(k: u64, prec: usize) -> HmfGen<Mpz> {
     assert!(is_even!(k) && 2 <= k && k <= 30);
     let idx = ((k - 2) >> 1) as usize;
     let (dns, nms) = L_VALS[idx];
@@ -43,10 +43,10 @@ pub fn eisenstein_series_from_lvals(
     l_val_num: &Mpz,
     l_val_denom: &Mpz,
     prec: usize,
-) -> HmfGen {
+) -> HmfGen<Mpz> {
     assert!((prec as f64) < (::std::i64::MAX as f64) * 5_f64.sqrt());
     let u_bds = UBounds::new(prec);
-    let mut res = HmfGen::new(prec);
+    let mut res = HmfGen::<Mpz>::new(prec);
 
     // Set constant term
     res.fcvec.fc_ref_mut(0, 0, 0).set(&l_val_num);
@@ -82,7 +82,7 @@ fn mul_factor(a: &mut Mpz, term_m1: &Mpz, term_last_m1: &Mpz) {
     a.set_divexact(&term_last_m1);
 }
 
-fn split_primes_factor(prec: usize, expt: u64, res: &mut HmfGen, u_bds: &UBounds) {
+fn split_primes_factor(prec: usize, expt: u64, res: &mut HmfGen<Mpz>, u_bds: &UBounds) {
     let split_prec = {
         if is_even!(prec) {
             let v1 = prec >> 1;
@@ -157,7 +157,7 @@ fn split_primes_factor(prec: usize, expt: u64, res: &mut HmfGen, u_bds: &UBounds
 }
 
 
-fn innert_primes_factor(prec: usize, expt: u64, res: &mut HmfGen, u_bds: &UBounds) {
+fn innert_primes_factor(prec: usize, expt: u64, res: &mut HmfGen<Mpz>, u_bds: &UBounds) {
 
     let mut term = Mpz::new();
     let mut term_m1 = Mpz::new();
@@ -208,7 +208,7 @@ fn innert_primes_factor(prec: usize, expt: u64, res: &mut HmfGen, u_bds: &UBound
     }
 }
 
-fn sqrt5_factor(prec: usize, expt: u64, res: &mut HmfGen, u_bds: &UBounds) {
+fn sqrt5_factor(prec: usize, expt: u64, res: &mut HmfGen<Mpz>, u_bds: &UBounds) {
     let mut term = Mpz::new();
     let mut term_m1 = Mpz::new();
     let mut term_last = Mpz::new();

@@ -29,7 +29,7 @@ fn points_in_ellipse(a: i64, b: i64, r: i64) -> Vec<(i64, i64)> {
     vec
 }
 
-fn theta_char(alpha: &Sqrt5Elt<i64>, beta: &Sqrt5Elt<i64>, prec: usize) -> HmfGen {
+fn theta_char(alpha: &Sqrt5Elt<i64>, beta: &Sqrt5Elt<i64>, prec: usize) -> HmfGen<Mpz> {
     let mut res = HmfGen::new(prec);
     for &(x, y) in points_in_ellipse(alpha.rt, alpha.ir, prec as i64).iter() {
         let nu_1 = (x - alpha.rt) >> 1;
@@ -50,7 +50,7 @@ fn theta_char(alpha: &Sqrt5Elt<i64>, beta: &Sqrt5Elt<i64>, prec: usize) -> HmfGe
     res
 }
 
-fn theta_0_eps(prec: usize) -> HmfGen {
+fn theta_0_eps(prec: usize) -> HmfGen<Mpz> {
     let one = &Sqrt5Elt { rt: 2, ir: 0 };
     let zero = &Sqrt5Elt { rt: 0, ir: 0 };
     let eps = &Sqrt5Elt { rt: 1, ir: 1 };
@@ -76,9 +76,9 @@ fn theta_0_eps(prec: usize) -> HmfGen {
 }
 
 /// Return Theta in Satz 2 in Gundlach's paper.
-pub fn theta(prec: usize) -> HmfGen {
+pub fn theta(prec: usize) -> HmfGen<Mpz> {
     let f = theta_0_eps(prec);
-    let mut res = HmfGen::new(prec);
+    let mut res: HmfGen<Mpz> = HmfGen::new(prec);
     v_u_bd_iter!((res.u_bds, v, u, bd) {
         let v1 = v << 3;
         let u1 = u << 3;
@@ -91,7 +91,7 @@ pub fn theta(prec: usize) -> HmfGen {
     res
 }
 
-fn theta_squared(prec: usize) -> HmfGen {
+fn theta_squared(prec: usize) -> HmfGen<Mpz> {
     let e2 = eisenstein_series(2, prec);
     let e6 = eisenstein_series(6, prec);
     let mut res = eisenstein_series(10, prec);
@@ -112,14 +112,14 @@ fn theta_squared(prec: usize) -> HmfGen {
 
 /// Return normalized cusp form of weight 5 that is propotional to the return
 /// value of theta(prec).
-pub fn g5_normalized(prec: usize) -> HmfGen {
+pub fn g5_normalized(prec: usize) -> HmfGen<Mpz> {
     let prec = prec + 1;
     let g10 = theta_squared(prec);
     let mut f10 = HmfGen::new(prec);
     divide_by_squared(&mut f10, &g10);
 
-    let mut tmp = HmfGen::new(prec);
-    let mut res = HmfGen::new(prec - 1);
+    let mut tmp = HmfGen::<Mpz>::new(prec);
+    let mut res = HmfGen::<Mpz>::new(prec - 1);
     {
         let bd1 = res.u_bds.vec[1] as i64;
         res.fcvec.fc_ref_mut(1, 1, bd1 as i64).set_ui(1);
@@ -194,7 +194,7 @@ pub fn g5_normalized(prec: usize) -> HmfGen {
 }
 
 /// set f = g / (q_1 - q_1^(-1))^2, where q_1 = e(u).
-fn divide_by_squared(f: &mut HmfGen, g: &HmfGen) {
+fn divide_by_squared(f: &mut HmfGen<Mpz>, g: &HmfGen<Mpz>) {
     let prec = g.prec;
     for v in 2..(prec + 1) {
         let bd = g.u_bds.vec[v] - 2;
@@ -257,7 +257,7 @@ mod tests {
         });
     }
 
-    fn print_vth_cf(f: &HmfGen, v: usize) {
+    fn print_vth_cf(f: &HmfGen<Mpz>, v: usize) {
         let bd = f.u_bds.vec[v] as i64;
         let v_i = v as i64;
         let mut res = Vec::new();

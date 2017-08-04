@@ -50,7 +50,7 @@ mod g15_squared {
     use misc::PowGen;
 
     #[allow(dead_code)]
-    fn fc_vec(f: &HmfGen, num: usize) -> Vec<Mpz> {
+    fn fc_vec(f: &HmfGen<Mpz>, num: usize) -> Vec<Mpz> {
         let mut tpls = Vec::new();
         v_u_bd_iter!((f.u_bds, v, u, bd) {
             if u >= 0 {

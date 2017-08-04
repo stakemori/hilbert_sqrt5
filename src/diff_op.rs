@@ -110,7 +110,7 @@ fn expt_to_chars(expt: usize) -> Vec<char> {
 }
 
 
-pub fn monom_g2_g6_g10(prec: usize, expt1: usize, expt2: usize, expt3: usize) -> HmfGen {
+pub fn monom_g2_g6_g10(prec: usize, expt1: usize, expt2: usize, expt3: usize) -> HmfGen<Mpz> {
     let mut tmp = HmfGen::new(prec);
     let mut res = HmfGen::new(prec);
     let g2 = eisenstein_series(2, prec);
@@ -129,7 +129,7 @@ pub fn monom_g2_g6_g10(prec: usize, expt1: usize, expt2: usize, expt3: usize) ->
     res
 }
 
-pub fn g15_normalized(prec: usize) -> HmfGen {
+pub fn g15_normalized(prec: usize) -> HmfGen<Mpz> {
     let g2 = eisenstein_series(2, prec);
     let g6 = eisenstein_series(6, prec);
     let g5 = g5_normalized(prec);
@@ -147,7 +147,7 @@ pub fn g15_normalized(prec: usize) -> HmfGen {
     tmp1
 }
 
-fn g15_term(res: &mut HmfGen, wt: c_ulong, f: &HmfGen, g: &HmfGen, h: &HmfGen) {
+fn g15_term(res: &mut HmfGen<Mpz>, wt: c_ulong, f: &HmfGen<Mpz>, g: &HmfGen<Mpz>, h: &HmfGen<Mpz>) {
     diff_mul_mut_ir(res, (1, 0), (0, 1), &g, &h);
     *res *= wt;
     *res *= f;
@@ -156,11 +156,11 @@ fn g15_term(res: &mut HmfGen, wt: c_ulong, f: &HmfGen, g: &HmfGen, h: &HmfGen) {
 /// Rt part of ∂^(a1 + a2)/(∂^a1∂^a2)f1 * ∂^(b1 + b2)/(∂^b1∂^b2)f2, where
 /// (a1, a2) = expt1, (b1, b2) = expt2.
 fn diff_mul_mut_rt(
-    res: &mut HmfGen,
+    res: &mut HmfGen<Mpz>,
     expt1: (usize, usize),
     expt2: (usize, usize),
-    f1: &HmfGen,
-    f2: &HmfGen,
+    f1: &HmfGen<Mpz>,
+    f2: &HmfGen<Mpz>,
 ) {
     let prec = f1.prec;
     let ref mut tmp_f1 = HmfGen::new(prec);
@@ -169,7 +169,7 @@ fn diff_mul_mut_rt(
     diff_mut(tmp_f1, res, expt1, &f1);
     diff_mut(tmp_f2, tmp_f3, expt2, &f2);
     *res *= 5 as c_ulong;
-    *res *= tmp_f3 as &HmfGen;
+    *res *= tmp_f3 as &HmfGen<Mpz>;
     tmp_f3.mul_mut(tmp_f1, tmp_f2);
     *res += tmp_f3;
     *res >>= 1;
@@ -177,11 +177,11 @@ fn diff_mul_mut_rt(
 
 /// Similar to diff_mul_mut_rt for ir part.
 fn diff_mul_mut_ir(
-    res: &mut HmfGen,
+    res: &mut HmfGen<Mpz>,
     expt1: (usize, usize),
     expt2: (usize, usize),
-    f1: &HmfGen,
-    f2: &HmfGen,
+    f1: &HmfGen<Mpz>,
+    f2: &HmfGen<Mpz>,
 ) {
     let prec = f1.prec;
     let ref mut tmp_f1 = HmfGen::new(prec);
@@ -189,13 +189,13 @@ fn diff_mul_mut_ir(
     let ref mut tmp_f3 = HmfGen::new(prec);
     diff_mut(tmp_f1, tmp_f3, expt1, &f1);
     diff_mut(tmp_f2, res, expt2, &f2);
-    *res *= tmp_f1 as &HmfGen;
+    *res *= tmp_f1 as &HmfGen<Mpz>;
     tmp_f1.mul_mut(tmp_f2, tmp_f3);
     *res += tmp_f1;
     *res >>= 1;
 }
 
-fn diff_mut(res_rt: &mut HmfGen, res_ir: &mut HmfGen, expt: (usize, usize), f: &HmfGen) {
+fn diff_mut(res_rt: &mut HmfGen<Mpz>, res_ir: &mut HmfGen<Mpz>, expt: (usize, usize), f: &HmfGen<Mpz>) {
     let norm_expt = min(expt.0, expt.1);
     if norm_expt > 0 {
         diff_mut_minus_norm(res_rt, norm_expt, f);
@@ -208,7 +208,7 @@ fn diff_mut(res_rt: &mut HmfGen, res_ir: &mut HmfGen, expt: (usize, usize), f: &
     }
 }
 
-fn diff_mut_rt(res_rt: &mut HmfGen, res_ir: &mut HmfGen, expt: usize, f: &HmfGen) {
+fn diff_mut_rt(res_rt: &mut HmfGen<Mpz>, res_ir: &mut HmfGen<Mpz>, expt: usize, f: &HmfGen<Mpz>) {
     let mut tmp_elt = Sqrt5Elt::<Mpz>::new();
     let mut a_pow = Sqrt5Elt::<Mpz>::new();
     let mut tmp = Mpz::new();
@@ -223,7 +223,7 @@ fn diff_mut_rt(res_rt: &mut HmfGen, res_ir: &mut HmfGen, expt: usize, f: &HmfGen
     );
 }
 
-fn diff_mut_ir(res_rt: &mut HmfGen, res_ir: &mut HmfGen, expt: usize, f: &HmfGen) {
+fn diff_mut_ir(res_rt: &mut HmfGen<Mpz>, res_ir: &mut HmfGen<Mpz>, expt: usize, f: &HmfGen<Mpz>) {
     let mut tmp_elt = Sqrt5Elt::<Mpz>::new();
     let mut a_pow = Sqrt5Elt::<Mpz>::new();
     let eps = if is_even!(expt) {
@@ -245,7 +245,7 @@ fn diff_mut_ir(res_rt: &mut HmfGen, res_ir: &mut HmfGen, expt: usize, f: &HmfGen
     );
 }
 
-fn diff_mut_minus_norm(res: &mut HmfGen, expt: usize, f: &HmfGen) {
+fn diff_mut_minus_norm(res: &mut HmfGen<Mpz>, expt: usize, f: &HmfGen<Mpz>) {
     let mut a = Sqrt5Elt::<Mpz>::new();
     let mut tmp = Mpz::new();
     let expt = expt as u64;
@@ -259,7 +259,7 @@ fn diff_mut_minus_norm(res: &mut HmfGen, expt: usize, f: &HmfGen) {
 }
 
 /// set set = f/g15
-fn divide_by_g15(res: &mut HmfGen, f: &HmfGen, g15: &HmfGen) {
+fn divide_by_g15(res: &mut HmfGen<Mpz>, f: &HmfGen<Mpz>, g15: &HmfGen<Mpz>) {
     let prec = f.prec;
     assert_eq!(prec, g15.prec);
     res.prec = prec - 2;
@@ -306,7 +306,7 @@ fn divide_by_g15(res: &mut HmfGen, f: &HmfGen, g15: &HmfGen) {
 pub struct NotHhmError {}
 
 /// Return <f>.
-pub fn bracket_proj(f: &HmfGen, g15: &HmfGen) -> Result<HmfGen, NotHhmError> {
+pub fn bracket_proj(f: &HmfGen<Mpz>, g15: &HmfGen<Mpz>) -> Result<HmfGen<Mpz>, NotHhmError> {
     let mut res = HmfGen::new(f.prec - 2);
     let mut g = f.clone();
     let mut tmp = Mpz::new();
@@ -349,7 +349,7 @@ pub fn bracket_proj(f: &HmfGen, g15: &HmfGen) -> Result<HmfGen, NotHhmError> {
 
 macro_rules! define_rankin_cohen {
     ($fun: ident, $mul_fun: ident) => {
-        pub fn $fun(m: usize, f: &HmfGen, g: &HmfGen) -> Result<HmfGen, NotHhmError> {
+        pub fn $fun(m: usize, f: &HmfGen<Mpz>, g: &HmfGen<Mpz>) -> Result<HmfGen<Mpz>, NotHhmError> {
             assert_eq!(f.prec, g.prec);
             let mut res = HmfGen::new(f.prec);
             let mut tmp = HmfGen::new(f.prec);
@@ -380,37 +380,6 @@ macro_rules! define_rankin_cohen {
 
 define_rankin_cohen!(rankin_cohen_rt, diff_mul_mut_rt);
 define_rankin_cohen!(rankin_cohen_ir, diff_mul_mut_ir);
-
-pub fn rankin_cohen(m: usize, f: &HmfGen, g: &HmfGen) -> Result<Sqrt5Elt<HmfGen>, NotHhmError> {
-    let res_rt = rankin_cohen_rt(m, &f, &g)?;
-    let res_ir = rankin_cohen_ir(m, &f, &g)?;
-    Ok(Sqrt5Elt::<HmfGen> {
-        rt: res_rt,
-        ir: res_ir,
-    })
-}
-
-pub fn star_op(res: &mut Sqrt5Elt<HmfGen>, f: &Sqrt5Elt<HmfGen>) {
-    let (k1, k2) = f.weight().unwrap();
-    if is_even!((k1 + k2) >> 1) {
-        v_u_bd_iter!((f.u_bds(), v, u, bd) {
-            res.rt.fcvec.fc_ref_mut(v, u, bd).set(f.rt.fcvec.fc_ref(v, -u, bd));
-            res.ir.fcvec.fc_ref_mut(v, u, bd).set(f.ir.fcvec.fc_ref(v, -u, bd));
-        });
-    } else {
-        let mut tmp = Mpz::new();
-        v_u_bd_iter!((f.u_bds(), v, u, bd) {
-
-            tmp.set(f.rt.fcvec.fc_ref(v, -u, bd));
-            tmp.negate();
-            res.rt.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
-
-            tmp.set(f.ir.fcvec.fc_ref(v, -u, bd));
-            tmp.negate();
-            res.ir.fcvec.fc_ref_mut(v, u, bd).set(&tmp);
-        });
-    }
-}
 
 #[cfg(test)]
 mod tests {
