@@ -48,6 +48,7 @@ mod g15_part {
 mod rankin_cohen {
     use super::*;
     use bignum::{Sqrt5Mpz, RealQuadElement};
+    use libc::{c_long};
 
     #[test]
     fn test_rankin_cohen1() {
@@ -67,11 +68,20 @@ mod rankin_cohen {
 
         let g7_9 = rankin_cohen_sqrt5(1, &g2, &g5).unwrap();
         let g8_10 = rankin_cohen_sqrt5(1, &g2, &g6).unwrap();
+        let g11_13 = rankin_cohen_sqrt5(1, &g5, &g6).unwrap();
         let f2 = bracket_inner_prod(&g7_9, &g8_10, &g15).unwrap();
         assert!(f2.rt_part().is_zero());
         let mut f2 = f2.ir_part();
+        assert!(f2.is_divisible_by_const(&Mpz::from_si(-172800)));
         f2 /= &Mpz::from_si(-172800);
         assert_eq!(f2, g2);
+
+        let f6 = bracket_inner_prod(&g8_10, &g11_13, &g15).unwrap();
+        assert!(f6.rt_part().is_zero());
+        let mut g6 = g6;
+        g6 *= -518400 as c_long;
+        let f6 = f6.ir_part();
+        assert_eq!(f6, g6);
     }
 
     #[test]
