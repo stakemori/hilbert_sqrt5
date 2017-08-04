@@ -8,6 +8,8 @@ use theta_chars::g5_normalized;
 use misc::PowGen;
 use fcvec;
 use bignum::Sqrt5Mpz;
+use bignum::BigNumber;
+use std::ops::{SubAssign, MulAssign, AddAssign, ShrAssign};
 
 impl PartialEq for Sqrt5Elt<Mpz> {
     fn eq(&self, other: &Self) -> bool {
@@ -266,7 +268,11 @@ fn diff_mut_minus_norm(res: &mut HmfGen<Mpz>, expt: usize, f: &HmfGen<Mpz>) {
 }
 
 /// set set = f/g15
-fn divide_by_g15(res: &mut HmfGen<Mpz>, f: &HmfGen<Mpz>, g15: &HmfGen<Mpz>) {
+fn divide_by_g15<T>(res: &mut HmfGen<T>, f: &HmfGen<T>, g15: &HmfGen<T>)
+where
+    T: BigNumber + Clone,
+    for<'a> T: SubAssign<&'a T>,
+{
     let prec = f.prec;
     assert_eq!(prec, g15.prec);
     res.prec = prec - 2;
@@ -300,7 +306,7 @@ fn divide_by_g15(res: &mut HmfGen<Mpz>, f: &HmfGen<Mpz>, g15: &HmfGen<Mpz>) {
         let bd = u_bds.vec[v - 2] as i64;
         let bd1 = bd1 as i64;
         for u in u_iter!(v_i, bd) {
-            res.fcvec.fc_ref_mut(v - 2, u, bd).set(
+            res.fcvec.fc_ref_mut(v - 2, u, bd).set_g(
                 f_cloned
                     .fcvec
                     .fc_ref_mut(v, u, bd1),
@@ -313,10 +319,15 @@ fn divide_by_g15(res: &mut HmfGen<Mpz>, f: &HmfGen<Mpz>, g15: &HmfGen<Mpz>) {
 pub struct NotHhmError {}
 
 /// Return <f>.
-pub fn bracket_proj(f: &HmfGen<Mpz>, g15: &HmfGen<Mpz>) -> Result<HmfGen<Mpz>, NotHhmError> {
+pub fn bracket_proj<T>(f: &HmfGen<T>, g15: &HmfGen<T>) -> Result<HmfGen<T>, NotHhmError>
+where
+    T: BigNumber + Clone + MulAssign<c_ulong> + ShrAssign<usize>,
+    for<'a> T: SubAssign<&'a T>,
+    for<'a> T: AddAssign<&'a T>,
+{
     let mut res = HmfGen::new(f.prec - 2);
     let mut g = f.clone();
-    let mut tmp = Mpz::new();
+    let mut tmp = T::new_g();
     match f.weight {
         None => Err(NotHhmError {}),
         Some((k1, k2)) => {
@@ -324,13 +335,13 @@ pub fn bracket_proj(f: &HmfGen<Mpz>, g15: &HmfGen<Mpz>) -> Result<HmfGen<Mpz>, N
                 for (v, &bd) in g.u_bds.vec.iter().enumerate() {
                     let bd = bd as i64;
                     let v_i = v as i64;
-                    g.fcvec.fc_ref_mut(v, 0, bd).set_ui(0);
+                    g.fcvec.fc_ref_mut(v, 0, bd).set_ui_g(0);
                     for u in u_iter_pos!(v_i, bd) {
-                        tmp.set(g.fcvec.fc_ref(v, -u, bd));
+                        tmp.set_g(g.fcvec.fc_ref(v, -u, bd));
                         *g.fcvec.fc_ref_mut(v, u, bd) -= &tmp;
-                        tmp.set(g.fcvec.fc_ref(v, u, bd));
-                        tmp.negate();
-                        g.fcvec.fc_ref_mut(v, -u, bd).set(&tmp);
+                        tmp.set_g(g.fcvec.fc_ref(v, u, bd));
+                        tmp.negate_g();
+                        g.fcvec.fc_ref_mut(v, -u, bd).set_g(&tmp);
                     }
                 }
             } else {
@@ -339,10 +350,10 @@ pub fn bracket_proj(f: &HmfGen<Mpz>, g15: &HmfGen<Mpz>) -> Result<HmfGen<Mpz>, N
                     let v_i = v as i64;
                     *g.fcvec.fc_ref_mut(v, 0, bd) *= 2 as c_ulong;
                     for u in u_iter_pos!(v_i, bd) {
-                        tmp.set(g.fcvec.fc_ref(v, -u, bd));
+                        tmp.set_g(g.fcvec.fc_ref(v, -u, bd));
                         *g.fcvec.fc_ref_mut(v, u, bd) += &tmp;
-                        tmp.set(g.fcvec.fc_ref(v, u, bd));
-                        g.fcvec.fc_ref_mut(v, -u, bd).set(&tmp);
+                        tmp.set_g(g.fcvec.fc_ref(v, u, bd));
+                        g.fcvec.fc_ref_mut(v, -u, bd).set_g(&tmp);
                     }
                 }
 
