@@ -233,7 +233,7 @@ where
 
 impl<T> HmfGen<T>
 where
-    T: BigNumber + Clone,
+    T: BigNumber,
 {
     /// Return 0 q-expantion
     pub fn new(prec: usize) -> HmfGen<T> {
@@ -326,6 +326,7 @@ where
 
     pub fn pow_mut(&mut self, f: &HmfGen<T>, a: usize)
     where
+        T: Clone,
         for<'a> T: AddAssign<&'a T>,
     {
         if a == 0 {
