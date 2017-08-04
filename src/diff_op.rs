@@ -417,6 +417,42 @@ pub fn rankin_cohen_sqrt5(
     Ok(res)
 }
 
+pub fn star_op<T>(res: &mut HmfGen<T>, f: &HmfGen<T>)
+where
+    T: BigNumber,
+{
+    let (k1, k2) = f.weight.unwrap();
+    if is_even!((k1 + k2) >> 1) {
+        v_u_bd_iter!((f.u_bds, v, u, bd) {
+            res.fcvec.fc_ref_mut(v, u, bd).set_g(f.fcvec.fc_ref(v, -u, bd));
+        });
+    } else {
+        let mut tmp = T::new_g();
+        v_u_bd_iter!((f.u_bds, v, u, bd) {
+            tmp.set_g(f.fcvec.fc_ref(v, -u, bd));
+            tmp.negate_g();
+            res.fcvec.fc_ref_mut(v, u, bd).set_g(&tmp);
+        });
+    }
+    res.weight = Some((k2, k1));
+}
+/// Return <f g.star()>
+pub fn bracket_inner_prod<T>(
+    f: &HmfGen<T>,
+    g: &HmfGen<T>,
+    g15: &HmfGen<T>,
+) -> Result<HmfGen<T>, NotHhmError>
+where
+    T: BigNumber + Clone + MulAssign<c_ulong> + ShrAssign<usize>,
+    for<'a> T: AddAssign<&'a T>,
+    for<'a> T: SubAssign<&'a T>,
+{
+    let mut res: HmfGen<T> = HmfGen::new(f.prec);
+    star_op(&mut res, &g);
+    res *= f;
+    bracket_proj(&res, g15)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
