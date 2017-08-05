@@ -15,7 +15,7 @@ type Weight = Option<(usize, usize)>;
 /// Σ a(u, v) exp(2piTr 1/sqrt(5) (u + v * sqrt(5))/2)
 /// where v <= prec.
 /// a(u, v) = fc[v][a], where a = u + u_bds[v]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HmfGen<T> {
     pub prec: usize,
     pub fcvec: FcVec<T>,
@@ -88,7 +88,7 @@ where
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct FcVec<T> {
     pub vec: Vec<Vec<T>>,
 }
@@ -152,7 +152,7 @@ where
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UBounds {
     pub vec: Vec<usize>,
 }
