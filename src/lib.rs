@@ -13,8 +13,5 @@ pub mod eisenstein;
 pub mod diff_op;
 pub mod misc;
 mod fcvec;
-mod bignum;
+pub mod bignum;
 mod structure;
-
-#[cfg(test)]
-mod test;

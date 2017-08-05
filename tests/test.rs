@@ -1,10 +1,15 @@
+extern crate hilbert_sqrt5;
+extern crate gmp;
+extern crate bincode;
+extern crate libc;
+
 use std::time::Instant;
-use theta_chars::{theta, g5_normalized};
-use elements::HmfGen;
-use eisenstein::eisenstein_series;
-use misc::prime_sieve;
+use hilbert_sqrt5::theta_chars::{theta, g5_normalized};
+use hilbert_sqrt5::elements::HmfGen;
+use hilbert_sqrt5::eisenstein::eisenstein_series;
+use hilbert_sqrt5::misc::prime_sieve;
 use gmp::mpz::Mpz;
-use diff_op::{g15_normalized, monom_g2_g6_g10, rankin_cohen_sqrt5, bracket_inner_prod};
+use hilbert_sqrt5::diff_op::{g15_normalized, monom_g2_g6_g10, rankin_cohen_sqrt5, bracket_inner_prod};
 
 
 // Taken from http://qiita.com/pseudo_foxkeh/items/5d5226e3ffa27631e80d
@@ -20,10 +25,24 @@ macro_rules! measure_time {
   };
 }
 
+mod serialize {
+    use super::*;
+
+    use bincode::{serialize, deserialize, Infinite};
+
+    #[test]
+    fn test_serialize() {
+        let f = eisenstein_series(2, 30);
+        let serialized = serialize(&f, Infinite).unwrap();
+        let deserialized: HmfGen<Mpz> = deserialize(&serialized).unwrap();
+        assert_eq!(f, deserialized);
+    }
+}
+
 mod g15_part {
     use super::*;
-    use diff_op::bracket_proj;
-    use misc::PowGen;
+    use hilbert_sqrt5::diff_op::bracket_proj;
+    use hilbert_sqrt5::misc::PowGen;
 
     #[test]
     fn test_bracket_proj() {
@@ -47,7 +66,7 @@ mod g15_part {
 
 mod rankin_cohen {
     use super::*;
-    use bignum::{Sqrt5Mpz, RealQuadElement};
+    use hilbert_sqrt5::bignum::{Sqrt5Mpz, RealQuadElement};
     use libc::{c_long};
 
     #[test]
@@ -103,19 +122,19 @@ mod rankin_cohen {
 
 mod g15_squared {
     use super::*;
-    use misc::PowGen;
+    use hilbert_sqrt5::misc::PowGen;
 
-    #[allow(dead_code)]
-    fn fc_vec(f: &HmfGen<Mpz>, num: usize) -> Vec<Mpz> {
-        let mut tpls = Vec::new();
-        v_u_bd_iter!((f.u_bds, v, u, bd) {
-            if u >= 0 {
-                tpls.push((v, u));
-            }
-        });
-        tpls = tpls.into_iter().take(num).collect();
-        f.fourier_coefficients(&tpls)
-    }
+    // #[allow(dead_code)]
+    // fn fc_vec(f: &HmfGen<Mpz>, num: usize) -> Vec<Mpz> {
+    //     let mut tpls = Vec::new();
+    //     v_u_bd_iter!((f.u_bds, v, u, bd) {
+    //         if u >= 0 {
+    //             tpls.push((v, u));
+    //         }
+    //     });
+    //     tpls = tpls.into_iter().take(num).collect();
+    //     f.fourier_coefficients(&tpls)
+    // }
 
     #[test]
     fn test_g15() {
@@ -264,7 +283,6 @@ mod theta_char {
 
 mod eisen {
     use super::*;
-    use std::ops::AddAssign;
 
     #[test]
     fn test_e2_sqaured() {
@@ -272,10 +290,7 @@ mod eisen {
         let e4 = eisenstein_series(4, 20);
         let mut f = HmfGen::new(20);
         measure_time!(f.mul_mut(&e2, &e2));
-        v_u_bd_iter!((f.u_bds, v, u, bd) {
-            assert_eq!(f.fcvec.fc_ref(v, u, bd), e4.fcvec.fc_ref(v, u, bd));
-        }
-        )
+        assert_eq!(f, e4);
     }
 
     #[test]
@@ -385,17 +400,11 @@ mod eisen {
             "44759605202881920",
             "48378548932926240",
         ];
-        let mut a = Mpz::new();
-        assert_eq!(f.fcvec.fc_ref(0, 0, 0).to_str_radix(10), "1");
-        for (v, &bd) in f.u_bds.vec.iter().enumerate().skip(1) {
-            a.set_ui(0);
-            let bd = bd as i64;
-            let v_i = v as i64;
-            for u in u_iter!(v_i, bd) {
-                Mpz::add_assign(&mut a, f.fcvec.fc_ref(v, u, bd));
-            }
-            assert_eq!(a.to_str_radix(10), ell_eisen[v].to_string());
-        }
+        let v = f.diagonal_restriction();
+        let w: Vec<String> = ell_eisen.iter().map(|&x| x.to_string())
+            .take(v.len()).collect();
+        let v: Vec<String> = v.iter().map(|x| x.to_str_radix(10)).collect();
+        assert_eq!(v, w);
     }
 
     #[test]

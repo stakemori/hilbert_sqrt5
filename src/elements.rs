@@ -401,6 +401,23 @@ where
             self.fcvec.fc_ref_mut(v, u, bd).negate_g();
         })
     }
+
+    pub fn diagonal_restriction(&self) -> Vec<T>
+    where
+        for<'a> T: AddAssign<&'a T>,
+    {
+        let prec = self.prec;
+        let mut vec = Vec::new();
+        for _ in 0..(prec + 1) {
+            let mut a = T::new_g();
+            a.set_ui_g(0);
+            vec.push(a);
+        }
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            vec[v] += self.fcvec.fc_ref(v, u, bd);
+        });
+        vec
+    }
 }
 
 impl<'a, T> DivAssign<&'a T> for HmfGen<T>
