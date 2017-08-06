@@ -384,6 +384,28 @@ where
             .collect()
     }
 
+    pub fn fc_vector(&self, len: usize) -> Vec<T> {
+        let mut vu_vec = Vec::new();
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            vu_vec.push((v, u));
+        });
+        vu_vec
+            .iter()
+            .take(len)
+            .map(|&(v, u)| self.fourier_coefficient(v, u))
+            .collect()
+    }
+
+    pub fn fc_vector_real_quad(&self, len: usize) -> Vec<(Mpz, Mpz)>
+    where
+        T: RealQuadElement<Mpz>,
+    {
+        self.fc_vector(len)
+            .iter()
+            .map(|x| (x.rt_part(), x.ir_part()))
+            .collect()
+    }
+
     pub fn set(&mut self, other: &Self) {
         v_u_bd_iter!((self.u_bds, v, u, bd) {
             self.fcvec.fc_ref_mut(v, u, bd).set_g(other.fcvec.fc_ref(v, u, bd));
