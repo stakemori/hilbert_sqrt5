@@ -14,4 +14,4 @@ pub mod diff_op;
 pub mod misc;
 mod fcvec;
 pub mod bignum;
-mod structure;
+pub mod structure;
