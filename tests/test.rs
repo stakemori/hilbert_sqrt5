@@ -9,7 +9,8 @@ use hilbert_sqrt5::elements::HmfGen;
 use hilbert_sqrt5::eisenstein::eisenstein_series;
 use hilbert_sqrt5::misc::prime_sieve;
 use gmp::mpz::Mpz;
-use hilbert_sqrt5::diff_op::{g15_normalized, monom_g2_g6_g10, rankin_cohen_sqrt5, bracket_inner_prod};
+use hilbert_sqrt5::diff_op::{g15_normalized, monom_g2_g6_g10, rankin_cohen_sqrt5,
+                             bracket_inner_prod};
 
 
 // Taken from http://qiita.com/pseudo_foxkeh/items/5d5226e3ffa27631e80d
@@ -67,7 +68,7 @@ mod g15_part {
 mod rankin_cohen {
     use super::*;
     use hilbert_sqrt5::bignum::{Sqrt5Mpz, RealQuadElement};
-    use libc::{c_long};
+    use libc::c_long;
 
     #[test]
     fn test_rankin_cohen1() {
@@ -401,8 +402,11 @@ mod eisen {
             "48378548932926240",
         ];
         let v = f.diagonal_restriction();
-        let w: Vec<String> = ell_eisen.iter().map(|&x| x.to_string())
-            .take(v.len()).collect();
+        let w: Vec<String> = ell_eisen
+            .iter()
+            .map(|&x| x.to_string())
+            .take(v.len())
+            .collect();
         let v: Vec<String> = v.iter().map(|x| x.to_str_radix(10)).collect();
         assert_eq!(v, w);
     }
