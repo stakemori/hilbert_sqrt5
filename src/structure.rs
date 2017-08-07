@@ -2,6 +2,10 @@ use gmp::mpz::Mpz;
 use eisenstein::eisenstein_series;
 use theta_chars::g5_normalized;
 use elements::HmfGen;
+use serde_pickle;
+use std::fs::File;
+use std::io::Write;
+
 // R = C[g2, g5, g6]
 
 /// Return a vector of (a, b, c) s.t. 2*a + 5*b + 6*c = k.
@@ -39,6 +43,13 @@ fn monom_g2_g5_g6(prec: usize, expts: (usize, usize, usize)) -> HmfGen<Mpz> {
     res
 }
 
+fn save_as_pickle_z(vec: &Vec<Mpz>) {
+    let vec: Vec<String> = vec.iter().map(|x| x.to_str_radix(10)).collect();
+    let v = serde_pickle::to_vec(&vec, false).unwrap();
+    let mut buffer = File::create("/home/sho/foo.sobj").unwrap();
+    buffer.write(&v).unwrap();
+}
+
 pub fn monoms_of_g2_g5_g6(k: usize, prec: usize) -> Vec<HmfGen<Mpz>> {
     tpls_of_wt(k)
         .iter()
@@ -54,6 +65,12 @@ mod tests {
     fn test_tpls_of_wt() {
         assert_eq!(tpls_of_wt(30).len(), 13);
         assert_eq!(tpls_of_wt(100).len(), 99);
+    }
+
+    #[test]
+    fn test_pickle() {
+        let v = vec![Mpz::from_ui(2), Mpz::from_ui(3)];
+        save_as_pickle_z(&v);
     }
 
 }

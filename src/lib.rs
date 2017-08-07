@@ -5,6 +5,7 @@ extern crate libc;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde;
+extern crate serde_pickle;
 
 #[macro_use]
 pub mod elements;

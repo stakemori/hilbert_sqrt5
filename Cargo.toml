@@ -8,6 +8,7 @@ rust-gmp = { path = "/home/sho/work/rust/rust-gmp/"}
 libc = "0.2"
 serde = "1.0"
 serde_derive = "1.0"
+serde-pickle = "*"
 
 [dev-dependencies]
 bincode = "0.8.0"
