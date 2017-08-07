@@ -55,7 +55,9 @@ fn load_pickle_z(path_name: &str) -> Vec<Mpz> {
     let file = File::open(path_name).unwrap();
     let buf: Vec<u8> = file.bytes().map(|x| x.unwrap()).collect();
     let v: Vec<String> = serde_pickle::from_slice(&buf).unwrap();
-    v.iter().map(|x| Mpz::from_str_radix(x, 10).unwrap()).collect()
+    v.iter()
+        .map(|x| Mpz::from_str_radix(x, 10).unwrap())
+        .collect()
 }
 
 pub fn monoms_of_g2_g5_g6(k: usize, prec: usize) -> Vec<HmfGen<Mpz>> {
