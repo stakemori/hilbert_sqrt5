@@ -5,6 +5,7 @@ use elements::HmfGen;
 use serde_pickle;
 use std::fs::File;
 use std::io::Write;
+use std::io::Read;
 
 // R = C[g2, g5, g6]
 
@@ -50,6 +51,13 @@ fn save_as_pickle_z(vec: &Vec<Mpz>, path_name: &str) {
     buffer.write(&v).unwrap();
 }
 
+fn load_pickle_z(path_name: &str) -> Vec<Mpz> {
+    let file = File::open(path_name).unwrap();
+    let buf: Vec<u8> = file.bytes().map(|x| x.unwrap()).collect();
+    let v: Vec<String> = serde_pickle::from_slice(&buf).unwrap();
+    v.iter().map(|x| Mpz::from_str_radix(x, 10).unwrap()).collect()
+}
+
 pub fn monoms_of_g2_g5_g6(k: usize, prec: usize) -> Vec<HmfGen<Mpz>> {
     tpls_of_wt(k)
         .iter()
@@ -69,8 +77,10 @@ mod tests {
 
     #[test]
     fn test_pickle() {
-        let v = vec![Mpz::from_ui(2), Mpz::from_ui(3)];
+        let v: Vec<Mpz> = (0..10000).map(|x| Mpz::from_ui(x)).collect();
         save_as_pickle_z(&v, "/home/sho/foo.sobj");
+        let w = load_pickle_z("/home/sho/foo.sobj");
+        assert_eq!(v, w);
     }
 
 }
