@@ -43,10 +43,10 @@ fn monom_g2_g5_g6(prec: usize, expts: (usize, usize, usize)) -> HmfGen<Mpz> {
     res
 }
 
-fn save_as_pickle_z(vec: &Vec<Mpz>) {
+fn save_as_pickle_z(vec: &Vec<Mpz>, path_name: &str) {
     let vec: Vec<String> = vec.iter().map(|x| x.to_str_radix(10)).collect();
     let v = serde_pickle::to_vec(&vec, false).unwrap();
-    let mut buffer = File::create("/home/sho/foo.sobj").unwrap();
+    let mut buffer = File::create(path_name).unwrap();
     buffer.write(&v).unwrap();
 }
 
@@ -70,7 +70,7 @@ mod tests {
     #[test]
     fn test_pickle() {
         let v = vec![Mpz::from_ui(2), Mpz::from_ui(3)];
-        save_as_pickle_z(&v);
+        save_as_pickle_z(&v, "/home/sho/foo.sobj");
     }
 
 }
