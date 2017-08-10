@@ -117,13 +117,13 @@ impl RealQuadElement<Mpz> for Sqrt5Mpz {
     }
 }
 
-impl<'a> From<&'a(Mpz, Mpz)> for Sqrt5Mpz {
+impl<'a> From<&'a (Mpz, Mpz)> for Sqrt5Mpz {
     fn from(tpl: &(Mpz, Mpz)) -> Self {
         let mut rt = Mpz::new();
         let mut ir = Mpz::new();
         rt.set(&tpl.0);
         ir.set(&tpl.1);
-        Self {rt: rt, ir: ir}
+        Self { rt: rt, ir: ir }
     }
 }
 
