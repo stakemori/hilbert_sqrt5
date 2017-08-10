@@ -46,6 +46,22 @@ fn monom_g2_g5_g6(prec: usize, expts: (usize, usize, usize)) -> HmfGen<Mpz> {
     res
 }
 
+fn save_as_pickle_quadz_vec<T>(vec: &Vec<Vec<T>>, f: &mut File)
+where
+    T: RealQuadElement<Mpz>,
+{
+    let v: Vec<Vec<(String, String)>> = vec.iter()
+        .map(|v| {
+            v.iter()
+                .map(|x| (x.rt_part(), x.ir_part()))
+                .map(|(x, y)| (x.to_str_radix(10), y.to_str_radix(10)))
+                .collect()
+        })
+        .collect();
+    save_as_pickle(&v, f);
+}
+
+
 #[allow(dead_code)]
 fn save_as_pickle_quadz<T>(vec: &Vec<T>, f: &mut File)
 where
@@ -145,6 +161,13 @@ mod tests {
         let g1 = File::open("/tmp/bar.sobj").unwrap();
         let w: Vec<Sqrt5Mpz> = load_pickle_quadz(&g1).unwrap();
         assert_eq!(v, w);
+
+        let mut f = File::create("/tmp/foo.sobj").unwrap();
+        let v = vec![
+            vec![Sqrt5Mpz::from_sisi(1, 1), Sqrt5Mpz::from_sisi(2, 0)],
+            vec![Sqrt5Mpz::from_sisi(3, 1), Sqrt5Mpz::from_sisi(2, 4)],
+        ];
+        save_as_pickle_quadz_vec(&v, &mut f);
     }
 
 }
