@@ -46,6 +46,7 @@ fn monom_g2_g5_g6(prec: usize, expts: (usize, usize, usize)) -> HmfGen<Mpz> {
     res
 }
 
+#[allow(dead_code)]
 fn save_as_pickle_quadz<T>(vec: &Vec<T>, f: &mut File)
 where
     T: RealQuadElement<Mpz>,
@@ -57,6 +58,7 @@ where
     save_as_pickle(&v, f);
 }
 
+#[allow(dead_code)]
 fn load_pickle_quadz<T>(f: &File) -> Result<Vec<T>, serde_pickle::Error>
 where
     T: RealQuadElement<Mpz>,
@@ -75,11 +77,13 @@ where
     Ok(res)
 }
 
+#[allow(dead_code)]
 fn save_as_pickle_z(vec: &Vec<Mpz>, f: &mut File) {
     let vec: Vec<String> = vec.iter().map(|x| x.to_str_radix(10)).collect();
     save_as_pickle(&vec, f);
 }
 
+#[allow(dead_code)]
 fn load_pickle_z(f: &File) -> Result<Vec<Mpz>, serde_pickle::Error> {
     let v: Vec<String> = load_pickle(&f)?;
     let res = v.iter()
@@ -88,6 +92,7 @@ fn load_pickle_z(f: &File) -> Result<Vec<Mpz>, serde_pickle::Error> {
     Ok(res)
 }
 
+#[allow(dead_code)]
 fn save_as_pickle<T>(vec: &Vec<T>, f: &mut File)
 where
     T: serde::Serialize,
@@ -96,6 +101,7 @@ where
     f.write(&v).unwrap();
 }
 
+#[allow(dead_code)]
 fn load_pickle<'de, T>(f: &File) -> Result<Vec<T>, serde_pickle::Error>
 where
     T: serde::Deserialize<'de>,
