@@ -6,6 +6,8 @@ use serde_pickle;
 use std::fs::File;
 use std::io::Write;
 use std::io::Read;
+use bignum::RealQuadElement;
+use serde;
 
 // R = C[g2, g5, g6]
 
@@ -44,20 +46,62 @@ fn monom_g2_g5_g6(prec: usize, expts: (usize, usize, usize)) -> HmfGen<Mpz> {
     res
 }
 
-fn save_as_pickle_z(vec: &Vec<Mpz>, path_name: &str) {
-    let vec: Vec<String> = vec.iter().map(|x| x.to_str_radix(10)).collect();
-    let v = serde_pickle::to_vec(&vec, false).unwrap();
-    let mut buffer = File::create(path_name).unwrap();
-    buffer.write(&v).unwrap();
+fn save_as_pickle_quadz<T>(vec: &Vec<T>, f: &mut File)
+where
+    T: RealQuadElement<Mpz>,
+{
+    let v: Vec<(String, String)> = vec.iter()
+        .map(|x| (x.rt_part(), x.ir_part()))
+        .map(|(x, y)| (x.to_str_radix(10), y.to_str_radix(10)))
+        .collect();
+    save_as_pickle(&v, f);
 }
 
-fn load_pickle_z(path_name: &str) -> Vec<Mpz> {
-    let file = File::open(path_name).unwrap();
-    let buf: Vec<u8> = file.bytes().map(|x| x.unwrap()).collect();
-    let v: Vec<String> = serde_pickle::from_slice(&buf).unwrap();
-    v.iter()
+fn load_pickle_quadz<T>(f: &File) -> Result<Vec<T>, serde_pickle::Error>
+where
+    T: RealQuadElement<Mpz>,
+    for<'a> T: From<&'a (Mpz, Mpz)>,
+{
+    let v: Vec<(String, String)> = try!(load_pickle(f));
+    let res = v.iter()
+        .map(|&(ref x, ref y)| {
+            (
+                Mpz::from_str_radix(x, 10).unwrap(),
+                Mpz::from_str_radix(y, 10).unwrap(),
+            )
+        })
+        .map(|t| From::from(&t))
+        .collect();
+    Ok(res)
+}
+
+fn save_as_pickle_z(vec: &Vec<Mpz>, f: &mut File) {
+    let vec: Vec<String> = vec.iter().map(|x| x.to_str_radix(10)).collect();
+    save_as_pickle(&vec, f);
+}
+
+fn load_pickle_z(f: &File) -> Result<Vec<Mpz>, serde_pickle::Error> {
+    let v: Vec<String> = load_pickle(&f)?;
+    let res = v.iter()
         .map(|x| Mpz::from_str_radix(x, 10).unwrap())
-        .collect()
+        .collect();
+    Ok(res)
+}
+
+fn save_as_pickle<T>(vec: &Vec<T>, f: &mut File)
+where
+    T: serde::Serialize,
+{
+    let v = serde_pickle::to_vec(&vec, false).unwrap();
+    f.write(&v).unwrap();
+}
+
+fn load_pickle<'de, T>(f: &File) -> Result<Vec<T>, serde_pickle::Error>
+where
+    T: serde::Deserialize<'de>,
+{
+    let buf: Vec<u8> = f.bytes().map(|x| x.unwrap()).collect();
+    serde_pickle::from_slice(&buf)
 }
 
 pub fn monoms_of_g2_g5_g6(k: usize, prec: usize) -> Vec<HmfGen<Mpz>> {
@@ -70,6 +114,7 @@ pub fn monoms_of_g2_g5_g6(k: usize, prec: usize) -> Vec<HmfGen<Mpz>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bignum::Sqrt5Mpz;
 
     #[test]
     fn test_tpls_of_wt() {
@@ -80,8 +125,19 @@ mod tests {
     #[test]
     fn test_pickle() {
         let v: Vec<Mpz> = (0..10000).map(|x| Mpz::from_ui(x)).collect();
-        save_as_pickle_z(&v, "/home/sho/foo.sobj");
-        let w = load_pickle_z("/home/sho/foo.sobj");
+        let mut f = File::create("/tmp/foo.sobj").unwrap();
+        let g = File::open("/tmp/foo.sobj").unwrap();
+        save_as_pickle_z(&v, &mut f);
+        let w = load_pickle_z(&g).unwrap();
+        assert_eq!(v, w);
+
+        let mut f1 = File::create("/tmp/bar.sobj").unwrap();
+        let v: Vec<Sqrt5Mpz> = (0..10000)
+            .map(|x| From::from(&(Mpz::from_ui(x), Mpz::from_ui(x))))
+            .collect();
+        save_as_pickle_quadz(&v, &mut f1);
+        let g1 = File::open("/tmp/bar.sobj").unwrap();
+        let w: Vec<Sqrt5Mpz> = load_pickle_quadz(&g1).unwrap();
         assert_eq!(v, w);
     }
 
