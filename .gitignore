@@ -1,3 +1,5 @@
 target
 **/*.rs.bk
 Cargo.lock
+/data/rust_python_data.sobj
+/data/rust_python_data_res.sobj

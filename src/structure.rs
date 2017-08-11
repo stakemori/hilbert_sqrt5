@@ -8,6 +8,48 @@ use std::io::Write;
 use std::io::Read;
 use bignum::RealQuadElement;
 use serde;
+use std::process::Command;
+use std::env;
+use bignum::Sqrt5Mpz;
+
+
+
+/// A stupid function that returns a linear relation.
+pub fn relation(len: usize, f: &HmfGen<Sqrt5Mpz>) -> Vec<Sqrt5Mpz> {
+    let k = f.weight.unwrap();
+    assert_eq!(k.0, k.1);
+    let k = k.0;
+    let forms = monoms_of_g2_g5_f6(k, f.prec);
+    let vv: Vec<Vec<Mpz>> = forms.iter().map(|f| f.fc_vector(len)).collect();
+    let v = f.fc_vector(len);
+    let path_name = "./data/rust_python_data.sobj";
+    let res_path_name = "./data/rust_python_data_res.sobj";
+    let mut f = File::create(path_name).unwrap();
+    save_as_pickle_quadz_vec(&v, &vv, &mut f);
+    let corank = sage_command("print load('./src/relation.sage')")
+        .lines()
+        .next()
+        .unwrap()
+        .to_string();
+    assert_eq!(corank.parse::<i32>().unwrap(), 1);
+    let f = File::open(res_path_name).unwrap();
+    load_pickle_quadz(&f).unwrap()
+}
+
+
+fn sage_command(cmd: &'static str) -> String {
+    let home = env::home_dir().unwrap();
+    let output = Command::new(home.join("bin/sage"))
+        .arg("-c")
+        .arg(cmd)
+        .output()
+        .expect("failed to execute process");
+
+    if !output.status.success() {
+        panic!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+    }
+    String::from_utf8_lossy(&output.stdout).into()
+}
 
 // R = C[g2, g5, g6]
 
@@ -46,19 +88,20 @@ fn monom_g2_g5_f6(prec: usize, expts: (usize, usize, usize)) -> HmfGen<Mpz> {
     res
 }
 
-fn save_as_pickle_quadz_vec<T>(vec: &Vec<Vec<T>>, f: &mut File)
+fn save_as_pickle_quadz_vec<T>(vec: &Vec<T>, basis_vec: &Vec<Vec<Mpz>>, f: &mut File)
 where
     T: RealQuadElement<Mpz>,
 {
-    let v: Vec<Vec<(String, String)>> = vec.iter()
-        .map(|v| {
-            v.iter()
-                .map(|x| (x.rt_part(), x.ir_part()))
-                .map(|(x, y)| (x.to_str_radix(10), y.to_str_radix(10)))
-                .collect()
+    let v: Vec<Vec<String>> = basis_vec
+        .iter()
+        .map(|v| v.iter().map(|x| x.to_str_radix(10)).collect())
+        .collect();
+    let w: Vec<(String, String)> = vec.iter()
+        .map(|a| {
+            (a.rt_part().to_str_radix(10), a.ir_part().to_str_radix(10))
         })
         .collect();
-    save_as_pickle(&v, f);
+    save_as_pickle(&(w, v), f);
 }
 
 
@@ -109,11 +152,11 @@ fn load_pickle_z(f: &File) -> Result<Vec<Mpz>, serde_pickle::Error> {
 }
 
 #[allow(dead_code)]
-fn save_as_pickle<T>(vec: &Vec<T>, f: &mut File)
+fn save_as_pickle<T>(a: T, f: &mut File)
 where
     T: serde::Serialize,
 {
-    let v = serde_pickle::to_vec(&vec, false).unwrap();
+    let v = serde_pickle::to_vec(&a, false).unwrap();
     f.write(&v).unwrap();
 }
 
@@ -136,7 +179,6 @@ pub fn monoms_of_g2_g5_f6(k: usize, prec: usize) -> Vec<HmfGen<Mpz>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bignum::Sqrt5Mpz;
 
     #[test]
     fn test_tpls_of_wt() {
@@ -164,10 +206,21 @@ mod tests {
 
         let mut f = File::create("/tmp/foo.sobj").unwrap();
         let v = vec![
-            vec![Sqrt5Mpz::from_sisi(1, 1), Sqrt5Mpz::from_sisi(2, 0)],
-            vec![Sqrt5Mpz::from_sisi(3, 1), Sqrt5Mpz::from_sisi(2, 4)],
+            vec![Mpz::from_si(2), Mpz::from_si(-2)],
+            vec![Mpz::from_si(5), Mpz::from_si(-3)],
         ];
-        save_as_pickle_quadz_vec(&v, &mut f);
+        let w = vec![Sqrt5Mpz::from_sisi(2, 4), Sqrt5Mpz::from_sisi(3, 5)];
+        save_as_pickle_quadz_vec(&w, &v, &mut f);
+    }
+
+
+    #[test]
+    fn test_sage() {
+        let prec = 5;
+        let f = eisenstein_series(6, prec);
+        let f: HmfGen<Sqrt5Mpz> = From::from(&f);
+        let v = relation(10, &f);
+        println!("{:?}", v);
     }
 
 }
