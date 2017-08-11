@@ -13,7 +13,7 @@ def to_unicode(a):
 
 def relation(tpl):
     v, vv = tpl
-    v = [(ZZ(a) + ZZ(b) * sqrt5) / ZZ(2) for a, b in v]
+    v = [K((ZZ(a) + ZZ(b) * sqrt5) / ZZ(2)) for a, b in v]
     vv = [[K(ZZ(a)) for a in w] for w in vv]
     vv.insert(0, v)
     m = matrix(vv)
