@@ -48,8 +48,8 @@ mod structure {
             a >>= 1;
             if !a.is_zero() {
                 tmp.mul_mut_by_const(&f.form, &a);
+                f6 += &tmp;
             }
-            f6 += &tmp;
         }
         f6.negate();
         let f6: HmfGen<Sqrt5Mpz> = From::from(&f6);
