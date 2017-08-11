@@ -15,11 +15,7 @@ use bignum::Sqrt5Mpz;
 
 
 /// A stupid function that returns a linear relation.
-pub fn relation(len: usize, f: &HmfGen<Sqrt5Mpz>) -> Vec<Sqrt5Mpz> {
-    let k = f.weight.unwrap();
-    assert_eq!(k.0, k.1);
-    let k = k.0;
-    let forms = monoms_of_g2_g5_f6(k, f.prec);
+pub fn relation(len: usize, f: &HmfGen<Sqrt5Mpz>, forms: &Vec<HmfGen<Mpz>>) -> Vec<Sqrt5Mpz> {
     let vv: Vec<Vec<Mpz>> = forms.iter().map(|f| f.fc_vector(len)).collect();
     let v = f.fc_vector(len);
     let path_name = "./data/rust_python_data.sobj";
@@ -219,7 +215,8 @@ mod tests {
         let prec = 5;
         let f = eisenstein_series(6, prec);
         let f: HmfGen<Sqrt5Mpz> = From::from(&f);
-        let v = relation(10, &f);
+        let forms = monoms_of_g2_g5_f6(6, f.prec);
+        let v = relation(10, &f, &forms);
         println!("{:?}", v);
     }
 
