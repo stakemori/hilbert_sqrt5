@@ -100,6 +100,8 @@ mod rankin_cohen {
     use super::*;
     use hilbert_sqrt5::bignum::{Sqrt5Mpz, RealQuadElement};
     use libc::c_long;
+    use hilbert_sqrt5::misc::PowGen;
+    use hilbert_sqrt5::structure::{relation, monoms_of_g2_g5_f6};
 
     #[test]
     fn test_rankin_cohen1() {
@@ -149,6 +151,29 @@ mod rankin_cohen {
         let mut const_form: HmfGen<Sqrt5Mpz> = HmfGen::one(h.prec);
         const_form *= &h.fourier_coefficient(0, 0);
         assert_eq!(h, const_form);
+    }
+
+    #[test]
+    fn test_rankin_cohen4() {
+        let prec = 10;
+        let g2 = eisenstein_series(2, prec);
+        let g5 = g5_normalized(prec);
+        let g7_15 = rankin_cohen_sqrt5(4, &g2, &g5).unwrap();
+        assert_eq!(g7_15.weight, Some((7, 15)));
+        let mut g8_16 = rankin_cohen_sqrt5(2, &g2, &g2).unwrap();
+        g8_16.square();
+        assert_eq!(g8_16.weight, Some((8, 16)));
+        let g15 = g15_normalized(prec);
+        let g15: HmfGen<Sqrt5Mpz> = From::from(&g15);
+        let h = bracket_inner_prod(&g7_15, &g8_16, &g15).unwrap();
+        let forms_monom = monoms_of_g2_g5_f6(8, prec);
+        let v = {
+            let forms: Vec<_> = forms_monom.iter().map(|x| &x.form).collect();
+            relation(60, &h, &forms)
+        };
+        let indics: Vec<_> = forms_monom.iter().map(|x| x.idx).collect();
+        println!("{:?}", v);
+        println!("{:?}", indics);
     }
 }
 
