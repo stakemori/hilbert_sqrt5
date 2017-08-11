@@ -26,6 +26,38 @@ macro_rules! measure_time {
   };
 }
 
+mod structure {
+    use super::*;
+    use hilbert_sqrt5::structure::{relation, monoms_of_g2_g5_f6};
+    use hilbert_sqrt5::bignum::{Sqrt5Mpz, RealQuadElement};
+
+    #[test]
+    fn test_relation() {
+        let prec = 5;
+        let f = eisenstein_series(6, prec);
+        let f: HmfGen<Sqrt5Mpz> = From::from(&f);
+        let forms_monom = monoms_of_g2_g5_f6(6, f.prec);
+        let v = {
+            let forms: Vec<_> = forms_monom.iter().map(|x| &x.form).collect();
+            relation(10, &f, &forms)
+        };
+        let mut f6 = HmfGen::new(prec);
+        let mut tmp = HmfGen::new(prec);
+        for (f, a) in forms_monom.iter().zip(v.iter().skip(1)) {
+            let mut a: Mpz = a.rt_part();
+            a >>= 1;
+            if !a.is_zero() {
+                tmp.mul_mut_by_const(&f.form, &a);
+            }
+            f6 += &tmp;
+        }
+        f6.negate();
+        let f6: HmfGen<Sqrt5Mpz> = From::from(&f6);
+        println!("{:?}", v);
+        assert_eq!(f, f6);
+    }
+}
+
 mod serialize {
     use super::*;
 

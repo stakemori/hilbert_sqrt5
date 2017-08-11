@@ -15,7 +15,7 @@ use bignum::Sqrt5Mpz;
 
 
 /// A stupid function that returns a linear relation.
-pub fn relation(len: usize, f: &HmfGen<Sqrt5Mpz>, forms: &Vec<HmfGen<Mpz>>) -> Vec<Sqrt5Mpz> {
+pub fn relation(len: usize, f: &HmfGen<Sqrt5Mpz>, forms: &Vec<&HmfGen<Mpz>>) -> Vec<Sqrt5Mpz> {
     let vv: Vec<Vec<Mpz>> = forms.iter().map(|f| f.fc_vector(len)).collect();
     let v = f.fc_vector(len);
     let path_name = "./data/rust_python_data.sobj";
@@ -165,10 +165,29 @@ where
     serde_pickle::from_slice(&buf)
 }
 
-pub fn monoms_of_g2_g5_f6(k: usize, prec: usize) -> Vec<HmfGen<Mpz>> {
+/// Corresponds to g2^a * g5^b * f6^c where (a, b, c) = idx.
+pub struct Monom {
+    pub idx: (usize, usize, usize),
+    pub form: HmfGen<Mpz>,
+}
+
+impl From<Monom> for HmfGen<Mpz> {
+    fn from(f: Monom) -> HmfGen<Mpz> {
+        let mut res = HmfGen::<Mpz>::new(f.form.prec);
+        res.set(&f.form);
+        res
+    }
+}
+
+pub fn monoms_of_g2_g5_f6(k: usize, prec: usize) -> Vec<Monom> {
     tpls_of_wt(k)
         .iter()
-        .map(|&x| monom_g2_g5_f6(prec, x))
+        .map(|&x| {
+            Monom {
+                idx: x,
+                form: monom_g2_g5_f6(prec, x),
+            }
+        })
         .collect()
 }
 
@@ -208,16 +227,4 @@ mod tests {
         let w = vec![Sqrt5Mpz::from_sisi(2, 4), Sqrt5Mpz::from_sisi(3, 5)];
         save_as_pickle_quadz_vec(&w, &v, &mut f);
     }
-
-
-    #[test]
-    fn test_sage() {
-        let prec = 5;
-        let f = eisenstein_series(6, prec);
-        let f: HmfGen<Sqrt5Mpz> = From::from(&f);
-        let forms = monoms_of_g2_g5_f6(6, f.prec);
-        let v = relation(10, &f, &forms);
-        println!("{:?}", v);
-    }
-
 }
