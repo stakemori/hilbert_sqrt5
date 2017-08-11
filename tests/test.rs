@@ -9,8 +9,7 @@ use hilbert_sqrt5::elements::HmfGen;
 use hilbert_sqrt5::eisenstein::eisenstein_series;
 use hilbert_sqrt5::misc::prime_sieve;
 use gmp::mpz::Mpz;
-use hilbert_sqrt5::diff_op::{g15_normalized, monom_g2_g6_g10, rankin_cohen_sqrt5,
-                             bracket_inner_prod};
+use hilbert_sqrt5::diff_op::{g15_normalized, rankin_cohen_sqrt5, bracket_inner_prod};
 
 
 // Taken from http://qiita.com/pseudo_foxkeh/items/5d5226e3ffa27631e80d
@@ -156,6 +155,8 @@ mod rankin_cohen {
 mod g15_squared {
     use super::*;
     use hilbert_sqrt5::misc::PowGen;
+    use hilbert_sqrt5::structure::{relation, monoms_of_g2_g5_f6};
+    use hilbert_sqrt5::bignum::{Sqrt5Mpz, RealQuadElement};
 
     // #[allow(dead_code)]
     // fn fc_vec(f: &HmfGen<Mpz>, num: usize) -> Vec<Mpz> {
@@ -170,52 +171,33 @@ mod g15_squared {
     // }
 
     #[test]
-    fn test_g15() {
+    fn test_g15_relation() {
         let prec = 10;
         let mut g30 = g15_normalized(prec);
         g30.square();
         assert_eq!(g30.weight, Some((30, 30)));
-        let f0 = monom_g2_g6_g10(prec, 0, 0, 3);
-        let f1 = monom_g2_g6_g10(prec, 2, 1, 2);
-        let f2 = monom_g2_g6_g10(prec, 5, 0, 2);
-        let f3 = monom_g2_g6_g10(prec, 1, 3, 1);
-        let f4 = monom_g2_g6_g10(prec, 4, 2, 1);
-        let f5 = monom_g2_g6_g10(prec, 7, 1, 1);
-        let f6 = monom_g2_g6_g10(prec, 10, 0, 1);
-        let f7 = monom_g2_g6_g10(prec, 0, 5, 0);
-        let f8 = monom_g2_g6_g10(prec, 3, 4, 0);
-        let f9 = monom_g2_g6_g10(prec, 6, 3, 0);
-        let f10 = monom_g2_g6_g10(prec, 9, 2, 0);
-        let f11 = monom_g2_g6_g10(prec, 12, 1, 0);
-        let f12 = monom_g2_g6_g10(prec, 15, 0, 0);
-        let forms = vec![f0, f1, f2, f3, f4, f5, f6, f7, f8, f9, f10, f11, f12, g30];
-        for f in forms.iter() {
-            assert_eq!(f.weight, Some((30, 30)));
-        }
-        let v = vec![
-            Mpz::from_str_radix("272097792000000000000000", 10).unwrap(),
-            Mpz::from_str_radix("251942400000000000", 10).unwrap(),
-            Mpz::from_str_radix("-11438184960000000000", 10).unwrap(),
-            Mpz::from_str_radix("-972000000", 10).unwrap(),
-            Mpz::from_str_radix("172044000000", 10).unwrap(),
-            Mpz::from_str_radix("-9963972000000", 10).unwrap(),
-            Mpz::from_str_radix("187622244000000", 10).unwrap(),
-            Mpz::from_str_radix("1", 10).unwrap(),
-            Mpz::from_str_radix("-310", 10).unwrap(),
-            Mpz::from_str_radix("38190", 10).unwrap(),
-            Mpz::from_str_radix("-2334280", 10).unwrap(),
-            Mpz::from_str_radix("70679305", 10).unwrap(),
-            Mpz::from_str_radix("-846347082", 10).unwrap(),
-            Mpz::from_str_radix("-87071293440000000000", 10).unwrap(),
-        ];
+        let g30: HmfGen<Sqrt5Mpz> = From::from(&g30);
+        let forms_monom = monoms_of_g2_g5_f6(30, prec);
+        let v = {
+            let forms: Vec<_> = forms_monom.iter().map(|x| &x.form).collect();
+            relation(100, &g30, &forms)
+        };
+        println!("{:?}", v);
+        let mut f30 = HmfGen::new(prec);
         let mut tmp = HmfGen::new(prec);
-        let mut tmp1 = HmfGen::new(prec);
-        tmp.mul_mut_by_const(&forms[0], &v[0]);
-        for (f, a) in forms.iter().zip(v.iter()).skip(1) {
-            tmp1.mul_mut_by_const(&f, &a);
-            tmp += &tmp1;
+        for (f, a) in forms_monom.iter().zip(v.iter().skip(1)) {
+            let mut a: Mpz = a.rt_part();
+            a >>= 1;
+            if !a.is_zero() {
+                tmp.mul_mut_by_const(&f.form, &a);
+                f30 += &tmp;
+            }
         }
-        assert!(tmp.is_zero());
+        f30.negate();
+        assert!(f30.is_divisible_by_const(&Mpz::from_ui(16)));
+        f30 >>= 4;
+        let f30: HmfGen<Sqrt5Mpz> = From::from(&f30);
+        assert_eq!(g30, f30);
     }
 }
 
