@@ -288,7 +288,7 @@ pub fn f6_normalized(prec: usize) -> HmfGen<Mpz> {
     f6 /= &a;
     f6
 }
-    
+
 #[cfg(test)]
 mod tests {
     use super::*;

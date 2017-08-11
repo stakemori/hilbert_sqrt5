@@ -60,7 +60,9 @@ pub fn mul_mut<T>(
     parity_g: usize,
     parity_h: usize,
     parity_gh: usize,
-) where T: BigNumber {
+) where
+    T: BigNumber,
+{
     let bd_g = u_bds.vec[v_g];
     let bd_h = u_bds.vec[v_h];
     let bd_gh = u_bds.vec[v_g + v_h];
@@ -77,7 +79,7 @@ pub fn mul_mut<T>(
             f_vec[gap_gh + i + j - bd_g - bd_h].addmul_mut_g(
                 &g_vec[i + gap_g - bd_g],
                 &h_vec[j + gap_h - bd_h],
-                &mut tmp
+                &mut tmp,
             );
         }
     }
