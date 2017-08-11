@@ -1,5 +1,5 @@
 use gmp::mpz::Mpz;
-use eisenstein::eisenstein_series;
+use eisenstein::{eisenstein_series, f6_normalized};
 use theta_chars::g5_normalized;
 use elements::HmfGen;
 use serde_pickle;
@@ -27,12 +27,12 @@ fn tpls_of_wt(k: usize) -> Vec<(usize, usize, usize)> {
     res
 }
 
-fn monom_g2_g5_g6(prec: usize, expts: (usize, usize, usize)) -> HmfGen<Mpz> {
+fn monom_g2_g5_f6(prec: usize, expts: (usize, usize, usize)) -> HmfGen<Mpz> {
     let mut tmp = HmfGen::new(prec);
     let mut res = HmfGen::new(prec);
     let g2 = eisenstein_series(2, prec);
     let g5 = g5_normalized(prec);
-    let g6 = eisenstein_series(6, prec);
+    let g6 = f6_normalized(prec);
     let (e2, e5, e6) = expts;
     res.pow_mut(&g2, e2);
     tmp.pow_mut(&g6, e6);
@@ -126,10 +126,10 @@ where
     serde_pickle::from_slice(&buf)
 }
 
-pub fn monoms_of_g2_g5_g6(k: usize, prec: usize) -> Vec<HmfGen<Mpz>> {
+pub fn monoms_of_g2_g5_f6(k: usize, prec: usize) -> Vec<HmfGen<Mpz>> {
     tpls_of_wt(k)
         .iter()
-        .map(|&x| monom_g2_g5_g6(prec, x))
+        .map(|&x| monom_g2_g5_f6(prec, x))
         .collect()
 }
 
