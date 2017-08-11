@@ -10,6 +10,8 @@ use fcvec;
 use bignum::Sqrt5Mpz;
 use bignum::BigNumber;
 use std::ops::{SubAssign, MulAssign, AddAssign, ShrAssign};
+use std::convert::From;
+
 
 impl PartialEq for Sqrt5Elt<Mpz> {
     fn eq(&self, other: &Self) -> bool {
@@ -448,6 +450,19 @@ where
     star_op(&mut res, &g);
     res *= f;
     bracket_proj(&res, g15)
+}
+
+// TODO consider better name.
+pub fn bracket_inner_prod1<T>(f: &HmfGen<T>, g: &HmfGen<T>) -> Result<HmfGen<T>, NotHhmError>
+where
+    T: BigNumber + Clone + MulAssign<c_ulong> + ShrAssign<usize>,
+    for<'a> T: AddAssign<&'a T>,
+    for<'a> T: SubAssign<&'a T>,
+    for<'b> T: From<&'b Mpz>,
+{
+    let g15 = g15_normalized(f.prec);
+    let g15: HmfGen<T> = From::from(&g15);
+    bracket_inner_prod(&f, &g, &g15)
 }
 
 #[cfg(test)]

@@ -9,7 +9,8 @@ use hilbert_sqrt5::elements::HmfGen;
 use hilbert_sqrt5::eisenstein::eisenstein_series;
 use hilbert_sqrt5::misc::prime_sieve;
 use gmp::mpz::Mpz;
-use hilbert_sqrt5::diff_op::{g15_normalized, rankin_cohen_sqrt5, bracket_inner_prod};
+use hilbert_sqrt5::diff_op::{g15_normalized, rankin_cohen_sqrt5, bracket_inner_prod,
+                             bracket_inner_prod1};
 
 
 // Taken from http://qiita.com/pseudo_foxkeh/items/5d5226e3ffa27631e80d
@@ -163,9 +164,7 @@ mod rankin_cohen {
         let mut g8_16 = rankin_cohen_sqrt5(2, &g2, &g2).unwrap();
         g8_16.square();
         assert_eq!(g8_16.weight, Some((8, 16)));
-        let g15 = g15_normalized(prec);
-        let g15: HmfGen<Sqrt5Mpz> = From::from(&g15);
-        let h = bracket_inner_prod(&g7_15, &g8_16, &g15).unwrap();
+        let h = bracket_inner_prod1(&g7_15, &g8_16).unwrap();
         let forms_monom = monoms_of_g2_g5_f6(8, prec);
         let v = {
             let forms: Vec<_> = forms_monom.iter().map(|x| &x.form).collect();
