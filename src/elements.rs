@@ -389,11 +389,13 @@ where
         v_u_bd_iter!((self.u_bds, v, u, bd) {
             vu_vec.push((v, u));
         });
-        vu_vec
+        let res: Vec<_> = vu_vec
             .iter()
             .take(len)
             .map(|&(v, u)| self.fourier_coefficient(v, u))
-            .collect()
+            .collect();
+        assert_eq!(res.len(), len);
+        res
     }
 
     pub fn fc_vector_real_quad(&self, len: usize) -> Vec<(Mpz, Mpz)>
