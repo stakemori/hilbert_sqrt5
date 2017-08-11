@@ -1,3 +1,5 @@
+from pickle import Pickler
+
 K = QuadraticField(5)
 sqrt5 = K.gen()
 
@@ -17,7 +19,8 @@ def relation(tpl):
     a = I.gens_reduced()[0]
     rel = [b / a for b in rel]
     rel_t = [(unicode(str(2 * b[0]), 'utf-8'), unicode(str(2 * b[1]), 'utf-8')) for b in rel]
-    save(rel_t, data_res_name)
+    with open(data_res_name, "w") as f:
+        Pickler(f, 2).dump(rel_t)
     return m.nrows() - m.rank()
 
 
