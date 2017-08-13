@@ -47,6 +47,7 @@ where
 
 /// set v_g + v_h coefficient (Laurant polynomial of e(u)) to the product of
 /// g[v_g], h[v_h].
+/// g_vec[gap_g + i] is defined only when i.abs() <= bd_g.
 pub fn mul_mut<T>(
     f_vec: &mut Vec<T>,
     g_vec: &Vec<T>,
