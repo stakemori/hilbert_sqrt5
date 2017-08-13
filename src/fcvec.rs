@@ -69,7 +69,7 @@ pub fn mul_mut<T>(
     let bd_gh = u_bds.vec[v_g + v_h];
 
     for i in (0..(bd_gh + 1)).filter(|&x| is_even!(v_g + v_h + x + parity_gh)) {
-        f_vec[(i + gap_gh) as usize].set_ui_g(0);
+        f_vec[(gap_gh + i) as usize].set_ui_g(0);
         f_vec[(gap_gh - i) as usize].set_ui_g(0);
     }
     let mut tmp = Mpz::new();
@@ -78,8 +78,8 @@ pub fn mul_mut<T>(
     for i in (0..(2 * bd_g + 1)).filter(|&x| is_even!(v_g + x + bd_g + parity_g)) {
         for j in (0..(2 * bd_h + 1)).filter(|&x| is_even!(v_h + x + bd_h + parity_h)) {
             f_vec[gap_gh + i + j - bd_g - bd_h].addmul_mut_g(
-                &g_vec[i + gap_g - bd_g],
-                &h_vec[j + gap_h - bd_h],
+                &g_vec[gap_g + i - bd_g],
+                &h_vec[gap_h + j - bd_h],
                 &mut tmp,
             );
         }
