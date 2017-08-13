@@ -121,7 +121,7 @@ pub fn div_mut<T>(
     let mut tmp_elt = T::new_g();
     h_vec[(gap_h + bd_h) as usize].set_g(&f_vec[(gap_gh + n + bd_h) as usize]);
     h_vec[(gap_h + bd_h) as usize].set_divexact_g(&g_vec[(gap_g + n) as usize], &mut tmp);
-    
+
     for m in ((-bd_h)..bd_h).rev() {
         tmp_elt.set_g(&f_vec[(gap_gh + n + m) as usize]);
         for i in ((n + m - bd_h)..n).filter(|&x| -bd_g <= x) {
