@@ -6,7 +6,7 @@ extern crate libc;
 use std::time::Instant;
 use hilbert_sqrt5::theta_chars::{theta, g5_normalized};
 use hilbert_sqrt5::elements::HmfGen;
-use hilbert_sqrt5::eisenstein::eisenstein_series;
+use hilbert_sqrt5::eisenstein::{eisenstein_series, f6_normalized};
 use hilbert_sqrt5::misc::prime_sieve;
 use gmp::mpz::Mpz;
 use hilbert_sqrt5::diff_op::{g15_normalized, rankin_cohen_sqrt5, bracket_inner_prod,
@@ -24,6 +24,25 @@ macro_rules! measure_time {
       result
     }
   };
+}
+
+mod div {
+    use super::*;
+    use hilbert_sqrt5::elements::div_mut;
+
+    #[test]
+    fn test_div() {
+        let prec = 10;
+        let f6 = f6_normalized(prec);
+        let g5 = g5_normalized(prec);
+        let f = &f6 * &g5;
+        // f *= &Mpz::from_ui(2);
+        let mut res = HmfGen::new(prec);
+        div_mut(&mut res, &f, &g5);
+        let mut g6 = f6.clone();
+        g6.decrease_prec(res.prec);
+        assert_eq!(g6, res);
+    }
 }
 
 mod structure {

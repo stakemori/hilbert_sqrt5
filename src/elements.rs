@@ -8,6 +8,7 @@ use std::cmp::min;
 use bignum::{BigNumber, RealQuadElement};
 use gmp::mpz::Mpz;
 use std::convert::From;
+use fcvec;
 
 type Weight = Option<(usize, usize)>;
 /// struct for hilbert modualr form over Q(sqrt(5))
@@ -682,6 +683,93 @@ where
         v_u_bd_iter!((self.u_bds, v, u, bd) {
             T::shr_assign(self.fcvec.fc_ref_mut(v, u, bd), other);
         }
+        );
+    }
+}
+
+fn initial_term<T>(f: &HmfGen<T>) -> Option<(usize, i64, &T)>
+where
+    T: BigNumber,
+{
+    for (v, &bd) in f.u_bds.vec.iter().enumerate() {
+        let bd = bd as i64;
+        let v_i64 = v as i64;
+        for u in (-bd..(bd + 1)).rev().filter(|&x| is_even!(x + v_i64)) {
+            if !f.fcvec.fc_ref(v, u, bd).is_zero_g() {
+                return Some((v, u, f.fcvec.fc_ref(v, u, bd)));
+            }
+        }
+    }
+    None
+}
+
+
+fn print_vth_cf<T>(f: &HmfGen<T>, v: usize, s: &'static str) where T: BigNumber + std::fmt::Display{
+    let bd = f.u_bds.vec[v] as i64;
+    let mut res = Vec::new();
+    for u in -bd..(bd + 1) {
+        let a = f.fcvec.fc_ref(v, u, bd);
+        if !a.is_zero_g() {
+            res.push(format!("({}) * q1**({})", a, u));
+        }
+    }
+    println!("{}: {}", s, res.join(" + "));
+}
+
+/// Assuming f is divisible by g in coefficeint T, set res = g/h.
+pub fn div_mut<T>(res: &mut HmfGen<T>, f: &HmfGen<T>, g: &HmfGen<T>)
+where
+    T: BigNumber + Clone + std::fmt::Display,
+    for<'a> T: SubAssign<&'a T>,
+{
+    let (v_init, _, _) = initial_term(&g).unwrap();
+    let mut tmp = HmfGen::<T>::new(g.prec);
+    let mut f_cloned = f.clone();
+    let prec = f.prec;
+    assert!(prec >= v_init);
+    res.decrease_prec(prec - v_init);
+    res.weight = weight_div(f.weight, g.weight);
+    res.set_zero();
+    let ref u_bds = f.u_bds;
+    for v in (1 + v_init)..(prec + 1) {
+        for i in (1 + v_init)..v {
+            fcvec::mul_mut(
+                &mut tmp.fcvec.vec[v],
+                &g.fcvec.vec[i],
+                &f_cloned.fcvec.vec[v + v_init - i],
+                i,
+                v - i,
+                u_bds.vec[i],
+                u_bds.vec[v + v_init - i],
+                u_bds.vec[v],
+                u_bds,
+                0,
+                v_init,
+                0,
+            );
+            if v - v_init == 2 {
+                println!("foo, {}", i);
+                print_vth_cf(&tmp, v, "tmp");
+                print_vth_cf(&f_cloned, v + v_init - i, "f");
+                print_vth_cf(&g, i, "g");
+            }
+            fcvec::sub_assign(&mut f_cloned.fcvec.vec[v], &tmp.fcvec.vec[v], v, u_bds);
+        }
+    }
+    for (v, _) in u_bds.vec.iter().enumerate().skip(v_init) {
+        if v - v_init == 2 {
+           print_vth_cf(&f_cloned, v, "f") ;
+        }
+        fcvec::div_mut(
+            &f_cloned.fcvec.vec[v],
+            &g.fcvec.vec[v_init],
+            &mut res.fcvec.vec[v - v_init],
+            v_init,
+            v - v_init,
+            u_bds.vec[v_init],
+            u_bds.vec[v - v_init],
+            u_bds.vec[v],
+            &u_bds,
         );
     }
 }
