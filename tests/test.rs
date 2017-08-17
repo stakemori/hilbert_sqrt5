@@ -28,7 +28,7 @@ macro_rules! measure_time {
 
 mod div {
     use super::*;
-    use hilbert_sqrt5::elements::div_mut;
+    use hilbert_sqrt5::elements::{div_mut, div_mut_with_denom};
 
     #[test]
     fn test_div() {
@@ -55,6 +55,19 @@ mod div {
         let mut h = h.clone();
         h.decrease_prec(res.prec);
         assert_eq!(h, res);
+    }
+
+    #[test]
+    fn test_div_with_dnm () {
+        let prec = 10;
+        let g = eisenstein_series(6, prec);
+        let h = g5_normalized(prec);
+        let f = &g * &h;
+        let mut res = HmfGen::new(prec);
+        let dnm = div_mut_with_denom(&mut res, &f, &g);
+        println!("{}", dnm);
+        assert!(!dnm.is_zero());
+        assert_eq!(res, &h * &dnm);
     }
 }
 

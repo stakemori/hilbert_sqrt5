@@ -767,6 +767,31 @@ where
     }
 }
 
+// Todo: make the denominator small.
+pub fn div_mut_with_denom<T>(res: &mut HmfGen<T>, f: &HmfGen<T>, g: &HmfGen<T>) -> T
+where
+    T: BigNumber + Clone,
+    for<'a> T: SubAssign<&'a T>,
+{
+    let mut dnm = T::new_g();
+    let mut count = 0;
+    let prec = f.prec;
+    let (v_init, _, a) = initial_term(&g).unwrap();
+    let u_bds = &f.u_bds;
+    for v in v_init..(prec + 1) {
+        let v_i = v as i64;
+        let bd_i = u_bds.vec[v] as i64;
+        for _ in u_iter!(v_i, bd_i) {
+            count += 1;
+        }
+    }
+    dnm.pow_mut(a, count);
+    let mut f = f.clone();
+    f *= &dnm;
+    div_mut(res, &f, g);
+    dnm
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
