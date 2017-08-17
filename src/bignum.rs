@@ -28,7 +28,9 @@ pub trait BigNumber {
     fn submul_mut_g(&mut self, x: &Self, y: &Self, tmp: &mut Mpz);
     fn square_g(&mut self, tmp_elt: &mut Self, tmp: &mut Mpz);
     fn pow_mut(&mut self, f: &Self, a: usize)
-        where Self: std::marker::Sized + Clone {
+    where
+        Self: std::marker::Sized + Clone,
+    {
         self.set_ui_g(1);
         let s = format!("{:b}", a);
         let bts = s.into_bytes();

@@ -58,7 +58,7 @@ mod div {
     }
 
     #[test]
-    fn test_div_with_dnm () {
+    fn test_div_with_dnm() {
         let prec = 10;
         let g = eisenstein_series(6, prec);
         let h = g5_normalized(prec);
@@ -150,7 +150,7 @@ mod rankin_cohen {
     use libc::c_long;
     use hilbert_sqrt5::misc::PowGen;
     use hilbert_sqrt5::structure::{relation, monoms_of_g2_g5_f6};
-    use hilbert_sqrt5::elements::{div_mut};
+    use hilbert_sqrt5::elements::div_mut;
 
     #[test]
     fn test_rankin_cohen1() {
