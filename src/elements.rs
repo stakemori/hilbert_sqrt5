@@ -445,6 +445,18 @@ where
     }
 }
 
+impl HmfGen<Mpz> {
+    pub fn gcd(&self) -> Mpz {
+        let mut res = Mpz::new();
+        let mut tmp = Mpz::new();
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            tmp.set(&res);
+            res.gcd_mut(&tmp, self.fcvec.fc_ref(v, u, bd));
+        });
+        res
+    }
+}
+
 impl<'a, T> DivAssign<&'a T> for HmfGen<T>
 where
     T: BigNumber,

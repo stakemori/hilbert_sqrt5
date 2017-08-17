@@ -66,8 +66,10 @@ mod div {
         let mut res = HmfGen::new(prec);
         let dnm = div_mut_with_denom(&mut res, &f, &g);
         println!("{}", dnm);
-        assert!(!dnm.is_zero());
         assert_eq!(res, &h * &dnm);
+        let a = res.gcd();
+        res /= &a;
+        assert_eq!(res, h);
     }
 }
 
