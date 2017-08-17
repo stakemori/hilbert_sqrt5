@@ -83,9 +83,9 @@ mod structure {
         let prec = 5;
         let f = eisenstein_series(6, prec);
         let f: HmfGen<Sqrt5Mpz> = From::from(&f);
-        let forms_monom = monoms_of_g2_g5_f6(6, f.prec);
+        let forms_monom = monoms_of_g2_g5_f6(6);
         let v = {
-            let forms: Vec<_> = forms_monom.iter().map(|x| &x.form).collect();
+            let forms: Vec<_> = forms_monom.iter().map(|x| x.into_form(prec)).collect();
             relation(10, &f, &forms)
         };
         let mut f6 = HmfGen::new(prec);
@@ -94,7 +94,7 @@ mod structure {
             let mut a: Mpz = a.rt_part();
             a >>= 1;
             if !a.is_zero() {
-                tmp.mul_mut_by_const(&f.form, &a);
+                tmp.mul_mut_by_const(&f.into_form(prec), &a);
                 f6 += &tmp;
             }
         }
@@ -220,9 +220,9 @@ mod rankin_cohen {
         g8_16.square();
         assert_eq!(g8_16.weight, Some((8, 16)));
         let h = bracket_inner_prod1(&g7_15, &g8_16).unwrap();
-        let forms_monom = monoms_of_g2_g5_f6(8, prec);
+        let forms_monom = monoms_of_g2_g5_f6(8);
         let v = {
-            let forms: Vec<_> = forms_monom.iter().map(|x| &x.form).collect();
+            let forms: Vec<_> = forms_monom.iter().map(|x| x.into_form(prec)).collect();
             relation(60, &h, &forms)
         };
         let indics: Vec<_> = forms_monom.iter().map(|x| x.idx).collect();
@@ -256,9 +256,9 @@ mod g15_squared {
         g30.square();
         assert_eq!(g30.weight, Some((30, 30)));
         let g30: HmfGen<Sqrt5Mpz> = From::from(&g30);
-        let forms_monom = monoms_of_g2_g5_f6(30, prec);
+        let forms_monom = monoms_of_g2_g5_f6(30);
         let v = {
-            let forms: Vec<_> = forms_monom.iter().map(|x| &x.form).collect();
+            let forms: Vec<_> = forms_monom.iter().map(|x| x.into_form(prec)).collect();
             relation(100, &g30, &forms)
         };
         println!("{:?}", v);
@@ -268,7 +268,7 @@ mod g15_squared {
             let mut a: Mpz = a.rt_part();
             a >>= 1;
             if !a.is_zero() {
-                tmp.mul_mut_by_const(&f.form, &a);
+                tmp.mul_mut_by_const(&f.into_form(prec), &a);
                 f30 += &tmp;
             }
         }

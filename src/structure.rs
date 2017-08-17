@@ -13,9 +13,8 @@ use std::env;
 use bignum::Sqrt5Mpz;
 
 
-
 /// A stupid function that returns a linear relation.
-pub fn relation(len: usize, f: &HmfGen<Sqrt5Mpz>, forms: &Vec<&HmfGen<Mpz>>) -> Vec<Sqrt5Mpz> {
+pub fn relation(len: usize, f: &HmfGen<Sqrt5Mpz>, forms: &Vec<HmfGen<Mpz>>) -> Vec<Sqrt5Mpz> {
     let vv: Vec<Vec<Mpz>> = forms.iter().map(|f| f.fc_vector(len)).collect();
     let v = f.fc_vector(len);
     let path_name = "./data/rust_python_data.sobj";
@@ -166,26 +165,32 @@ where
 }
 
 /// Corresponds to g2^a * g5^b * f6^c where (a, b, c) = idx.
-pub struct Monom {
+pub struct MonomFormal {
     pub idx: (usize, usize, usize),
-    pub form: HmfGen<Mpz>,
 }
 
-impl From<Monom> for HmfGen<Mpz> {
-    fn from(f: Monom) -> HmfGen<Mpz> {
-        let mut res = HmfGen::<Mpz>::new(f.form.prec);
-        res.set(&f.form);
+impl MonomFormal {
+    pub fn into_form(&self, prec: usize) -> HmfGen<Mpz> {
+       monom_g2_g5_f6(prec, self.idx)
+    }
+    pub fn eval(v: Vec<(Sqrt5Mpz, MonomFormal)>, prec: usize) -> HmfGen<Sqrt5Mpz> {
+        let mut res = HmfGen::new(prec);
+        for &(ref a, ref monom) in v.iter() {
+            let mut tmp: HmfGen<Sqrt5Mpz> = From::from(&monom.into_form(prec));
+            tmp *= a;
+            res += &tmp;
+        }
         res
     }
 }
 
-pub fn monoms_of_g2_g5_f6(k: usize, prec: usize) -> Vec<Monom> {
+
+pub fn monoms_of_g2_g5_f6(k: usize) -> Vec<MonomFormal> {
     tpls_of_wt(k)
         .iter()
         .map(|&x| {
-            Monom {
+            MonomFormal {
                 idx: x,
-                form: monom_g2_g5_f6(prec, x),
             }
         })
         .collect()
