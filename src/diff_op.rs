@@ -1,4 +1,4 @@
-use elements::{HmfGen, weight_div};
+use elements::{HmfGen, div_mut};
 use misc::Sqrt5Elt;
 use gmp::mpz::Mpz;
 use libc::{c_ulong, c_long};
@@ -6,7 +6,6 @@ use std::cmp::min;
 use eisenstein::eisenstein_series;
 use theta_chars::g5_normalized;
 use misc::PowGen;
-use fcvec;
 use bignum::Sqrt5Mpz;
 use bignum::BigNumber;
 use std::ops::{SubAssign, MulAssign, AddAssign, ShrAssign};
@@ -277,44 +276,7 @@ where
 {
     let prec = f.prec;
     assert_eq!(prec, g15.prec);
-    res.prec = prec - 2;
-    let mut f_cloned = f.clone();
-    let mut tmp = HmfGen::new(prec);
-    res.decrease_prec(prec - 2);
-    res.weight = weight_div(f.weight, g15.weight);
-    res.set_zero();
-    let ref u_bds = f_cloned.u_bds;
-    for v in 3..(prec + 1) {
-        for i in 3..(v + 1) {
-            fcvec::mul_mut(
-                &mut tmp.fcvec.vec[v],
-                &g15.fcvec.vec[i],
-                &f_cloned.fcvec.vec[v - i + 2],
-                i,
-                v - i,
-                u_bds.vec[i],
-                u_bds.vec[v - i + 2],
-                u_bds.vec[v],
-                u_bds,
-                0,
-                0,
-                0,
-            );
-            fcvec::sub_assign(&mut f_cloned.fcvec.vec[v], &tmp.fcvec.vec[v], v, u_bds);
-        }
-    }
-    for (v, &bd1) in u_bds.vec.iter().enumerate().skip(2) {
-        let v_i = v as i64;
-        let bd = u_bds.vec[v - 2] as i64;
-        let bd1 = bd1 as i64;
-        for u in u_iter!(v_i, bd) {
-            res.fcvec.fc_ref_mut(v - 2, u, bd).set_g(
-                f_cloned
-                    .fcvec
-                    .fc_ref_mut(v, u, bd1),
-            );
-        }
-    }
+    div_mut(res, f, g15);
 }
 
 #[derive(Debug)]
