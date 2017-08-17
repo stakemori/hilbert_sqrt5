@@ -2,6 +2,7 @@ use libc::{c_ulong, c_long};
 use gmp::mpz::Mpz;
 use std::fmt;
 use std::ops::{AddAssign, SubAssign, ShlAssign, ShrAssign, MulAssign};
+use std;
 
 pub trait RealQuadElement<S> {
     fn rt_part(&self) -> S;
@@ -25,6 +26,26 @@ pub trait BigNumber {
     fn mul_assign_g(&mut self, other: &Self, tmp: &mut Mpz);
     fn addmul_mut_g(&mut self, x: &Self, y: &Self, tmp: &mut Mpz);
     fn submul_mut_g(&mut self, x: &Self, y: &Self, tmp: &mut Mpz);
+    fn square_g(&mut self, tmp_elt: &mut Self, tmp: &mut Mpz);
+    fn pow_mut(&mut self, f: &Self, a: usize)
+        where Self: std::marker::Sized + Clone {
+        self.set_ui_g(1);
+        let s = format!("{:b}", a);
+        let bts = s.into_bytes();
+        let strs: Vec<char> = bts.iter().rev().map(|&i| i as char).collect();
+        let mut n = (*f).clone();
+        let ref mut tmp_elt = Self::new_g();
+        let ref mut tmp = Mpz::new();
+        for &c in strs.iter() {
+            if c == '0' {
+                n.square_g(tmp_elt, tmp);
+            } else if c == '1' {
+                self.mul_assign_g(&n, tmp);
+                n.square_g(tmp_elt, tmp);
+            }
+        }
+
+    }
 }
 
 impl BigNumber for Mpz {
@@ -90,6 +111,10 @@ impl BigNumber for Mpz {
 
     fn submul_mut_g(&mut self, x: &Mpz, y: &Mpz, _tmp: &mut Mpz) {
         self.submul_mut(x, y);
+    }
+
+    fn square_g(&mut self, _tmp_elt: &mut Mpz, _tmp: &mut Mpz) {
+        self.set_pow_ui(2);
     }
 }
 
@@ -291,6 +316,11 @@ impl BigNumber for Sqrt5Mpz {
         self.addmul_mut_g(&x, &y, tmp);
         self.negate_g();
     }
+
+    fn square_g(&mut self, tmp_elt: &mut Self, tmp: &mut Mpz) {
+        tmp_elt.set_g(self);
+        self.mul_assign_g(tmp_elt, tmp);
+    }
 }
 
 impl fmt::Display for Sqrt5Mpz {
@@ -442,5 +472,14 @@ mod tests {
         let mut tmp = Mpz::new();
         a.submul_mut_g(&b, &c, &mut tmp);
         assert_eq!(a, Sqrt5Mpz::from_si_g(-4));
+    }
+
+    #[test]
+    fn test_pow() {
+        let mut a = Sqrt5Mpz::new_g();
+        let b = Sqrt5Mpz::from_sisi(3, 5);
+        a.pow_mut(&b, 10);
+        assert_eq!(a.rt_part().to_str_radix(10), "322355827");
+        assert_eq!(a.ir_part().to_str_radix(10), "142989825");
     }
 }
