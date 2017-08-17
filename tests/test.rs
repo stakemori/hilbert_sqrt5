@@ -150,6 +150,7 @@ mod rankin_cohen {
     use libc::c_long;
     use hilbert_sqrt5::misc::PowGen;
     use hilbert_sqrt5::structure::{relation, monoms_of_g2_g5_f6};
+    use hilbert_sqrt5::elements::{div_mut};
 
     #[test]
     fn test_rankin_cohen1() {
@@ -207,6 +208,13 @@ mod rankin_cohen {
         let g2 = eisenstein_series(2, prec);
         let g5 = g5_normalized(prec);
         let g7_15 = rankin_cohen_sqrt5(4, &g2, &g5).unwrap();
+        let g2_sqrt5: HmfGen<Sqrt5Mpz> = From::from(&g2);
+        let mut g5_13 = HmfGen::new(prec);
+        div_mut(&mut g5_13, &g7_15, &g2_sqrt5);
+        assert_eq!(g7_15, &g2_sqrt5 * &g5_13);
+        assert!(g5_13.is_divisible_by_const(&Sqrt5Mpz::from_sisi(35, -15)));
+        g5_13 /= &Sqrt5Mpz::from_sisi(35, -15);
+        println!("{}", g5_13);
         assert_eq!(g7_15.weight, Some((7, 15)));
         let mut g8_16 = rankin_cohen_sqrt5(2, &g2, &g2).unwrap();
         g8_16.square();
