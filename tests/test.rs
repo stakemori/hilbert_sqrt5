@@ -234,8 +234,8 @@ mod rankin_cohen {
 mod g15_squared {
     use super::*;
     use hilbert_sqrt5::misc::PowGen;
-    use hilbert_sqrt5::structure::{relation, monoms_of_g2_g5_f6};
-    use hilbert_sqrt5::bignum::{Sqrt5Mpz, RealQuadElement};
+    use hilbert_sqrt5::structure::{relation_monom, MonomFormal};
+    use hilbert_sqrt5::bignum::{Sqrt5Mpz, BigNumber};
 
     // #[allow(dead_code)]
     // fn fc_vec(f: &HmfGen<Mpz>, num: usize) -> Vec<Mpz> {
@@ -256,26 +256,11 @@ mod g15_squared {
         g30.square();
         assert_eq!(g30.weight, Some((30, 30)));
         let g30: HmfGen<Sqrt5Mpz> = From::from(&g30);
-        let forms_monom = monoms_of_g2_g5_f6(30);
-        let v = {
-            let forms: Vec<_> = forms_monom.iter().map(|x| x.into_form(prec)).collect();
-            relation(100, &g30, &forms)
-        };
-        println!("{:?}", v);
-        let mut f30 = HmfGen::new(prec);
-        let mut tmp = HmfGen::new(prec);
-        for (f, a) in forms_monom.iter().zip(v.iter().skip(1)) {
-            let mut a: Mpz = a.rt_part();
-            a >>= 1;
-            if !a.is_zero() {
-                tmp.mul_mut_by_const(&f.into_form(prec), &a);
-                f30 += &tmp;
-            }
-        }
+        let (_, v) = relation_monom(100, &g30);
+        let mut f30 = MonomFormal::eval(&v, prec);
         f30.negate();
-        assert!(f30.is_divisible_by_const(&Mpz::from_ui(16)));
+        assert!(f30.is_divisible_by_const(&Sqrt5Mpz::from_ui_g(16)));
         f30 >>= 4;
-        let f30: HmfGen<Sqrt5Mpz> = From::from(&f30);
         assert_eq!(g30, f30);
     }
 }

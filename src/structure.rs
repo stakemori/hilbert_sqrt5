@@ -32,6 +32,17 @@ pub fn relation(len: usize, f: &HmfGen<Sqrt5Mpz>, forms: &Vec<HmfGen<Mpz>>) -> V
 }
 
 
+pub fn relation_monom(len: usize, f: &HmfGen<Sqrt5Mpz>) -> (Sqrt5Mpz, Vec<(MonomFormal, Sqrt5Mpz)>) {
+    let wt = f.weight.unwrap();
+    assert_eq!(wt.0, wt.1);
+    let forms_monom = monoms_of_g2_g5_f6(wt.0);
+    let forms: Vec<_> = forms_monom.iter().map(|x| x.into_form(f.prec)).collect();
+    let mut v = relation(len, &f, &forms);
+    let a = v.remove(0);
+    let vec = forms_monom.into_iter().zip(v.into_iter()).collect();
+    (a, vec)
+}
+
 fn sage_command(cmd: &'static str) -> String {
     let home = env::home_dir().unwrap();
     let output = Command::new(home.join("bin/sage"))
@@ -165,17 +176,21 @@ where
 }
 
 /// Corresponds to g2^a * g5^b * f6^c where (a, b, c) = idx.
+#[derive(Debug)]
 pub struct MonomFormal {
     pub idx: (usize, usize, usize),
 }
 
 impl MonomFormal {
     pub fn into_form(&self, prec: usize) -> HmfGen<Mpz> {
-       monom_g2_g5_f6(prec, self.idx)
+        monom_g2_g5_f6(prec, self.idx)
     }
-    pub fn eval(v: Vec<(Sqrt5Mpz, MonomFormal)>, prec: usize) -> HmfGen<Sqrt5Mpz> {
+    pub fn eval(v: &Vec<(MonomFormal, Sqrt5Mpz)>, prec: usize) -> HmfGen<Sqrt5Mpz> {
         let mut res = HmfGen::new(prec);
-        for &(ref a, ref monom) in v.iter() {
+        res.set(&v[0].0.into_form(prec));
+        let mut res = From::from(&res);
+        res *= &v[0].1;
+        for &(ref monom, ref a) in v.iter().skip(1) {
             let mut tmp: HmfGen<Sqrt5Mpz> = From::from(&monom.into_form(prec));
             tmp *= a;
             res += &tmp;
@@ -188,11 +203,7 @@ impl MonomFormal {
 pub fn monoms_of_g2_g5_f6(k: usize) -> Vec<MonomFormal> {
     tpls_of_wt(k)
         .iter()
-        .map(|&x| {
-            MonomFormal {
-                idx: x,
-            }
-        })
+        .map(|&x| MonomFormal { idx: x })
         .collect()
 }
 
