@@ -703,8 +703,11 @@ where
     None
 }
 
-
-fn print_vth_cf<T>(f: &HmfGen<T>, v: usize, s: &'static str) where T: BigNumber + std::fmt::Display{
+#[allow(dead_code)]
+fn print_vth_cf<T>(f: &HmfGen<T>, v: usize, s: &'static str)
+where
+    T: BigNumber + std::fmt::Display,
+{
     let bd = f.u_bds.vec[v] as i64;
     let mut res = Vec::new();
     for u in -bd..(bd + 1) {
@@ -719,7 +722,7 @@ fn print_vth_cf<T>(f: &HmfGen<T>, v: usize, s: &'static str) where T: BigNumber 
 /// Assuming f is divisible by g in coefficeint T, set res = g/h.
 pub fn div_mut<T>(res: &mut HmfGen<T>, f: &HmfGen<T>, g: &HmfGen<T>)
 where
-    T: BigNumber + Clone + std::fmt::Display,
+    T: BigNumber + Clone,
     for<'a> T: SubAssign<&'a T>,
 {
     let (v_init, _, _) = initial_term(&g).unwrap();
@@ -727,38 +730,28 @@ where
     let mut f_cloned = f.clone();
     let prec = f.prec;
     assert!(prec >= v_init);
+
     res.decrease_prec(prec - v_init);
     res.weight = weight_div(f.weight, g.weight);
     res.set_zero();
     let ref u_bds = f.u_bds;
-    for v in (1 + v_init)..(prec + 1) {
-        for i in (1 + v_init)..v {
+    for v in v_init..(prec + 1) {
+        for i in (1 + v_init)..(v + 1) {
             fcvec::mul_mut(
                 &mut tmp.fcvec.vec[v],
                 &g.fcvec.vec[i],
-                &f_cloned.fcvec.vec[v + v_init - i],
+                &res.fcvec.vec[v - i],
                 i,
                 v - i,
                 u_bds.vec[i],
-                u_bds.vec[v + v_init - i],
+                u_bds.vec[v - i],
                 u_bds.vec[v],
                 u_bds,
                 0,
-                v_init,
+                0,
                 0,
             );
-            if v - v_init == 2 {
-                println!("foo, {}", i);
-                print_vth_cf(&tmp, v, "tmp");
-                print_vth_cf(&f_cloned, v + v_init - i, "f");
-                print_vth_cf(&g, i, "g");
-            }
             fcvec::sub_assign(&mut f_cloned.fcvec.vec[v], &tmp.fcvec.vec[v], v, u_bds);
-        }
-    }
-    for (v, _) in u_bds.vec.iter().enumerate().skip(v_init) {
-        if v - v_init == 2 {
-           print_vth_cf(&f_cloned, v, "f") ;
         }
         fcvec::div_mut(
             &f_cloned.fcvec.vec[v],

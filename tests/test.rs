@@ -35,13 +35,26 @@ mod div {
         let prec = 10;
         let f6 = f6_normalized(prec);
         let g5 = g5_normalized(prec);
-        let f = &f6 * &g5;
-        // f *= &Mpz::from_ui(2);
+        let mut f = &f6 * &g5;
+        f *= &Mpz::from_ui(2);
         let mut res = HmfGen::new(prec);
         div_mut(&mut res, &f, &g5);
         let mut g6 = f6.clone();
         g6.decrease_prec(res.prec);
-        assert_eq!(g6, res);
+        assert_eq!(&g6 * &Mpz::from_ui(2), res);
+    }
+
+    #[test]
+    fn test_div2() {
+        let prec = 10;
+        let h = eisenstein_series(2, prec);
+        let g = g15_normalized(prec);
+        let f = &g * &h;
+        let mut res = HmfGen::new(prec);
+        div_mut(&mut res, &f, &g);
+        let mut h = h.clone();
+        h.decrease_prec(res.prec);
+        assert_eq!(h, res);
     }
 }
 
