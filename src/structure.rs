@@ -298,6 +298,24 @@ impl Structure1 {
     }
 }
 
+pub struct Structure2;
+
+impl Structure for Structure2 {
+    fn gens(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+        let g2 = eisenstein_series(2, prec);
+        let g5 = g5_normalized(prec);
+        let g4_8 = rankin_cohen_sqrt5(2, &g2, &g2).unwrap();
+        let g7_11 = rankin_cohen_sqrt5(2, &g2, &g5).unwrap();
+        assert_eq!(g4_8.weight, Some((4, 8)));
+        assert_eq!(g7_11.weight, Some((7, 11)));
+        vec![g4_8, g7_11]
+    }
+
+    fn relations() -> Option<Vec<Vec<(MonomFormal, Sqrt5Mpz)>>> {
+        None
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
