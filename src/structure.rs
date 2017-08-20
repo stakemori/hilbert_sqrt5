@@ -162,6 +162,24 @@ fn load_pickle_z(f: &File) -> Result<Vec<Mpz>, serde_pickle::Error> {
 }
 
 #[allow(dead_code)]
+fn save_as_pickle_rel3(rel: &(PWtPoly, PWtPoly, PWtPoly), f: &mut File) {
+    let &(ref p0, ref p1, ref p2) = rel;
+    let to_vec = |p: &PWtPoly| {
+        p.iter().map(|&(ref m, ref a)| {
+            (
+                m.idx,
+                a.rt_part().to_str_radix(10),
+                a.ir_part().to_str_radix(10),
+            )
+        }).collect()
+    };
+    let v0: Vec<_> = to_vec(p0);
+    let v1: Vec<_> = to_vec(p1);
+    let v2: Vec<_> = to_vec(p2);
+    save_as_pickle((v0, v1, v2), f);
+}
+
+#[allow(dead_code)]
 fn save_as_pickle<T>(a: T, f: &mut File)
 where
     T: serde::Serialize,
@@ -472,5 +490,13 @@ mod tests {
     fn relation_slow3() {
         let gens = Structure3::gens(10);
         print_3rel(relation_slow_3gens(&gens, 50));
+    }
+
+    #[test]
+    fn test_pickle_gen3() {
+        let gens = Structure3::gens(10);
+        let rel = relation_slow_3gens(&gens, 50);
+        let ref mut f = File::create("/tmp/foo.sobj").unwrap();
+        save_as_pickle_rel3(&rel, f);
     }
 }
