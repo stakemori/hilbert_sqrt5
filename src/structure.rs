@@ -377,6 +377,28 @@ impl Structure4 {
     }
 }
 
+pub struct Structure3;
+
+impl Structure for Structure3 {
+    fn gens(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+        let g2 = eisenstein_series(2, prec);
+        let g5 = g5_normalized(prec);
+        let g6 = f6_normalized(prec);
+        let g7_13 = rankin_cohen_sqrt5(3, &g2, &g5).unwrap();
+        let g8_14 = rankin_cohen_sqrt5(3, &g2, &g6).unwrap();
+        let g11_17 = rankin_cohen_sqrt5(3, &g5, &g6).unwrap();
+        vec![g7_13, g8_14, g11_17]
+    }
+
+    fn relations() -> Option<Vec<Relation>> {
+        let a0_0 = (MonomFormal { idx: (0, 2, 0) }, Sqrt5Mpz::from_si_g(-5880));
+        let a0_1 = (MonomFormal { idx: (2, 0, 1) }, Sqrt5Mpz::from_si_g(7));
+        let a1 = (MonomFormal { idx: (2, 1, 0) }, Sqrt5Mpz::from_si_g(7));
+        let a2 = (MonomFormal { idx: (3, 0, 0) }, Sqrt5Mpz::from_si_g(-8));
+        Some(vec![vec![vec![a0_0, a0_1], vec![a1], vec![a2]]])
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -437,4 +459,14 @@ mod tests {
         assert!(Structure4::check_relations(10));
     }
 
+    #[test]
+    fn check_relations3() {
+        assert!(Structure3::check_relations(10));
+    }
+
+    #[test]
+    fn relation_slow3() {
+        let gens = Structure3::gens(10);
+        relation_slow_3gens(&gens, 50);
+    }
 }
