@@ -33,7 +33,8 @@ pub fn relation(len: usize, f: &HmfGen<Sqrt5Mpz>, forms: &Vec<HmfGen<Mpz>>) -> V
     load_pickle_quadz(&f).unwrap()
 }
 
-pub type PWtPoly = Vec<(MonomFormal, Sqrt5Mpz)>;
+type PWtPoly = Vec<(MonomFormal, Sqrt5Mpz)>;
+type Relation = Vec<PWtPoly>;
 
 pub fn relation_monom(len: usize, f: &HmfGen<Sqrt5Mpz>) -> (Sqrt5Mpz, PWtPoly) {
     let wt = f.weight.unwrap();
@@ -210,13 +211,11 @@ pub fn monoms_of_g2_g5_f6(k: usize) -> Vec<MonomFormal> {
         .collect()
 }
 
-fn eval_relation(rel: &PWtPoly, gens: &Vec<HmfGen<Sqrt5Mpz>>) -> HmfGen<Sqrt5Mpz> {
+fn eval_relation(rel: &Relation, gens: &Vec<HmfGen<Sqrt5Mpz>>) -> HmfGen<Sqrt5Mpz> {
     let prec = gens[0].prec;
     let mut res = HmfGen::<Sqrt5Mpz>::new(prec);
-    for (&(ref m, ref a), f) in rel.iter().zip(gens.iter()) {
-        let tmp = m.into_form(prec);
-        let mut tmp: HmfGen<Sqrt5Mpz> = From::from(&tmp);
-        tmp *= a;
+    for (&ref p, f) in rel.iter().zip(gens.iter()) {
+        let mut tmp = MonomFormal::eval(p, prec);
         tmp *= f;
         res += &tmp;
     }
@@ -225,7 +224,7 @@ fn eval_relation(rel: &PWtPoly, gens: &Vec<HmfGen<Sqrt5Mpz>>) -> HmfGen<Sqrt5Mpz
 
 pub trait Structure {
     fn gens(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>>;
-    fn relations() -> Option<Vec<PWtPoly>>;
+    fn relations() -> Option<Vec<Relation>>;
 
     fn check_relations(prec: usize) -> bool {
         let gens = Self::gens(prec);
@@ -259,11 +258,11 @@ impl Structure for Structure1 {
         vec![g7_9, g8_10, g11_13]
     }
 
-    fn relations() -> Option<Vec<PWtPoly>> {
+    fn relations() -> Option<Vec<Relation>> {
         let a0 = (MonomFormal { idx: (0, 0, 1) }, Sqrt5Mpz::from_si_g(-6));
         let a1 = (MonomFormal { idx: (0, 1, 0) }, Sqrt5Mpz::from_si_g(5));
         let a2 = (MonomFormal { idx: (1, 0, 0) }, Sqrt5Mpz::from_si_g(-2));
-        Some(vec![vec![a0, a1, a2]])
+        Some(vec![vec![vec![a0], vec![a1], vec![a2]]])
     }
 }
 
@@ -307,7 +306,7 @@ impl Structure for Structure2 {
         vec![g4_8, g7_11]
     }
 
-    fn relations() -> Option<Vec<PWtPoly>> {
+    fn relations() -> Option<Vec<Relation>> {
         None
     }
 }
@@ -331,11 +330,11 @@ impl Structure for Structure4 {
         vec![g4_12, g5_13, g8_16]
     }
 
-    fn relations() -> Option<Vec<PWtPoly>> {
+    fn relations() -> Option<Vec<Relation>> {
         let a0 = (MonomFormal { idx: (0, 0, 1) }, Sqrt5Mpz::from_si_g(1944));
         let a1 = (MonomFormal { idx: (0, 1, 0) }, Sqrt5Mpz::from_si_g(259200));
         let a2 = (MonomFormal { idx: (1, 0, 0) }, Sqrt5Mpz::from_si_g(-7));
-        Some(vec![vec![a0, a1, a2]])
+        Some(vec![vec![vec![a0], vec![a1], vec![a2]]])
     }
 }
 
