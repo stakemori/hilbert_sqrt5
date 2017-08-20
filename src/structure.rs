@@ -340,7 +340,7 @@ impl Structure for Structure4 {
 
 
 #[allow(dead_code)]
-fn relation_slow_3gens(gens: &Vec<HmfGen<Sqrt5Mpz>>, len: usize) {
+fn relation_slow_3gens(gens: &Vec<HmfGen<Sqrt5Mpz>>, len: usize) -> (PWtPoly, PWtPoly, PWtPoly) {
     let g0 = &gens[0];
     let g1 = &gens[1];
     let g2 = &gens[2];
@@ -363,9 +363,13 @@ fn relation_slow_3gens(gens: &Vec<HmfGen<Sqrt5Mpz>>, len: usize) {
         b.mul_assign_g(&a0, tmp);
         b.mul_assign_g(&a1, tmp);
     }
-    println!("{:?}", &v0);
-    println!("{:?}", &v1);
-    println!("{:?}", &v2);
+    (v0, v1, v2)
+}
+
+fn print_3rel(rel: (PWtPoly, PWtPoly, PWtPoly)) {
+    println!("{:?}", rel.0);
+    println!("{:?}", rel.1);
+    println!("{:?}", rel.2);
 }
 
 impl Structure4 {
@@ -373,7 +377,7 @@ impl Structure4 {
     fn relation_slow() {
         let prec = 10;
         let gens = Self::gens(prec);
-        relation_slow_3gens(&gens, 50);
+        print_3rel(relation_slow_3gens(&gens, 50));
     }
 }
 
@@ -440,7 +444,7 @@ mod tests {
     fn relation_slow1() {
         println!("{:?}", Structure1::relations());
         let gens = Structure1::gens(10);
-        relation_slow_3gens(&gens, 50);
+        print_3rel(relation_slow_3gens(&gens, 50));
     }
 
     #[test]
@@ -451,7 +455,7 @@ mod tests {
     #[test]
     fn relation_slow4() {
         let gens = Structure4::gens(10);
-        relation_slow_3gens(&gens, 50);
+        print_3rel(relation_slow_3gens(&gens, 50));
     }
 
     #[test]
@@ -467,6 +471,6 @@ mod tests {
     #[test]
     fn relation_slow3() {
         let gens = Structure3::gens(10);
-        relation_slow_3gens(&gens, 50);
+        print_3rel(relation_slow_3gens(&gens, 50));
     }
 }
