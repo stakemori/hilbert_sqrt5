@@ -1,7 +1,7 @@
 use gmp::mpz::Mpz;
 use eisenstein::{eisenstein_series, f6_normalized};
 use theta_chars::g5_normalized;
-use elements::HmfGen;
+use elements::{HmfGen, div_mut};
 use serde_pickle;
 use std::fs::File;
 use std::io::Write;
@@ -12,6 +12,7 @@ use std::process::Command;
 use std::env;
 use bignum::Sqrt5Mpz;
 use diff_op::{rankin_cohen_sqrt5, bracket_inner_prod1};
+use misc::PowGen;
 
 
 /// A stupid function that returns a linear relation.
@@ -32,11 +33,9 @@ pub fn relation(len: usize, f: &HmfGen<Sqrt5Mpz>, forms: &Vec<HmfGen<Mpz>>) -> V
     load_pickle_quadz(&f).unwrap()
 }
 
+pub type PWtPoly = Vec<(MonomFormal, Sqrt5Mpz)>;
 
-pub fn relation_monom(
-    len: usize,
-    f: &HmfGen<Sqrt5Mpz>,
-) -> (Sqrt5Mpz, Vec<(MonomFormal, Sqrt5Mpz)>) {
+pub fn relation_monom(len: usize, f: &HmfGen<Sqrt5Mpz>) -> (Sqrt5Mpz, PWtPoly) {
     let wt = f.weight.unwrap();
     assert_eq!(wt.0, wt.1);
     let forms_monom = monoms_of_g2_g5_f6(wt.0);
@@ -189,7 +188,7 @@ impl MonomFormal {
     pub fn into_form(&self, prec: usize) -> HmfGen<Mpz> {
         monom_g2_g5_f6(prec, self.idx)
     }
-    pub fn eval(v: &Vec<(MonomFormal, Sqrt5Mpz)>, prec: usize) -> HmfGen<Sqrt5Mpz> {
+    pub fn eval(v: &PWtPoly, prec: usize) -> HmfGen<Sqrt5Mpz> {
         let mut res = HmfGen::new(prec);
         res.set(&v[0].0.into_form(prec));
         let mut res = From::from(&res);
@@ -211,10 +210,7 @@ pub fn monoms_of_g2_g5_f6(k: usize) -> Vec<MonomFormal> {
         .collect()
 }
 
-fn eval_relation(
-    rel: &Vec<(MonomFormal, Sqrt5Mpz)>,
-    gens: &Vec<HmfGen<Sqrt5Mpz>>,
-) -> HmfGen<Sqrt5Mpz> {
+fn eval_relation(rel: &PWtPoly, gens: &Vec<HmfGen<Sqrt5Mpz>>) -> HmfGen<Sqrt5Mpz> {
     let prec = gens[0].prec;
     let mut res = HmfGen::<Sqrt5Mpz>::new(prec);
     for (&(ref m, ref a), f) in rel.iter().zip(gens.iter()) {
@@ -229,7 +225,7 @@ fn eval_relation(
 
 pub trait Structure {
     fn gens(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>>;
-    fn relations() -> Option<Vec<Vec<(MonomFormal, Sqrt5Mpz)>>>;
+    fn relations() -> Option<Vec<PWtPoly>>;
 
     fn check_relations(prec: usize) -> bool {
         let gens = Self::gens(prec);
@@ -263,7 +259,7 @@ impl Structure for Structure1 {
         vec![g7_9, g8_10, g11_13]
     }
 
-    fn relations() -> Option<Vec<Vec<(MonomFormal, Sqrt5Mpz)>>> {
+    fn relations() -> Option<Vec<PWtPoly>> {
         let a0 = (MonomFormal { idx: (0, 0, 1) }, Sqrt5Mpz::from_si_g(-6));
         let a1 = (MonomFormal { idx: (0, 1, 0) }, Sqrt5Mpz::from_si_g(5));
         let a2 = (MonomFormal { idx: (1, 0, 0) }, Sqrt5Mpz::from_si_g(-2));
@@ -311,8 +307,74 @@ impl Structure for Structure2 {
         vec![g4_8, g7_11]
     }
 
-    fn relations() -> Option<Vec<Vec<(MonomFormal, Sqrt5Mpz)>>> {
+    fn relations() -> Option<Vec<PWtPoly>> {
         None
+    }
+}
+
+pub struct Structure4;
+
+impl Structure for Structure4 {
+    fn gens(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+        let g2 = eisenstein_series(2, prec);
+        let g5 = g5_normalized(prec);
+        let g4_12 = rankin_cohen_sqrt5(4, &g2, &g2).unwrap();
+        let g7_15 = rankin_cohen_sqrt5(4, &g2, &g5).unwrap();
+        let mut g8_16 = rankin_cohen_sqrt5(2, &g2, &g2).unwrap();
+        let g2_sqrt5: HmfGen<Sqrt5Mpz> = From::from(&g2);
+        g8_16.square();
+        let mut g5_13 = HmfGen::new(prec);
+        div_mut(&mut g5_13, &g7_15, &g2_sqrt5);
+        assert_eq!(g4_12.weight, Some((4, 12)));
+        assert_eq!(g5_13.weight, Some((5, 13)));
+        assert_eq!(g8_16.weight, Some((8, 16)));
+        vec![g4_12, g5_13, g8_16]
+    }
+
+    fn relations() -> Option<Vec<PWtPoly>> {
+        let a0 = (MonomFormal { idx: (0, 0, 1) }, Sqrt5Mpz::from_si_g(1944));
+        let a1 = (MonomFormal { idx: (0, 1, 0) }, Sqrt5Mpz::from_si_g(259200));
+        let a2 = (MonomFormal { idx: (1, 0, 0) }, Sqrt5Mpz::from_si_g(-7));
+        Some(vec![vec![a0, a1, a2]])
+    }
+}
+
+
+#[allow(dead_code)]
+fn relation_slow_3gens(gens: &Vec<HmfGen<Sqrt5Mpz>>, len: usize) {
+    let g0 = &gens[0];
+    let g1 = &gens[1];
+    let g2 = &gens[2];
+    let h0 = bracket_inner_prod1(g1, g2).unwrap();
+    let h1 = bracket_inner_prod1(g2, g0).unwrap();
+    let h2 = bracket_inner_prod1(g0, g1).unwrap();
+    let (a0, mut v0) = relation_monom(len, &h0);
+    let (a1, mut v1) = relation_monom(len, &h1);
+    let (a2, mut v2) = relation_monom(len, &h2);
+    let ref mut tmp = Mpz::new();
+    for &mut (_, ref mut b) in v0.iter_mut() {
+        b.mul_assign_g(&a1, tmp);
+        b.mul_assign_g(&a2, tmp);
+    }
+    for &mut (_, ref mut b) in v1.iter_mut() {
+        b.mul_assign_g(&a0, tmp);
+        b.mul_assign_g(&a2, tmp);
+    }
+    for &mut (_, ref mut b) in v2.iter_mut() {
+        b.mul_assign_g(&a0, tmp);
+        b.mul_assign_g(&a1, tmp);
+    }
+    println!("{:?}", &v0);
+    println!("{:?}", &v1);
+    println!("{:?}", &v2);
+}
+
+impl Structure4 {
+    #[allow(dead_code)]
+    fn relation_slow() {
+        let prec = 10;
+        let gens = Self::gens(prec);
+        relation_slow_3gens(&gens, 50);
     }
 }
 
@@ -356,11 +418,24 @@ mod tests {
     #[test]
     fn relation_slow1() {
         println!("{:?}", Structure1::relations());
-        Structure1::relation_slow();
+        let gens = Structure1::gens(10);
+        relation_slow_3gens(&gens, 50);
     }
 
     #[test]
     fn check_relations1() {
         assert!(Structure1::check_relations(10));
     }
+
+    #[test]
+    fn relation_slow4() {
+        let gens = Structure4::gens(10);
+        relation_slow_3gens(&gens, 50);
+    }
+
+    #[test]
+    fn check_relations4() {
+        assert!(Structure4::check_relations(10));
+    }
+
 }
