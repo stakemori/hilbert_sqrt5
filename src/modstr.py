@@ -1,0 +1,23 @@
+# -*- coding: utf-8; mode: sage -*-
+from sage.all import QuadraticField, PolynomialRing, ZZ, flatten
+
+K = QuadraticField(5)
+
+
+def gens():
+    R = PolynomialRing(K, names='g2, g5, g6')
+    return R.gens()
+
+
+def to_pol(l):
+    sqrt5 = K.gen()
+    g2, g5, g6 = gens()
+    return sum(g2**a * g5**b * g6**c * (ZZ(s) + ZZ(t) * sqrt5) / ZZ(2) for (a, b, c), s, t in l)
+
+
+def to_pols_normalized(ll):
+    pols = [to_pol(l) for l in ll]
+    l = flatten([a.coefficients() for a in pols])
+    idl = K.ideal(l)
+    a = idl.gens_reduced()[0]
+    return [p / a for p in pols]
