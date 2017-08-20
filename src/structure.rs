@@ -165,13 +165,15 @@ fn load_pickle_z(f: &File) -> Result<Vec<Mpz>, serde_pickle::Error> {
 fn save_as_pickle_rel3(rel: &(PWtPoly, PWtPoly, PWtPoly), f: &mut File) {
     let &(ref p0, ref p1, ref p2) = rel;
     let to_vec = |p: &PWtPoly| {
-        p.iter().map(|&(ref m, ref a)| {
-            (
-                m.idx,
-                a.rt_part().to_str_radix(10),
-                a.ir_part().to_str_radix(10),
-            )
-        }).collect()
+        p.iter()
+            .map(|&(ref m, ref a)| {
+                (
+                    m.idx,
+                    a.rt_part().to_str_radix(10),
+                    a.ir_part().to_str_radix(10),
+                )
+            })
+            .collect()
     };
     let v0: Vec<_> = to_vec(p0);
     let v1: Vec<_> = to_vec(p1);
