@@ -462,23 +462,52 @@ impl Structure4 {
 
 pub struct Structure3;
 
-impl Structure for Structure3 {
-    fn gens(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+impl Structure3 {
+    // This is not gens.
+    #[allow(dead_code)]
+    fn gens1(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
         let g2 = eisenstein_series(2, prec);
         let g5 = g5_normalized(prec);
         let g6 = f6_normalized(prec);
-        let g7_13 = rankin_cohen_sqrt5(3, &g2, &g5).unwrap();
-        let g8_14 = rankin_cohen_sqrt5(3, &g2, &g6).unwrap();
-        let g11_17 = rankin_cohen_sqrt5(3, &g5, &g6).unwrap();
-        vec![g7_13, g8_14, g11_17]
+        // let mut h6 = HmfGen::new(prec);
+        // h6.pow_mut(&g2, 3);
+        let h0 = rankin_cohen_sqrt5(1, &g2, &g5).unwrap();
+        let h1 = rankin_cohen_sqrt5(2, &g2, &g2).unwrap();
+        let mut f0 = &h0 * &h1;
+        let mut f2 = rankin_cohen_sqrt5(3, &g5, &g6).unwrap();
+        f0 *= &Sqrt5Mpz::from_si_g(7);
+        f0 += &(&f2 * &Sqrt5Mpz::from_si_g(-1080));
+        assert_eq!(f0.weight, Some((11, 17)));
+        let f1 = rankin_cohen_sqrt5(3, &g2, &g6).unwrap();
+        f2 *= &Sqrt5Mpz::from_si_g(720);
+        f2 -= &f0;
+        vec![f0, f1, f2]
+    }
+}
+
+impl Structure for Structure3 {
+    fn gens(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+        let gens = Self::gens1(prec + 1);
+        let mut f0 = HmfGen::new(prec + 1);
+        let mut f2 = HmfGen::new(prec + 1);
+        {
+            let f11_17 = &gens[0];
+            let g11_17 = &gens[2];
+            let g2 = eisenstein_series(2, prec + 1);
+            let g5 = g5_normalized(prec + 1);
+            let g6 = f6_normalized(prec + 1);
+            div_mut(&mut f0, &f11_17, &From::from(&g5));
+            div_mut(&mut f2, &g11_17, &From::from(&(&g2 * &g6)));
+        }
+        assert_eq!(f0.weight, Some((6, 12)));
+        assert_eq!(f2.weight, Some((3, 9)));
+        f0.decrease_prec(prec);
+        f2.decrease_prec(prec);
+        vec![f0, f2]
     }
 
     fn relations() -> Option<Vec<Relation>> {
-        let a0_0 = (MonomFormal { idx: (0, 2, 0) }, Sqrt5Mpz::from_si_g(-5880));
-        let a0_1 = (MonomFormal { idx: (2, 0, 1) }, Sqrt5Mpz::from_si_g(7));
-        let a1 = (MonomFormal { idx: (2, 1, 0) }, Sqrt5Mpz::from_si_g(7));
-        let a2 = (MonomFormal { idx: (3, 0, 0) }, Sqrt5Mpz::from_si_g(-8));
-        Some(vec![vec![vec![a0_0, a0_1], vec![a1], vec![a2]]])
+        None
     }
 }
 
@@ -555,10 +584,14 @@ mod tests {
 
     #[test]
     fn test_pickle_gen3() {
-        let gens = Structure3::gens(10);
-        let rel = relation_slow_3gens(&gens, 50);
-        let ref mut f = File::create("/tmp/foo.sobj").unwrap();
-        save_as_pickle_rel3(&rel, f);
+        let gens1 = Structure3::gens1(10);
+        let rel1 = relation_slow_3gens(&gens1, 50);
+        let ref mut f1 = File::create("./data/str3gens1.sobj").unwrap();
+        save_as_pickle_rel3(&rel1, f1);
+        let _gens = Structure3::gens(13);
+        // let rel = relation_slow_3gens(&gens, 50);
+        // let ref mut f = File::create("./data/str3gens.sobj").unwrap();
+        // save_as_pickle_rel3(&rel, f);
     }
 
     #[test]
