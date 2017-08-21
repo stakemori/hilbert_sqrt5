@@ -10,7 +10,7 @@ use bignum::Sqrt5Mpz;
 use bignum::BigNumber;
 use std::ops::{SubAssign, MulAssign, AddAssign, ShrAssign};
 use std::convert::From;
-
+use std::cmp::max;
 
 impl PartialEq for Sqrt5Elt<Mpz> {
     fn eq(&self, other: &Self) -> bool {
@@ -408,7 +408,7 @@ where
     for<'a> T: AddAssign<&'a T>,
     for<'a> T: SubAssign<&'a T>,
 {
-    let mut res: HmfGen<T> = HmfGen::new(f.prec);
+    let mut res: HmfGen<T> = HmfGen::new(max(f.prec, g.prec));
     star_op(&mut res, &g);
     res *= f;
     bracket_proj(&res, g15)
