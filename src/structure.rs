@@ -161,6 +161,35 @@ fn load_pickle_z(f: &File) -> Result<Vec<Mpz>, serde_pickle::Error> {
     Ok(res)
 }
 
+type PolString = Vec<((usize, usize, usize), String, String)>;
+#[allow(dead_code)]
+fn rel3_to_tuple(rel: &(PWtPoly, PWtPoly, PWtPoly)) -> (PolString, PolString, PolString) {
+    let &(ref p0, ref p1, ref p2) = rel;
+    let to_vec = |p: &PWtPoly| {
+        p.iter()
+            .map(|&(ref m, ref a)| {
+                (
+                    m.idx,
+                    a.rt_part().to_str_radix(10),
+                    a.ir_part().to_str_radix(10),
+                )
+            })
+            .collect()
+    };
+    let v0: Vec<_> = to_vec(p0);
+    let v1: Vec<_> = to_vec(p1);
+    let v2: Vec<_> = to_vec(p2);
+    (v0, v1, v2)
+}
+
+#[allow(dead_code)]
+fn save_as_pickle_3relations(rels: &Vec<(usize, (PWtPoly, PWtPoly, PWtPoly))>, f: &mut File) {
+    let v: Vec<_> = rels.iter()
+        .map(|&(i, ref rel)| (i, rel3_to_tuple(rel)))
+        .collect();
+    save_as_pickle(v, f);
+}
+
 #[allow(dead_code)]
 fn save_as_pickle_rel3(rel: &(PWtPoly, PWtPoly, PWtPoly), f: &mut File) {
     let &(ref p0, ref p1, ref p2) = rel;
@@ -358,6 +387,36 @@ impl Structure for Structure4 {
     }
 }
 
+#[allow(dead_code)]
+fn three_forms(i: usize, prec: usize) -> Option<Vec<HmfGen<Sqrt5Mpz>>> {
+    let v = if is_even!(i) {
+        let g2 = eisenstein_series(2, prec);
+        let g5 = g5_normalized(prec);
+        let f0 = rankin_cohen_sqrt5(i, &g2, &g2).unwrap();
+        let f1 = rankin_cohen_sqrt5(i, &g2, &g5).unwrap();
+        let f2 = rankin_cohen_sqrt5(i, &g5, &g5).unwrap();
+        vec![f0, f1, f2]
+    } else {
+        let g2 = eisenstein_series(2, prec);
+        let g5 = g5_normalized(prec);
+        let g6 = f6_normalized(prec);
+        let f0 = rankin_cohen_sqrt5(i, &g2, &g5).unwrap();
+        let f1 = rankin_cohen_sqrt5(i, &g2, &g6).unwrap();
+        let f2 = rankin_cohen_sqrt5(i, &g5, &g6).unwrap();
+        vec![f0, f1, f2]
+    };
+    if v.iter().all(|f| f.is_zero()) {
+        None
+    } else {
+        Some(v)
+    }
+}
+
+#[allow(dead_code)]
+fn three_forms_rel(i: usize, prec: usize, len: usize) -> Option<(PWtPoly, PWtPoly, PWtPoly)> {
+    let gens = three_forms(i, prec);
+    gens.map(|ref x| relation_slow_3gens(x, len))
+}
 
 #[allow(dead_code)]
 fn relation_slow_3gens(gens: &Vec<HmfGen<Sqrt5Mpz>>, len: usize) -> (PWtPoly, PWtPoly, PWtPoly) {
@@ -500,5 +559,17 @@ mod tests {
         let rel = relation_slow_3gens(&gens, 50);
         let ref mut f = File::create("/tmp/foo.sobj").unwrap();
         save_as_pickle_rel3(&rel, f);
+    }
+
+    #[test]
+    fn test_save_rels() {
+        let prec = 10;
+        let ref mut f = File::create("./data/rels.sobj").unwrap();
+        let v: Vec<_> = (1..10)
+            .map(|i| (i, three_forms_rel(i, prec, 50)))
+            .take_while(|x| x.1.is_some())
+            .map(|x| (x.0, x.1.unwrap()))
+            .collect();
+        save_as_pickle_3relations(&v, f);
     }
 }
