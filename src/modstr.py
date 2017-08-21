@@ -2,10 +2,10 @@
 from sage.all import QuadraticField, PolynomialRing, ZZ, flatten
 
 K = QuadraticField(5)
+R = PolynomialRing(K, names='g2, g5, g6')
 
 
 def gens():
-    R = PolynomialRing(K, names='g2, g5, g6')
     return R.gens()
 
 
@@ -16,7 +16,7 @@ def to_pol(l):
 
 
 def to_pols_normalized(ll):
-    pols = [to_pol(l) for l in ll]
+    pols = [R(to_pol(l)) for l in ll]
     l = flatten([a.coefficients() for a in pols])
     idl = K.ideal(l)
     a = idl.gens_reduced()[0]
