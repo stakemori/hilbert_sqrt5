@@ -273,6 +273,7 @@ where
 
     /// Decrease prec to prec.
     pub fn decrease_prec(&mut self, prec: usize) {
+        assert!(self.prec >= prec);
         self.u_bds = self.u_bds.take(prec + 1);
         self.prec = prec;
     }
