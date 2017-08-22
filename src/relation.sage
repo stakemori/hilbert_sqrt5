@@ -14,7 +14,7 @@ def to_unicode(a):
 def relation(tpl):
     v, vv = tpl
     v = [K((ZZ(a) + ZZ(b) * sqrt5) / ZZ(2)) for a, b in v]
-    vv = [[K(ZZ(a)) for a in w] for w in vv]
+    vv = [[K(ZZ(a) + ZZ(b) * sqrt5) / ZZ(2) for a, b in w] for w in vv]
     vv.insert(0, v)
     m = matrix(vv)
     rel = m.left_kernel().basis()[0]
