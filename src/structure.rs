@@ -16,8 +16,12 @@ use misc::PowGen;
 
 
 /// A stupid function that returns a linear relation.
-pub fn relation(len: usize, f: &HmfGen<Sqrt5Mpz>, forms: &Vec<HmfGen<Mpz>>) -> Vec<Sqrt5Mpz> {
-    let vv: Vec<Vec<Mpz>> = forms.iter().map(|f| f.fc_vector(len)).collect();
+pub fn relation<T>(len: usize, f: &HmfGen<T>, forms: &Vec<HmfGen<T>>) -> Vec<T>
+where
+    T: RealQuadElement<Mpz> + BigNumber,
+    for<'a> T: From<&'a (Mpz, Mpz)>,
+{
+    let vv: Vec<Vec<T>> = forms.iter().map(|f| f.fc_vector(len)).collect();
     let v = f.fc_vector(len);
     let path_name = "./data/rust_python_data.sobj";
     let res_path_name = "./data/rust_python_data_res.sobj";
@@ -40,7 +44,10 @@ pub fn relation_monom(len: usize, f: &HmfGen<Sqrt5Mpz>) -> (Sqrt5Mpz, PWtPoly) {
     let wt = f.weight.unwrap();
     assert_eq!(wt.0, wt.1);
     let forms_monom = monoms_of_g2_g5_f6(wt.0);
-    let forms: Vec<_> = forms_monom.iter().map(|x| x.into_form(f.prec)).collect();
+    let forms: Vec<_> = forms_monom
+        .iter()
+        .map(|x| From::from(&x.into_form(f.prec)))
+        .collect();
     let mut v = relation(len, &f, &forms);
     let a = v.remove(0);
     let vec = forms_monom.into_iter().zip(v.into_iter()).collect();
@@ -98,13 +105,19 @@ fn monom_g2_g5_f6(prec: usize, expts: (usize, usize, usize)) -> HmfGen<Mpz> {
     res
 }
 
-fn save_as_pickle_quadz_vec<T>(vec: &Vec<T>, basis_vec: &Vec<Vec<Mpz>>, f: &mut File)
+fn save_as_pickle_quadz_vec<T>(vec: &Vec<T>, basis_vec: &Vec<Vec<T>>, f: &mut File)
 where
     T: RealQuadElement<Mpz>,
 {
-    let v: Vec<Vec<String>> = basis_vec
+    let v: Vec<Vec<(String, String)>> = basis_vec
         .iter()
-        .map(|v| v.iter().map(|x| x.to_str_radix(10)).collect())
+        .map(|v| {
+            v.iter()
+                .map(|x| {
+                    (x.rt_part().to_str_radix(10), x.ir_part().to_str_radix(10))
+                })
+                .collect()
+        })
         .collect();
     let w: Vec<(String, String)> = vec.iter()
         .map(|a| {
@@ -519,33 +532,6 @@ mod tests {
     fn test_tpls_of_wt() {
         assert_eq!(tpls_of_wt(30).len(), 13);
         assert_eq!(tpls_of_wt(100).len(), 99);
-    }
-
-    #[test]
-    fn test_pickle() {
-        let v: Vec<Mpz> = (0..10000).map(|x| Mpz::from_ui(x)).collect();
-        let mut f = File::create("/tmp/foo.sobj").unwrap();
-        let g = File::open("/tmp/foo.sobj").unwrap();
-        save_as_pickle_z(&v, &mut f);
-        let w = load_pickle_z(&g).unwrap();
-        assert_eq!(v, w);
-
-        let mut f1 = File::create("/tmp/bar.sobj").unwrap();
-        let v: Vec<Sqrt5Mpz> = (0..10000)
-            .map(|x| From::from(&(Mpz::from_ui(x), Mpz::from_ui(x))))
-            .collect();
-        save_as_pickle_quadz(&v, &mut f1);
-        let g1 = File::open("/tmp/bar.sobj").unwrap();
-        let w: Vec<Sqrt5Mpz> = load_pickle_quadz(&g1).unwrap();
-        assert_eq!(v, w);
-
-        let mut f = File::create("/tmp/foo.sobj").unwrap();
-        let v = vec![
-            vec![Mpz::from_si(2), Mpz::from_si(-2)],
-            vec![Mpz::from_si(5), Mpz::from_si(-3)],
-        ];
-        let w = vec![Sqrt5Mpz::from_sisi(2, 4), Sqrt5Mpz::from_sisi(3, 5)];
-        save_as_pickle_quadz_vec(&w, &v, &mut f);
     }
 
     #[test]

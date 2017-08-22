@@ -85,7 +85,10 @@ mod structure {
         let f: HmfGen<Sqrt5Mpz> = From::from(&f);
         let forms_monom = monoms_of_g2_g5_f6(6);
         let v = {
-            let forms: Vec<_> = forms_monom.iter().map(|x| x.into_form(prec)).collect();
+            let forms: Vec<_> = forms_monom
+                .iter()
+                .map(|x| From::from(&x.into_form(prec)))
+                .collect();
             relation(10, &f, &forms)
         };
         let mut f6 = HmfGen::new(prec);
@@ -222,7 +225,10 @@ mod rankin_cohen {
         let h = bracket_inner_prod1(&g7_15, &g8_16).unwrap();
         let forms_monom = monoms_of_g2_g5_f6(8);
         let v = {
-            let forms: Vec<_> = forms_monom.iter().map(|x| x.into_form(prec)).collect();
+            let forms: Vec<_> = forms_monom
+                .iter()
+                .map(|x| From::from(&x.into_form(prec)))
+                .collect();
             relation(60, &h, &forms)
         };
         let indics: Vec<_> = forms_monom.iter().map(|x| x.idx).collect();
