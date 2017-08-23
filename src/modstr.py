@@ -1,5 +1,5 @@
 # -*- coding: utf-8; mode: sage -*-
-from sage.all import QuadraticField, PolynomialRing, ZZ, flatten
+from sage.all import QuadraticField, PolynomialRing, ZZ, flatten, gcd
 
 K = QuadraticField(5)
 R = PolynomialRing(K, names='g2, g5, g6')
@@ -21,3 +21,10 @@ def to_pols_normalized(ll):
     idl = K.ideal(l)
     a = idl.gens_reduced()[0]
     return [p / a for p in pols]
+
+
+def syzygy(f, g):
+    f = R(f)
+    g = R(g)
+    d = gcd(f.lt(), g.lt())
+    return (f.lt() / d) * g - (g.lt() / d) * f
