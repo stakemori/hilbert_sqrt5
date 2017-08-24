@@ -15,7 +15,7 @@ use diff_op::{rankin_cohen_sqrt5, bracket_inner_prod1};
 use misc::PowGen;
 
 
-pub fn corank<T>(len: usize, forms: &Vec<HmfGen<T>>) -> i64
+pub fn rank<T>(len: usize, forms: &Vec<HmfGen<T>>) -> usize
 where
     T: RealQuadElement<Mpz> + BigNumber,
 {
@@ -27,12 +27,13 @@ where
     let path_name = "./data/rust_python_data.sobj";
     let mut f = File::create(path_name).unwrap();
     save_as_pickle_quadz_vec(&v, &vv, &mut f);
-    let corank = sage_command("print load('./src/relation.sage')")
+    let rank = sage_command("print load('./src/relation.sage')")
         .lines()
         .next()
         .unwrap()
         .to_string();
-    corank.parse::<i64>().unwrap() - 1
+    let rank = rank.parse::<usize>().unwrap();
+    rank
 }
 
 /// A stupid function that returns a linear relation.
@@ -47,12 +48,12 @@ where
     let res_path_name = "./data/rust_python_data_res.sobj";
     let mut f = File::create(path_name).unwrap();
     save_as_pickle_quadz_vec(&v, &vv, &mut f);
-    let corank = sage_command("print load('./src/relation.sage')")
+    let rank = sage_command("print load('./src/relation.sage')")
         .lines()
         .next()
         .unwrap()
         .to_string();
-    assert_eq!(corank.parse::<i32>().unwrap(), 1);
+    assert_eq!(rank.parse::<usize>().unwrap(), forms.len());
     let f = File::open(res_path_name).unwrap();
     load_pickle_quadz(&f).unwrap()
 }
@@ -701,7 +702,7 @@ mod tests {
             assert_eq!(f.weight, Some((11, 23)));
         }
         forms.push(f11);
-        println!("{:?}", corank(50, &forms));
+        println!("{:?}", forms.len() as i64 - rank(50, &forms) as i64);
     }
 
     #[test]
@@ -757,10 +758,10 @@ mod tests {
     }
 
     #[test]
-    fn test_coranks6() {
+    fn test_ranks6() {
         for k in 2..100 {
-            let forms = forms6(k, 12);
-            println!("{}: {}", k, corank(50, &forms));
+            let forms = forms6(k, 20);
+            println!("{}: {}", k, rank(200, &forms));
         }
     }
 

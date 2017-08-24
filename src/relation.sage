@@ -27,7 +27,7 @@ def relation(tpl):
         with open(data_res_name, "w") as f:
             Pickler(f, 2).dump(rel_t)
     finally:
-        return m.nrows() - m.rank()
+        return m.rank()
 
 
 print relation(load(data_name))
