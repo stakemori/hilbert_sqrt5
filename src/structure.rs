@@ -31,8 +31,10 @@ where
     {
         let mut f = File::create(&path_name).unwrap();
         save_as_pickle_quadz_vec(&v, &vv, &mut f);
-        let rank = sage_command(&format!("data_name = '{}'; print load('./src/relation.sage')", path_name))
-            .lines()
+        let rank = sage_command(&format!(
+            "data_name = '{}'; print load('./src/relation.sage')",
+            path_name
+        )).lines()
             .next()
             .unwrap()
             .to_string();
