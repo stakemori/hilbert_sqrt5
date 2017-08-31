@@ -581,6 +581,34 @@ impl Structure6 {
     }
 }
 
+#[allow(dead_code)]
+fn forms_generated(k: usize, prec: usize, gens: &Vec<HmfGen<Sqrt5Mpz>>) -> Vec<HmfGen<Sqrt5Mpz>> {
+    let mut res = Vec::new();
+    fn append(res: &mut Vec<HmfGen<Sqrt5Mpz>>, f: &HmfGen<Sqrt5Mpz>, k: usize, prec: usize) {
+        let l = f.weight.unwrap().0;
+        if k == l {
+            let mut tmp = HmfGen::new(prec);
+            tmp.set(f);
+            res.push(tmp);
+        } else if k > l {
+            for a in monoms_of_g2_g5_f6(k - f.weight.unwrap().0).iter().map(
+                |x| {
+                    x.into_form(prec)
+                },
+            )
+            {
+                let mut tmp: HmfGen<Sqrt5Mpz> = From::from(&a);
+                tmp *= f;
+                res.push(tmp);
+            }
+        }
+    }
+    for f in gens.iter() {
+        append(&mut res, f, k, prec);
+    }
+    res
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -678,139 +706,6 @@ mod tests {
         let rel1 = relation_slow_3gens(&gens1, 50);
         let ref mut f1 = File::create("./data/str6gens1.sobj").unwrap();
         save_as_pickle_rel3(&rel1, f1);
-    }
-
-    #[test]
-    fn test_gens_relation6() {
-        let prec = 12;
-        let gens1 = Structure6::gens1(prec);
-        let f2 = &gens1[0];
-        let f7 = &gens1[1];
-        let f6 = &gens1[2];
-        let f11 = rankin_cohen_sqrt5(6, &g5_normalized(prec), &f6_normalized(prec)).unwrap();
-        let g2: HmfGen<Sqrt5Mpz> = From::from(&eisenstein_series(2, prec));
-        let g5: HmfGen<Sqrt5Mpz> = From::from(&g5_normalized(prec));
-        let mut tmp = HmfGen::new(prec);
-        tmp.pow_mut(&g2, 2);
-        tmp *= &g5;
-        let h0 = f2 * &tmp;
-        tmp.pow_mut(&g2, 2);
-        let h1 = f7 * &tmp;
-        let h2 = f6 * &g5;
-        let mut forms = vec![h0, h1, h2];
-        for f in forms.iter() {
-            assert_eq!(f.weight, Some((11, 23)));
-        }
-        forms.push(f11);
-        println!("{:?}", forms.len() as i64 - rank(50, &forms) as i64);
-    }
-
-    #[test]
-    fn test_gens_relation6_1() {
-        let prec = 12;
-        let gens1 = Structure6::gens1(prec);
-        let f2 = &gens1[0];
-        let f7 = &gens1[1];
-        let f6 = &gens1[2];
-        let ref f11 = rankin_cohen_sqrt5(6, &g5_normalized(prec), &f6_normalized(prec)).unwrap();
-        let g2: HmfGen<Sqrt5Mpz> = From::from(&eisenstein_series(2, prec));
-        let g5: HmfGen<Sqrt5Mpz> = From::from(&g5_normalized(prec));
-        let g6: HmfGen<Sqrt5Mpz> = From::from(&f6_normalized(prec));
-        let mut tmp = HmfGen::new(prec);
-        tmp.pow_mut(&g2, 3);
-        let h0 = f2 * &(&g5 * &tmp);
-        let h1 = f2 * &(&g5 * &g6);
-        let h2 = f7 * &tmp;
-        let h3 = f7 * &g6;
-        let h4 = f6 * &(&g5 * &g2);
-        let forms = vec![h0, h1, h2, h3, h4];
-        for f in forms.iter() {
-            assert_eq!(f.weight, Some((13, 25)));
-        }
-        let f = f11 * &g2;
-        let rel = relation(50, &f, &forms);
-        for a in rel.iter() {
-            assert!(a.ir_part().is_zero());
-        }
-        let rel: Vec<_> = rel.iter().map(|a| a.rt_part() >> 1).collect();
-        println!("{:?}", rel);
-    }
-
-    #[test]
-    fn test_brackets6() {
-        let prec = 10;
-        let gens1 = Structure6::gens1(prec);
-        let f2 = &gens1[0];
-        let f7 = &gens1[1];
-        let f6 = &gens1[2];
-        let ref f11 = rankin_cohen_sqrt5(6, &g5_normalized(prec), &f6_normalized(prec)).unwrap();
-        let h10 = bracket_inner_prod1(f2, f11).unwrap();
-        let h15 = bracket_inner_prod1(f7, f11).unwrap();
-        let h14 = bracket_inner_prod1(f6, f11).unwrap();
-        let (_, v10) = relation_monom(50, &h10);
-        let (_, v15) = relation_monom(50, &h15);
-        let (_, v14) = relation_monom(50, &h14);
-        let ref mut f = File::create("./data/str6bra.sobj").unwrap();
-        save_as_pickle_rel3(&(v10, v15, v14), f);
-        // println!("{:?}", v10);
-        // println!("{:?}", v15);
-        // println!("{:?}", v14);
-    }
-
-    #[test]
-    fn test_ranks6() {
-        for k in 2..100 {
-            let forms = forms6(k, 20);
-            println!("{}: {}", k, rank(200, &forms));
-        }
-    }
-
-    #[test]
-    fn test_gens6_1() {
-        let prec = 15;
-        let mut tmp = HmfGen::new(prec);
-        let mut tmp1 = HmfGen::new(prec);
-        let g2 = eisenstein_series(2, prec);
-        let g6 = f6_normalized(prec);
-        tmp.pow_mut(&g2, 10);
-        tmp1.pow_mut(&g6, 10);
-        let f = rankin_cohen_sqrt5(6, &tmp, &tmp1).unwrap();
-        let forms = forms6(f.weight.unwrap().0, prec);
-        let rel = relation(100, &f, &forms);
-        println!("{:?}", rel);
-    }
-
-    fn forms6(k: usize, prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
-        let mut res = Vec::new();
-        let gens1 = Structure6::gens1(prec);
-        let f2 = &gens1[0];
-        let f7 = &gens1[1];
-        let f6 = &gens1[2];
-        let ref f11 = rankin_cohen_sqrt5(6, &g5_normalized(prec), &f6_normalized(prec)).unwrap();
-        fn append(res: &mut Vec<HmfGen<Sqrt5Mpz>>, f: &HmfGen<Sqrt5Mpz>, k: usize, prec: usize) {
-            let l = f.weight.unwrap().0;
-            if k == l {
-                let mut tmp = HmfGen::new(prec);
-                tmp.set(f);
-                res.push(tmp);
-            } else if k > l {
-                for a in monoms_of_g2_g5_f6(k - f.weight.unwrap().0).iter().map(
-                    |x| {
-                        x.into_form(prec)
-                    },
-                )
-                {
-                    let mut tmp: HmfGen<Sqrt5Mpz> = From::from(&a);
-                    tmp *= f;
-                    res.push(tmp);
-                }
-            }
-        }
-        append(&mut res, f2, k, prec);
-        append(&mut res, f7, k, prec);
-        append(&mut res, f6, k, prec);
-        append(&mut res, f11, k, prec);
-        res
     }
 
     #[test]
