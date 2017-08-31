@@ -754,6 +754,29 @@ mod tests {
     }
 
     #[test]
+    fn test_gens6() {
+        let prec = 15;
+        let g5 = g5_normalized(prec);
+        let g6 = f6_normalized(prec);
+        let f11 = rankin_cohen_sqrt5(6, &g5, &g6).unwrap();
+        let mut forms = forms_generated(11, prec, &Structure6::gens(prec));
+        for f in forms.iter() {
+            assert_eq!(f.weight, Some((11, 23)));
+        }
+        // let rel = relation(50, &f11, &forms);
+        // println!("{:?}", rel);
+        forms.insert(0, f11);
+        let nums = vec![13440, 366, 0, 17820, 80];
+        let mut s = HmfGen::new(prec);
+        let mut tmp = HmfGen::new(prec);
+        for (&ref f, &ref a) in forms.iter().zip(nums.iter()) {
+            tmp.mul_mut_by_const(&f, &Sqrt5Mpz::from_si_g(*a));
+            s += &tmp;
+        }
+        assert!(s.is_zero());
+    }
+
+    #[test]
     fn test_save_rels() {
         let prec = 10;
         let ref mut f = File::create("./data/rels.sobj").unwrap();
