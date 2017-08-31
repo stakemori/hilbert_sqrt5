@@ -2,6 +2,7 @@
 #![warn(deprecated)]
 extern crate gmp;
 extern crate libc;
+extern crate rand;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde;

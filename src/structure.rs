@@ -13,28 +13,9 @@ use std::env;
 use bignum::Sqrt5Mpz;
 use diff_op::{rankin_cohen_sqrt5, bracket_inner_prod1};
 use misc::PowGen;
-
-
-pub fn rank<T>(len: usize, forms: &Vec<HmfGen<T>>) -> usize
-where
-    T: RealQuadElement<Mpz> + BigNumber,
-{
-    let vv: Vec<Vec<T>> = forms.iter().map(|f| f.fc_vector(len)).collect();
-    let mut v: Vec<T> = Vec::new();
-    for _ in 0..len {
-        v.push(T::new_g());
-    }
-    let path_name = "./data/rust_python_data.sobj";
-    let mut f = File::create(path_name).unwrap();
-    save_as_pickle_quadz_vec(&v, &vv, &mut f);
-    let rank = sage_command("print load('./src/relation.sage')")
-        .lines()
-        .next()
-        .unwrap()
-        .to_string();
-    let rank = rank.parse::<usize>().unwrap();
-    rank
-}
+use rand;
+use std::path::Path;
+use std::fs::remove_file;
 
 /// A stupid function that returns a linear relation.
 pub fn relation<T>(len: usize, f: &HmfGen<T>, forms: &Vec<HmfGen<T>>) -> Vec<T>
@@ -44,18 +25,25 @@ where
 {
     let vv: Vec<Vec<T>> = forms.iter().map(|f| f.fc_vector(len)).collect();
     let v = f.fc_vector(len);
-    let path_name = "./data/rust_python_data.sobj";
-    let res_path_name = "./data/rust_python_data_res.sobj";
-    let mut f = File::create(path_name).unwrap();
-    save_as_pickle_quadz_vec(&v, &vv, &mut f);
-    let rank = sage_command("print load('./src/relation.sage')")
-        .lines()
-        .next()
-        .unwrap()
-        .to_string();
-    assert_eq!(rank.parse::<usize>().unwrap(), forms.len());
-    let f = File::open(res_path_name).unwrap();
-    load_pickle_quadz(&f).unwrap()
+    let path_name = format!("/tmp/rust_python_data{}.sobj", rand::random::<u64>()).to_string();
+    let path = Path::new(&path_name);
+    assert!(!path.exists());
+    {
+        let mut f = File::create(&path_name).unwrap();
+        save_as_pickle_quadz_vec(&v, &vv, &mut f);
+        let rank = sage_command(&format!("data_name = '{}'; print load('./src/relation.sage')", path_name))
+            .lines()
+            .next()
+            .unwrap()
+            .to_string();
+        assert_eq!(rank.parse::<usize>().unwrap(), forms.len());
+    }
+    let res = {
+        let f = File::open(&path_name).unwrap();
+        load_pickle_quadz(&f).unwrap()
+    };
+    remove_file(&path).unwrap();
+    res
 }
 
 type PWtPoly = Vec<(MonomFormal, Sqrt5Mpz)>;
@@ -75,7 +63,7 @@ pub fn relation_monom(len: usize, f: &HmfGen<Sqrt5Mpz>) -> (Sqrt5Mpz, PWtPoly) {
     (a, vec)
 }
 
-fn sage_command(cmd: &'static str) -> String {
+fn sage_command(cmd: &String) -> String {
     let home = env::home_dir().unwrap();
     let output = Command::new(home.join("bin/sage"))
         .arg("-c")
