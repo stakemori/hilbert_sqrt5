@@ -548,36 +548,67 @@ impl Structure for Structure3 {
 
 pub struct Structure6;
 
+impl Structure for Structure6 {
+    fn gens(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+        let g2 = eisenstein_series(2, prec);
+        let mut tmp = HmfGen::new(prec);
+        tmp.pow_mut(&g2, 2);
+        let mut gens2 = Self::gens2(prec);
+        let f2 = gens2.swap_remove(0);
+        let f7 = gens2.swap_remove(0);
+        let f6 = gens2.swap_remove(0);
+        assert_eq!(f2.weight.unwrap().0, 2);
+        assert_eq!(f6.weight.unwrap().0, 6);
+        assert_eq!(f7.weight.unwrap().0, 7);
+        let mut f3 = HmfGen::new(prec);
+        div_mut(&mut f3, &f7, &From::from(&tmp));
+        vec![f2, f3, f6]
+    }
+
+    fn relations() -> Option<Vec<Relation>> {
+        let a0 = (MonomFormal { idx: (0, 0, 1) }, Sqrt5Mpz::from_si_g(-1680));
+        let a1 = (MonomFormal { idx: (0, 1, 0) }, Sqrt5Mpz::from_si_g(-63000));
+        let a2 = (MonomFormal { idx: (1, 0, 0) }, Sqrt5Mpz::from_si_g(1));
+        Some(vec![vec![vec![a0], vec![a1], vec![a2]]])
+    }
+}
+
 impl Structure6 {
+    // This is not gens.
     #[allow(dead_code)]
     fn gens1(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
         let i = 6;
         let g2 = eisenstein_series(2, prec);
         let g5 = g5_normalized(prec);
-        let k4 = rankin_cohen_sqrt5(i, &g2, &g2).unwrap();
-        let mut f0 = HmfGen::new(prec);
-        div_mut(&mut f0, &k4, &From::from(&g2));
-        let f1 = rankin_cohen_sqrt5(i, &g2, &g5).unwrap();
+        let f0 = rankin_cohen_sqrt5(i, &g2, &g2).unwrap();
         let mut gens = Structure3::gens(prec);
-        let mut f2 = gens.swap_remove(1);
-        f2.square();
-        assert_eq!(f2.weight, Some((6, 18)));
+        let mut f1 = gens.swap_remove(1);
+        f1.square();
+        assert_eq!(f1.weight, Some((6, 18)));
+        let f2 = rankin_cohen_sqrt5(i, &g2, &g5).unwrap();
         vec![f0, f1, f2]
     }
 
     #[allow(dead_code)]
     fn gens2(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
-        let i = 6;
-        let g2 = eisenstein_series(2, prec);
+        let mut gens = Self::gens1(prec);
+        let mut f2 = HmfGen::new(prec);
+        {
+            let f4 = &gens[0];
+            let g2 = eisenstein_series(2, prec);
+            div_mut(&mut f2, f4, &From::from(&g2));
+        }
+        let f6 = gens.swap_remove(1);
+        let mut f7 = gens.swap_remove(1);
+        assert_eq!(f6.weight.unwrap().0, 6);
+        assert_eq!(f7.weight.unwrap().0, 7);
+        let mut tmp = HmfGen::new(prec);
         let g5 = g5_normalized(prec);
-        let g6 = f6_normalized(prec);
-        let f0 = rankin_cohen_sqrt5(i, &g5, &g6).unwrap();
-        let f1 = rankin_cohen_sqrt5(i, &g2, &g5).unwrap();
-        let mut gens = Structure3::gens(prec);
-        let mut f2 = gens.swap_remove(1);
-        f2.square();
-        assert_eq!(f2.weight, Some((6, 18)));
-        vec![f0, f1, f2]
+        tmp.mul_mut(&f2, &From::from(&g5));
+        tmp *= &Sqrt5Mpz::from_ui_g(5);
+        f7 *= &Sqrt5Mpz::from_ui_g(8);
+        f7 += &tmp;
+        vec![f2, f6, f7]
     }
 }
 
@@ -648,6 +679,11 @@ mod tests {
     }
 
     #[test]
+    fn check_relations6() {
+        assert!(Structure6::check_relations(10));
+    }
+
+    #[test]
     fn relation_slow3() {
         let gens = Structure3::gens(10);
         print_3rel(relation_slow_3gens(&gens, 50));
@@ -701,11 +737,30 @@ mod tests {
     }
 
     #[test]
-    fn test_pickle_gen6() {
+    fn test_pickle_gen6_0() {
+        let gens = Structure6::gens(10);
+        let rel = relation_slow_3gens(&gens, 50);
+        for f in gens.iter() {
+            assert!(!f.is_zero());
+        }
+        let ref mut f = File::create("./data/str6gens.sobj").unwrap();
+        save_as_pickle_rel3(&rel, f);
+    }
+
+    #[test]
+    fn test_pickle_gen6_1() {
         let gens1 = Structure6::gens1(10);
         let rel1 = relation_slow_3gens(&gens1, 50);
         let ref mut f1 = File::create("./data/str6gens1.sobj").unwrap();
         save_as_pickle_rel3(&rel1, f1);
+    }
+
+    #[test]
+    fn test_pickle_gen6_2() {
+        let gens = Structure6::gens2(10);
+        let rel = relation_slow_3gens(&gens, 50);
+        let ref mut f = File::create("./data/str6gens2.sobj").unwrap();
+        save_as_pickle_rel3(&rel, f);
     }
 
     #[test]
