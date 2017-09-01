@@ -171,8 +171,8 @@ fn diff_mul_mut_rt(
     let ref mut tmp_f1 = HmfGen::new(prec);
     let ref mut tmp_f2 = HmfGen::new(prec);
     let ref mut tmp_f3 = HmfGen::new(prec);
-    diff_mut(tmp_f1, res, expt1, &f1);
-    diff_mut(tmp_f2, tmp_f3, expt2, &f2);
+    diff_mut(tmp_f1, res, expt1, f1);
+    diff_mut(tmp_f2, tmp_f3, expt2, f2);
     *res *= 5 as c_ulong;
     *res *= tmp_f3 as &HmfGen<Mpz>;
     tmp_f3.mul_mut(tmp_f1, tmp_f2);
@@ -189,11 +189,11 @@ fn diff_mul_mut_ir(
     f2: &HmfGen<Mpz>,
 ) {
     let prec = f1.prec;
-    let ref mut tmp_f1 = HmfGen::new(prec);
-    let ref mut tmp_f2 = HmfGen::new(prec);
-    let ref mut tmp_f3 = HmfGen::new(prec);
-    diff_mut(tmp_f1, tmp_f3, expt1, &f1);
-    diff_mut(tmp_f2, res, expt2, &f2);
+    let tmp_f1 = &mut HmfGen::new(prec);
+    let tmp_f2 = &mut HmfGen::new(prec);
+    let tmp_f3 = &mut HmfGen::new(prec);
+    diff_mut(tmp_f1, tmp_f3, expt1, f1);
+    diff_mut(tmp_f2, res, expt2, f2);
     *res *= tmp_f1 as &HmfGen<Mpz>;
     tmp_f1.mul_mut(tmp_f2, tmp_f3);
     *res += tmp_f1;
@@ -322,7 +322,7 @@ where
                 }
 
             }
-            divide_by_g15(&mut res, &g, &g15);
+            divide_by_g15(&mut res, &g, g15);
             res >>= 1;
             Ok(res)
         }
@@ -374,8 +374,8 @@ pub fn rankin_cohen_sqrt5(
     g: &HmfGen<Mpz>,
 ) -> Result<HmfGen<Sqrt5Mpz>, NotHhmError> {
     let mut res = HmfGen::<Sqrt5Mpz>::new(f.prec);
-    let res_rt = rankin_cohen_rt(m, &f, &g)?;
-    let res_ir = rankin_cohen_ir(m, &f, &g)?;
+    let res_rt = rankin_cohen_rt(m, f, g)?;
+    let res_ir = rankin_cohen_ir(m, f, g)?;
     res.weight = res_rt.weight;
     v_u_bd_iter!((f.u_bds, v, u, bd) {
         res.fcvec.fc_ref_mut(v, u, bd).rt.set(res_rt.fcvec.fc_ref(v, u, bd));
@@ -409,7 +409,7 @@ where
     for<'a> T: SubAssign<&'a T>,
 {
     let mut res: HmfGen<T> = HmfGen::new(max(f.prec, g.prec));
-    star_op(&mut res, &g);
+    star_op(&mut res, g);
     res *= f;
     bracket_proj(&res, g15)
 }
@@ -424,7 +424,7 @@ where
 {
     let g15 = g15_normalized(f.prec);
     let g15: HmfGen<T> = From::from(&g15);
-    bracket_inner_prod(&f, &g, &g15)
+    bracket_inner_prod(f, g, &g15)
 }
 
 #[cfg(test)]

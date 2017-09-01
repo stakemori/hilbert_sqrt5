@@ -36,8 +36,8 @@ pub trait BigNumber {
         let bts = s.into_bytes();
         let strs: Vec<char> = bts.iter().rev().map(|&i| i as char).collect();
         let mut n = (*f).clone();
-        let ref mut tmp_elt = Self::new_g();
-        let ref mut tmp = Mpz::new();
+        let tmp_elt = &mut Self::new_g();
+        let tmp = &mut Mpz::new();
         for &c in strs.iter() {
             if c == '0' {
                 n.square_g(tmp_elt, tmp);

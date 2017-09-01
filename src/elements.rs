@@ -27,7 +27,7 @@ pub struct HmfGen<T> {
 
 
 macro_rules! is_even {
-    ($expr: expr) => {$expr & 1 == 0}
+    ($expr: expr) => {($expr) & 1 == 0}
 }
 
 macro_rules! u_iter {
@@ -102,7 +102,7 @@ where
         Self {
             vec: a.vec
                 .iter()
-                .map(|v| v.iter().map(|x| From::from(x)).collect())
+                .map(|v| v.iter().map(From::from).collect())
                 .collect(),
         }
     }
@@ -171,7 +171,7 @@ impl UBounds {
     }
 
     pub fn take(&self, n: usize) -> UBounds {
-        let v = self.vec.iter().map(|&x| x).take(n).collect();
+        let v = self.vec.iter().cloned().take(n).collect();
         UBounds { vec: v }
     }
 }
@@ -465,7 +465,7 @@ where
     fn div_assign(&mut self, num: &T) {
         let mut tmp = Mpz::new();
         v_u_bd_iter!((self.u_bds, v, u, bd) {
-            self.fcvec.fc_ref_mut(v, u, bd).set_divexact_g(&num, &mut tmp);
+            self.fcvec.fc_ref_mut(v, u, bd).set_divexact_g(num, &mut tmp);
         })
     }
 }
@@ -564,7 +564,7 @@ where
     fn neg(self) -> HmfGen<T> {
         let mut res = HmfGen::new(self.prec);
         let mone = T::from_si_g(-1);
-        res.mul_mut_by_const(&self, &mone);
+        res.mul_mut_by_const(self, &mone);
         res
     }
 }
