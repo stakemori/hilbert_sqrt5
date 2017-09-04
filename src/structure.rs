@@ -528,11 +528,87 @@ impl Structure for Structure3 {
         assert_eq!(f2.weight, Some((3, 9)));
         f0.decrease_prec(prec);
         f2.decrease_prec(prec);
-        vec![f0, f2]
+        vec![f2, f0]
     }
 
     fn relations() -> Option<Vec<Relation>> {
         None
+    }
+}
+
+pub struct Structure5;
+
+impl Structure for Structure5 {
+    fn gens(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+        let mut gens = Self::gens2(prec);
+        let g2 = eisenstein_series(2, prec);
+        let mut f5_1 = HmfGen::new(prec);
+        let mut h5 = HmfGen::new(prec);
+        let mut h5_1 = gens[0].clone();
+        {
+            div_mut(&mut f5_1, &gens[2], &From::from(&g2));
+            h5.sub_mut(&f5_1, &gens[0]);
+            h5_1 *= &Sqrt5Mpz::from_si_g(11);
+            h5_1 -= &(&f5_1 * &Sqrt5Mpz::from_si_g(1814411));
+        }
+        let f6 = gens.swap_remove(1);
+        assert_eq!(h5.weight, Some((5, 15)));
+        assert_eq!(h5_1.weight, Some((5, 15)));
+        assert_eq!(f6.weight, Some((6, 16)));
+        vec![h5, h5_1, f6]
+    }
+
+    fn relations() -> Option<Vec<Relation>> {
+        let a0 = (MonomFormal { idx: (3, 0, 0) }, Sqrt5Mpz::from_si_g(-11));
+        let a1 = (MonomFormal { idx: (0, 0, 1) }, Sqrt5Mpz::from_si_g(-1080));
+        let a2 = (MonomFormal { idx: (0, 1, 0) }, Sqrt5Mpz::from_si_g(1632960000));
+        Some(vec![vec![vec![a0], vec![a1], vec![a2]]])
+    }
+}
+
+impl Structure5 {
+    #[allow(dead_code)]
+    fn gens1(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+        let g2 = eisenstein_series(2, prec);
+        let g5 = g5_normalized(prec);
+        let g6 = f6_normalized(prec);
+        let f7 = rankin_cohen_sqrt5(5, &g2, &g5).unwrap();
+        let f7_1 = &Structure2::gens(prec)[0] * &Structure3::gens(prec)[0];
+        let f8 = rankin_cohen_sqrt5(5, &g2, &g6).unwrap();
+        let res = vec![f7, f7_1, f8];
+        for f in res.iter() {
+            assert!({
+                let (a1, a2) = f.weight.unwrap();
+                a2 - a1 == 10
+            })
+        }
+        res
+    }
+
+    #[allow(dead_code)]
+    fn gens2(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+        let mut gens = Self::gens1(prec);
+        let g2 = eisenstein_series(2, prec);
+        let mut f6 = HmfGen::new(prec);
+        let mut f5 = HmfGen::new(prec);
+
+        {
+            let f8 = &gens[2];
+            let f7 = &gens[0];
+            let f7_1 = &gens[1];
+
+            div_mut(&mut f6, f8, &From::from(&g2));
+
+            let mut f7_2 = f7_1.clone();
+            f7_2 *= &Sqrt5Mpz::from_si_g(-1080);
+            f7_2 += f7;
+            div_mut(&mut f5, &f7_2, &From::from(&g2));
+        }
+        let f7 = gens.swap_remove(0);
+        assert_eq!(f5.weight, Some((5, 15)));
+        assert_eq!(f6.weight, Some((6, 16)));
+        assert_eq!(f7.weight, Some((7, 17)));
+        vec![f5, f6, f7]
     }
 }
 
@@ -669,6 +745,11 @@ mod tests {
     }
 
     #[test]
+    fn check_relations5() {
+        assert!(Structure5::check_relations(10));
+    }
+
+    #[test]
     fn check_relations6() {
         assert!(Structure6::check_relations(10));
     }
@@ -750,6 +831,30 @@ mod tests {
         let gens = Structure6::gens2(10);
         let rel = relation_slow_3gens(&gens, 50);
         let ref mut f = File::create("./data/str6gens2.sobj").unwrap();
+        save_as_pickle_rel3(&rel, f);
+    }
+
+    #[test]
+    fn test_pickle_gen5_1() {
+        let gens = Structure5::gens1(10);
+        let rel = relation_slow_3gens(&gens, 50);
+        let ref mut f = File::create("./data/str5gens1.sobj").unwrap();
+        save_as_pickle_rel3(&rel, f);
+    }
+
+    #[test]
+    fn test_pickle_gen5_2() {
+        let gens = Structure5::gens2(10);
+        let rel = relation_slow_3gens(&gens, 50);
+        let ref mut f = File::create("./data/str5gens2.sobj").unwrap();
+        save_as_pickle_rel3(&rel, f);
+    }
+
+    #[test]
+    fn test_pickle_gen5_0() {
+        let gens = Structure5::gens(10);
+        let rel = relation_slow_3gens(&gens, 50);
+        let ref mut f = File::create("./data/str5gens.sobj").unwrap();
         save_as_pickle_rel3(&rel, f);
     }
 

@@ -1,3 +1,11 @@
+| diff | weights of gens |
+|    1 | 7, 8, 13        |
+|    2 | 4, 7            |
+|    3 | 3, 6            |
+|    4 | 4, 5, 8         |
+|    5 | 5, 5, 6         |
+|    6 | 2, 3, 6         |
+
 #+BEGIN_SRC shell :results output
   cargo test structure::tests::test_pickle_gen6_1
 #+END_SRC
@@ -54,3 +62,28 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 #+RESULTS:
 : [-1680*g6, -63000*g5, g2]
+
+#+BEGIN_SRC sage
+  load('~/work/rust/hilbert_sqrt5/src/modstr.py')
+  [factor(a) for a in to_pols_normalized(load(join(Path, "data/str5gens1.sobj")))]
+#+END_SRC
+
+#+RESULTS:
+: [(1814400) * g6 * g2^2, (-11) * g2^2 * (g2^3 - 1080*g6), (1512000) * g5 * g2^2]
+
+#+BEGIN_SRC sage
+  load('~/work/rust/hilbert_sqrt5/src/modstr.py')
+  to_pols_normalized(load(join(Path, "data/str5gens2.sobj")))
+#+END_SRC
+
+#+RESULTS:
+: [-11*g2^4 + 11880*g2*g6, -1632960000*g2*g5, 11*g2^3 - 1959563880*g6]
+
+#+BEGIN_SRC sage
+  load('~/work/rust/hilbert_sqrt5/src/modstr.py')
+  to_pols_normalized(load(join(Path, "data/str5gens.sobj")))
+#+END_SRC
+
+#+RESULTS:
+: [-11*g2^3, -1080*g6, 1632960000*g5]
+
