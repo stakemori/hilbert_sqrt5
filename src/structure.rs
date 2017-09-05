@@ -120,7 +120,9 @@ pub fn relations(len: usize, forms: &[HmfGen<Sqrt5Mpz>]) -> Vec<Vec<Sqrt5Mpz>> {
     let res = {
         let f = File::open(&path_name).unwrap();
         let vv: Vec<Vec<Sqrt5Wrapper>> = load_pickle(&f).unwrap();
-        vv.iter().map(|v| v.iter().map(From::from).collect()).collect()
+        vv.iter()
+            .map(|v| v.iter().map(From::from).collect())
+            .collect()
     };
     remove_file(&path).unwrap();
     res
@@ -222,8 +224,10 @@ fn load_pickle_z(f: &File) -> Result<Vec<Mpz>, serde_pickle::Error> {
 
 type PolString = Vec<((usize, usize, usize), String, String)>;
 #[allow(dead_code)]
-fn rel3_to_tuple(rel: &(PWtPoly, PWtPoly, PWtPoly)) -> (PolString, PolString, PolString) {
-    let &(ref p0, ref p1, ref p2) = rel;
+fn rel3_to_tuple(rel: &[PWtPoly; 3]) -> (PolString, PolString, PolString) {
+    let p0 = &rel[0];
+    let p1 = &rel[1];
+    let p2 = &rel[2];
     let to_vec = |p: &PWtPoly| {
         p.iter()
             .map(|&(ref m, ref a)| {
@@ -242,16 +246,15 @@ fn rel3_to_tuple(rel: &(PWtPoly, PWtPoly, PWtPoly)) -> (PolString, PolString, Po
 }
 
 #[allow(dead_code)]
-fn save_as_pickle_3relations(rels: &Vec<(usize, (PWtPoly, PWtPoly, PWtPoly))>, f: &mut File) {
+fn save_as_pickle_3relations(rels: &Vec<(usize, [PWtPoly; 3])>, f: &mut File) {
     let v: Vec<_> = rels.iter()
-        .map(|&(i, ref rel)| (i, rel3_to_tuple(rel)))
+        .map(|&(i, ref rel)| (i, rel3_to_tuple(&rel)))
         .collect();
     save_as_pickle(v, f);
 }
 
 #[allow(dead_code)]
-fn save_as_pickle_rel3(rel: &(PWtPoly, PWtPoly, PWtPoly), f: &mut File) {
-    let &(ref p0, ref p1, ref p2) = rel;
+fn save_as_pickle_rel3(rel: &[PWtPoly], f: &mut File) {
     let to_vec = |p: &PWtPoly| {
         p.iter()
             .map(|&(ref m, ref a)| {
@@ -263,10 +266,8 @@ fn save_as_pickle_rel3(rel: &(PWtPoly, PWtPoly, PWtPoly), f: &mut File) {
             })
             .collect()
     };
-    let v0: Vec<_> = to_vec(p0);
-    let v1: Vec<_> = to_vec(p1);
-    let v2: Vec<_> = to_vec(p2);
-    save_as_pickle((v0, v1, v2), f);
+    let v: Vec<Vec<_>> = rel.iter().map(to_vec).collect();
+    save_as_pickle(v, f);
 }
 
 #[allow(dead_code)]
@@ -288,7 +289,7 @@ where
 }
 
 /// Corresponds to g2^a * g5^b * f6^c where (a, b, c) = idx.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct MonomFormal {
     pub idx: (usize, usize, usize),
 }
@@ -473,13 +474,13 @@ fn three_forms(i: usize, prec: usize) -> Option<Vec<HmfGen<Sqrt5Mpz>>> {
 }
 
 #[allow(dead_code)]
-fn three_forms_rel(i: usize, prec: usize, len: usize) -> Option<(PWtPoly, PWtPoly, PWtPoly)> {
+fn three_forms_rel(i: usize, prec: usize, len: usize) -> Option<[PWtPoly; 3]> {
     let gens = three_forms(i, prec);
     gens.map(|ref x| relation_slow_3gens(x, len))
 }
 
 #[allow(dead_code)]
-fn relation_slow_3gens(gens: &Vec<HmfGen<Sqrt5Mpz>>, len: usize) -> (PWtPoly, PWtPoly, PWtPoly) {
+fn relation_slow_3gens(gens: &Vec<HmfGen<Sqrt5Mpz>>, len: usize) -> [PWtPoly; 3] {
     let g0 = &gens[0];
     let g1 = &gens[1];
     let g2 = &gens[2];
@@ -502,13 +503,13 @@ fn relation_slow_3gens(gens: &Vec<HmfGen<Sqrt5Mpz>>, len: usize) -> (PWtPoly, PW
         b.mul_assign_g(&a0, tmp);
         b.mul_assign_g(&a1, tmp);
     }
-    (v0, v1, v2)
+    [v0, v1, v2]
 }
 
-fn print_3rel(rel: (PWtPoly, PWtPoly, PWtPoly)) {
-    println!("{:?}", rel.0);
-    println!("{:?}", rel.1);
-    println!("{:?}", rel.2);
+fn print_3rel(rel: &[PWtPoly]) {
+    println!("{:?}", rel[0]);
+    println!("{:?}", rel[1]);
+    println!("{:?}", rel[2]);
 }
 
 impl Structure4 {
@@ -516,7 +517,7 @@ impl Structure4 {
     fn relation_slow() {
         let prec = 10;
         let gens = Self::gens(prec);
-        print_3rel(relation_slow_3gens(&gens, 50));
+        print_3rel(&relation_slow_3gens(&gens, 50));
     }
 }
 
@@ -574,7 +575,7 @@ impl Structure for Structure3 {
 pub struct Structure5;
 
 impl Structure for Structure5 {
-    fn gens(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+    fn gens(_prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
         Vec::new()
     }
 
@@ -695,30 +696,62 @@ impl Structure6 {
     }
 }
 
+pub struct Structure7;
+
+impl Structure7 {
+    #[allow(dead_code)]
+    fn gens1(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+        let gens3 = Structure3::gens(prec);
+        let gens4 = Structure4::gens(prec);
+        let gens2 = Structure2::gens(prec);
+        let gens5 = Structure5::gens(prec);
+        let f7 = &gens3[0] * &gens4[0];
+        let f8 = &gens3[0] * &gens4[1];
+        let f9 = &gens2[0] * &gens5[0];
+        assert_eq!(f7.weight, Some((7, 21)));
+        assert_eq!(f8.weight, Some((8, 22)));
+        assert_eq!(f9.weight, Some((9, 23)));
+        vec![f7, f8, f9]
+    }
+}
+
 #[allow(dead_code)]
-fn forms_generated(k: usize, prec: usize, gens: &Vec<HmfGen<Sqrt5Mpz>>) -> Vec<HmfGen<Sqrt5Mpz>> {
+fn forms_generated_with_monom(
+    k: usize,
+    prec: usize,
+    gens: &[HmfGen<Sqrt5Mpz>],
+) -> Vec<(HmfGen<Sqrt5Mpz>, MonomFormal)> {
     let mut res = Vec::new();
-    fn append(res: &mut Vec<HmfGen<Sqrt5Mpz>>, f: &HmfGen<Sqrt5Mpz>, k: usize, prec: usize) {
+    fn append(
+        res: &mut Vec<(HmfGen<Sqrt5Mpz>, MonomFormal)>,
+        f: &HmfGen<Sqrt5Mpz>,
+        k: usize,
+        prec: usize,
+    ) {
         let l = f.weight.unwrap().0;
         if k == l {
             let mut tmp = HmfGen::new(prec);
             tmp.set(f);
-            res.push(tmp);
+            res.push((tmp, MonomFormal { idx: (0, 0, 0) }));
         } else if k > l {
-            for a in monoms_of_g2_g5_f6(k - f.weight.unwrap().0).iter().map(
-                |x| {
-                    x.into_form(prec)
-                },
-            )
-            {
-                let mut tmp: HmfGen<Sqrt5Mpz> = From::from(&a);
-                tmp *= f;
-                res.push(tmp);
+            for a in monoms_of_g2_g5_f6(k - f.weight.unwrap().0).into_iter() {
+                res.push((f.clone(), a));
             }
         }
     }
     for f in gens.iter() {
         append(&mut res, f, k, prec);
+    }
+    res
+}
+
+#[allow(dead_code)]
+fn forms_generated(k: usize, prec: usize, gens: &[HmfGen<Sqrt5Mpz>]) -> Vec<HmfGen<Sqrt5Mpz>> {
+    let forms_w_monm = forms_generated_with_monom(k, prec, gens);
+    let mut res = Vec::new();
+    for (f, a) in forms_w_monm.into_iter() {
+        let g: HmfGen<Sqrt5Mpz> = From::from(&a.into_form(prec));
+        res.push(&f * &g);
     }
     res
 }
@@ -737,7 +770,7 @@ mod tests {
     fn relation_slow1() {
         println!("{:?}", Structure1::relations());
         let gens = Structure1::gens(10);
-        print_3rel(relation_slow_3gens(&gens, 50));
+        print_3rel(&relation_slow_3gens(&gens, 50));
     }
 
     #[test]
@@ -748,7 +781,7 @@ mod tests {
     #[test]
     fn relation_slow4() {
         let gens = Structure4::gens(10);
-        print_3rel(relation_slow_3gens(&gens, 50));
+        print_3rel(&relation_slow_3gens(&gens, 50));
     }
 
     #[test]
@@ -774,7 +807,7 @@ mod tests {
     #[test]
     fn relation_slow3() {
         let gens = Structure3::gens(10);
-        print_3rel(relation_slow_3gens(&gens, 50));
+        print_3rel(&relation_slow_3gens(&gens, 50));
     }
 
     #[test]
