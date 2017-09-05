@@ -97,31 +97,44 @@ impl<'de> Deserialize<'de> for Sqrt5Wrapper {
     }
 }
 
-/// A stupid function that returns a linear relation.
-pub fn relation(len: usize, f: &HmfGen<Sqrt5Mpz>, forms: &[HmfGen<Sqrt5Mpz>]) -> Vec<Sqrt5Mpz> {
+/// A stupid function that returns linear relations.
+pub fn relations(len: usize, forms: &[HmfGen<Sqrt5Mpz>]) -> Vec<Vec<Sqrt5Mpz>> {
     let vv: Vec<Vec<Sqrt5Mpz>> = forms.iter().map(|f| f.fc_vector(len)).collect();
-    let v = f.fc_vector(len);
     let path_name = format!("/tmp/rust_python_data{}.sobj", rand::random::<u64>()).to_string();
     let path = Path::new(&path_name);
     assert!(!path.exists());
     {
         let mut f = File::create(&path_name).unwrap();
-        save_as_pickle_quadz_vec(&v, &vv, &mut f);
-        let rank = sage_command(&format!(
+        let vv: Vec<Vec<Sqrt5Wrapper>> = vv.iter()
+            .map(|v| v.iter().map(From::from).collect())
+            .collect();
+        save_as_pickle(vv, &mut f);
+        let _rank = sage_command(&format!(
             "data_name = '{}'; print load('./src/relation.sage')",
             path_name
         )).lines()
             .next()
             .unwrap()
             .to_string();
-        assert_eq!(rank.parse::<usize>().unwrap(), forms.len());
     }
     let res = {
         let f = File::open(&path_name).unwrap();
-        load_pickle_quadz(&f).unwrap()
+        let vv: Vec<Vec<Sqrt5Wrapper>> = load_pickle(&f).unwrap();
+        vv.iter().map(|v| v.iter().map(From::from).collect()).collect()
     };
     remove_file(&path).unwrap();
     res
+}
+
+/// A stupid function that returns a linear relation.
+pub fn relation(len: usize, f: &HmfGen<Sqrt5Mpz>, forms: &[HmfGen<Sqrt5Mpz>]) -> Vec<Sqrt5Mpz> {
+    let mut vv = Vec::new();
+    vv.push(f.clone());
+    for g in forms.iter() {
+        vv.push(g.clone());
+    }
+    let mut res = relations(len, &vv);
+    res.swap_remove(0)
 }
 
 type PWtPoly = Vec<(MonomFormal, Sqrt5Mpz)>;
@@ -190,22 +203,6 @@ fn monom_g2_g5_f6(prec: usize, expts: (usize, usize, usize)) -> HmfGen<Mpz> {
         res *= &tmp;
     }
     res
-}
-
-fn save_as_pickle_quadz_vec(vec: &Vec<Sqrt5Mpz>, basis_vec: &Vec<Vec<Sqrt5Mpz>>, f: &mut File) {
-    let v: Vec<Vec<Sqrt5Wrapper>> = basis_vec
-        .into_iter()
-        .map(|v| v.into_iter().map(From::from).collect())
-        .collect();
-    let w: Vec<Sqrt5Wrapper> = vec.iter().map(From::from).collect();
-    save_as_pickle(&(w, v), f);
-}
-
-#[allow(dead_code)]
-fn load_pickle_quadz(f: &File) -> Result<Vec<Sqrt5Mpz>, serde_pickle::Error> {
-    let v: Vec<Sqrt5Wrapper> = try!(load_pickle(f));
-    let res: Vec<_> = v.iter().map(From::from).collect();
-    Ok(res)
 }
 
 #[allow(dead_code)]
@@ -578,29 +575,11 @@ pub struct Structure5;
 
 impl Structure for Structure5 {
     fn gens(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
-        let mut gens = Self::gens2(prec);
-        let g2 = eisenstein_series(2, prec);
-        let mut f5_1 = HmfGen::new(prec);
-        let mut h5 = HmfGen::new(prec);
-        let mut h5_1 = gens[0].clone();
-        {
-            div_mut(&mut f5_1, &gens[2], &From::from(&g2));
-            h5.sub_mut(&f5_1, &gens[0]);
-            h5_1 *= &Sqrt5Mpz::from_si_g(11);
-            h5_1 -= &(&f5_1 * &Sqrt5Mpz::from_si_g(1814411));
-        }
-        let f6 = gens.swap_remove(1);
-        assert_eq!(h5.weight, Some((5, 15)));
-        assert_eq!(h5_1.weight, Some((5, 15)));
-        assert_eq!(f6.weight, Some((6, 16)));
-        vec![h5, h5_1, f6]
+        Vec::new()
     }
 
     fn relations() -> Option<Vec<Relation>> {
-        let a0 = (MonomFormal { idx: (3, 0, 0) }, Sqrt5Mpz::from_si_g(-11));
-        let a1 = (MonomFormal { idx: (0, 0, 1) }, Sqrt5Mpz::from_si_g(-1080));
-        let a2 = (MonomFormal { idx: (0, 1, 0) }, Sqrt5Mpz::from_si_g(1632960000));
-        Some(vec![vec![vec![a0], vec![a1], vec![a2]]])
+        None
     }
 }
 
