@@ -618,15 +618,19 @@ impl Structure5 {
             div_mut(&mut f6, f8, &From::from(&g2));
 
             let mut f7_2 = f7_1.clone();
-            f7_2 *= &Sqrt5Mpz::from_si_g(-1080);
-            f7_2 += f7;
+            f7_2 *= &Sqrt5Mpz::from_si_g(11880);
+            f7_2 += &(f7 * &Sqrt5Mpz::from_si_g(1814400));
             div_mut(&mut f5, &f7_2, &From::from(&g2));
         }
         let f7 = gens.swap_remove(0);
+        let gens2 = Structure2::gens(prec);
+        let gens3 = Structure3::gens(prec);
+        let f10 = &gens2[0] * &gens3[1];
         assert_eq!(f5.weight, Some((5, 15)));
         assert_eq!(f6.weight, Some((6, 16)));
         assert_eq!(f7.weight, Some((7, 17)));
-        vec![f5, f6, f7]
+        assert_eq!(f10.weight, Some((10, 20)));
+        vec![f5, f6, f7, f10]
     }
 }
 
@@ -906,6 +910,56 @@ mod tests {
         let rel = relation_slow_3gens(&gens, 50);
         let ref mut f = File::create("./data/str5gens.sobj").unwrap();
         save_as_pickle_rel3(&rel, f);
+    }
+
+    #[test]
+    fn test_pickle_gen7_1() {
+        let gens = Structure7::gens1(10);
+        let rel = relation_slow_3gens(&gens, 50);
+        let ref mut f = File::create("./data/str7gens1.sobj").unwrap();
+        save_as_pickle_rel3(&rel, f);
+    }
+
+    #[test]
+    fn test_gens5_relation12() {
+        let prec = 15;
+        let gens = Structure5::gens2(prec);
+        let forms_with_monom = forms_generated_with_monom(12, prec, &gens);
+        let monoms: Vec<_> = forms_with_monom.iter().map(|x| x.1.idx).collect();
+        let forms: Vec<_> = forms_generated(12, prec, &gens);
+        println!("{:?}", forms.len());
+        let rels = relations(100, &forms);
+        println!("{:?}", monoms);
+        println!("{:?}", rels.len());
+        println!("{:?}", rels);
+    }
+
+    #[test]
+    fn test_gens5_relation11() {
+        let prec = 15;
+        let gens = Structure5::gens2(prec);
+        let forms_with_monom = forms_generated_with_monom(11, prec, &gens);
+        let monoms: Vec<_> = forms_with_monom.iter().map(|x| x.1.idx).collect();
+        let forms: Vec<_> = forms_generated(11, prec, &gens);
+        println!("{:?}", forms.len());
+        let rels = relations(100, &forms);
+        println!("{:?}", monoms);
+        println!("{:?}", rels.len());
+        println!("{:?}", rels);
+    }
+
+    #[test]
+    fn test_gens5_2() {
+        fn rank(k: usize, prec: usize, len: usize, gens: &Vec<HmfGen<Sqrt5Mpz>>) -> usize {
+            let forms: Vec<_> = forms_generated(k, prec, gens);
+            let rels = relations(len, &forms);
+            forms.len() - rels.len()
+        }
+        let prec = 50;
+        let gens = Structure5::gens2(prec);
+        // [1, 1, 2, 1, 2, 3, 3, 4, 4, 4, 6, 6, 7, 7, 8, 9, 10, 11, 11, 12, 14, 14, 16, 16, 17, 19]
+        let v: Vec<_> = (5..31).map(|i| rank(i, prec, 800, &gens)).collect();
+        println!("{:?}", v);
     }
 
     #[test]
