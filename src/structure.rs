@@ -575,12 +575,33 @@ impl Structure for Structure3 {
 pub struct Structure5;
 
 impl Structure for Structure5 {
-    fn gens(_prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
-        Vec::new()
+    fn gens(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+        Self::gens2(prec)
     }
 
     fn relations() -> Option<Vec<Relation>> {
-        None
+        let a0 = (MonomFormal { idx: (1, 1, 0) }, Sqrt5Mpz::from_si_g(1));
+        let a1 = (
+            MonomFormal { idx: (0, 0, 1) },
+            Sqrt5Mpz::from_si_g(29937600),
+        );
+        let a2 = (
+            MonomFormal { idx: (0, 1, 0) },
+            Sqrt5Mpz::from_si_g(18144000),
+        );
+        let a3 = (MonomFormal { idx: (1, 0, 0) }, Sqrt5Mpz::from_si_g(-165));
+        let b0_1 = (MonomFormal { idx: (4, 0, 0) }, Sqrt5Mpz::from_si_g(-1));
+        let b0_2 = (MonomFormal { idx: (1, 0, 1) }, Sqrt5Mpz::from_si_g(1080));
+        let b1 = (
+            MonomFormal { idx: (1, 1, 0) },
+            Sqrt5Mpz::from_si_g(1632960000),
+        );
+        let b2 = (MonomFormal { idx: (3, 0, 0) }, Sqrt5Mpz::from_si_g(1814400));
+        Some(vec![
+            vec![vec![a0], vec![a1], vec![a2], vec![a3]],
+            vec![vec![b0_1, b0_2], vec![b1], vec![b2]],
+        ])
+
     }
 }
 
@@ -800,7 +821,7 @@ mod tests {
 
     #[test]
     fn check_relations5() {
-        assert!(Structure5::check_relations(10));
+        assert!(Structure5::check_relations(15));
     }
 
     #[test]
@@ -925,13 +946,26 @@ mod tests {
         let prec = 15;
         let gens = Structure5::gens2(prec);
         let forms_with_monom = forms_generated_with_monom(12, prec, &gens);
-        let monoms: Vec<_> = forms_with_monom.iter().map(|x| x.1.idx).collect();
+        let monoms: Vec<_> = forms_with_monom.iter().map(|x| x.1.clone()).collect();
         let forms: Vec<_> = forms_generated(12, prec, &gens);
         println!("{:?}", forms.len());
-        let rels = relations(100, &forms);
+        let mut rels = relations(100, &forms);
         println!("{:?}", monoms);
         println!("{:?}", rels.len());
         println!("{:?}", rels);
+        let rel: Vec<_> = rels.swap_remove(0)
+            .into_iter()
+            .zip(monoms.into_iter())
+            .map(|x| (x.1, x.0))
+            .collect();
+        let rel = [
+            vec![rel[0].clone(), rel[1].clone()],
+            vec![rel[2].clone()],
+            vec![rel[3].clone()],
+            vec![rel[4].clone()],
+        ];
+        let ref mut f = File::create("./data/str5rel12.sobj").unwrap();
+        save_as_pickle_rel(&rel, f);
     }
 
     #[test]
