@@ -16,14 +16,90 @@ use misc::PowGen;
 use rand;
 use std::path::Path;
 use std::fs::remove_file;
+use serde::ser::{Serialize, Serializer};
+use serde::{Deserialize, Deserializer};
+
+struct MpzWrapper {
+    pub a: Mpz,
+}
+
+impl Serialize for MpzWrapper {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        String::serialize(&self.a.to_str_radix(10), serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for MpzWrapper {
+    fn deserialize<D>(deserializer: D) -> Result<MpzWrapper, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let a: String = String::deserialize(deserializer)?;
+        let res = Mpz::from_str_radix(&a, 10).unwrap();
+        Ok(MpzWrapper { a: res })
+    }
+}
+
+impl<'b> From<&'b Mpz> for MpzWrapper {
+    fn from(a: &Mpz) -> MpzWrapper {
+        MpzWrapper { a: a.clone() }
+    }
+}
+
+impl<'b> From<&'b MpzWrapper> for Mpz {
+    fn from(a: &MpzWrapper) -> Mpz {
+        a.a.clone()
+    }
+}
+
+pub struct Sqrt5Wrapper {
+    pub a: Sqrt5Mpz,
+}
+
+impl<'b> From<&'b Sqrt5Wrapper> for Sqrt5Mpz {
+    fn from(a: &Sqrt5Wrapper) -> Sqrt5Mpz {
+        a.a.clone()
+    }
+}
+
+impl<'b> From<&'b Sqrt5Mpz> for Sqrt5Wrapper {
+    fn from(a: &Sqrt5Mpz) -> Sqrt5Wrapper {
+        Sqrt5Wrapper { a: a.clone() }
+    }
+}
+
+impl Serialize for Sqrt5Wrapper {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let tpl = (
+            self.a.rt_part().to_str_radix(10),
+            self.a.ir_part().to_str_radix(10),
+        );
+        tpl.serialize(serializer)
+    }
+}
+
+impl<'de> Deserialize<'de> for Sqrt5Wrapper {
+    fn deserialize<D>(deserializer: D) -> Result<Sqrt5Wrapper, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        type StringTuple = (String, String);
+        let s: (String, String) = StringTuple::deserialize(deserializer)?;
+        let a1 = Mpz::from_str_radix(&s.0, 10).unwrap();
+        let a2 = Mpz::from_str_radix(&s.1, 10).unwrap();
+        Ok(Sqrt5Wrapper { a: From::from(&(a1, a2)) })
+    }
+}
 
 /// A stupid function that returns a linear relation.
-pub fn relation<T>(len: usize, f: &HmfGen<T>, forms: &Vec<HmfGen<T>>) -> Vec<T>
-where
-    T: RealQuadElement<Mpz> + BigNumber,
-    for<'a> T: From<&'a (Mpz, Mpz)>,
-{
-    let vv: Vec<Vec<T>> = forms.iter().map(|f| f.fc_vector(len)).collect();
+pub fn relation(len: usize, f: &HmfGen<Sqrt5Mpz>, forms: &[HmfGen<Sqrt5Mpz>]) -> Vec<Sqrt5Mpz> {
+    let vv: Vec<Vec<Sqrt5Mpz>> = forms.iter().map(|f| f.fc_vector(len)).collect();
     let v = f.fc_vector(len);
     let path_name = format!("/tmp/rust_python_data{}.sobj", rand::random::<u64>()).to_string();
     let path = Path::new(&path_name);
@@ -116,57 +192,19 @@ fn monom_g2_g5_f6(prec: usize, expts: (usize, usize, usize)) -> HmfGen<Mpz> {
     res
 }
 
-fn save_as_pickle_quadz_vec<T>(vec: &Vec<T>, basis_vec: &Vec<Vec<T>>, f: &mut File)
-where
-    T: RealQuadElement<Mpz>,
-{
-    let v: Vec<Vec<(String, String)>> = basis_vec
-        .iter()
-        .map(|v| {
-            v.iter()
-                .map(|x| {
-                    (x.rt_part().to_str_radix(10), x.ir_part().to_str_radix(10))
-                })
-                .collect()
-        })
+fn save_as_pickle_quadz_vec(vec: &Vec<Sqrt5Mpz>, basis_vec: &Vec<Vec<Sqrt5Mpz>>, f: &mut File) {
+    let v: Vec<Vec<Sqrt5Wrapper>> = basis_vec
+        .into_iter()
+        .map(|v| v.into_iter().map(From::from).collect())
         .collect();
-    let w: Vec<(String, String)> = vec.iter()
-        .map(|a| {
-            (a.rt_part().to_str_radix(10), a.ir_part().to_str_radix(10))
-        })
-        .collect();
+    let w: Vec<Sqrt5Wrapper> = vec.iter().map(From::from).collect();
     save_as_pickle(&(w, v), f);
 }
 
-
 #[allow(dead_code)]
-fn save_as_pickle_quadz<T>(vec: &Vec<T>, f: &mut File)
-where
-    T: RealQuadElement<Mpz>,
-{
-    let v: Vec<(String, String)> = vec.iter()
-        .map(|x| (x.rt_part(), x.ir_part()))
-        .map(|(x, y)| (x.to_str_radix(10), y.to_str_radix(10)))
-        .collect();
-    save_as_pickle(&v, f);
-}
-
-#[allow(dead_code)]
-fn load_pickle_quadz<T>(f: &File) -> Result<Vec<T>, serde_pickle::Error>
-where
-    T: RealQuadElement<Mpz>,
-    for<'a> T: From<&'a (Mpz, Mpz)>,
-{
-    let v: Vec<(String, String)> = try!(load_pickle(f));
-    let res = v.iter()
-        .map(|&(ref x, ref y)| {
-            (
-                Mpz::from_str_radix(x, 10).unwrap(),
-                Mpz::from_str_radix(y, 10).unwrap(),
-            )
-        })
-        .map(|t| From::from(&t))
-        .collect();
+fn load_pickle_quadz(f: &File) -> Result<Vec<Sqrt5Mpz>, serde_pickle::Error> {
+    let v: Vec<Sqrt5Wrapper> = try!(load_pickle(f));
+    let res: Vec<_> = v.iter().map(From::from).collect();
     Ok(res)
 }
 
