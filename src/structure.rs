@@ -590,16 +590,18 @@ impl Structure for Structure5 {
             Sqrt5Mpz::from_si_g(18144000),
         );
         let a3 = (MonomFormal { idx: (1, 0, 0) }, Sqrt5Mpz::from_si_g(-165));
-        let b0_1 = (MonomFormal { idx: (4, 0, 0) }, Sqrt5Mpz::from_si_g(-1));
-        let b0_2 = (MonomFormal { idx: (1, 0, 1) }, Sqrt5Mpz::from_si_g(1080));
+
+        let b0_1 = (MonomFormal { idx: (3, 0, 0) }, Sqrt5Mpz::from_si_g(-1));
+        let b0_2 = (MonomFormal { idx: (0, 0, 1) }, Sqrt5Mpz::from_si_g(1080));
         let b1 = (
-            MonomFormal { idx: (1, 1, 0) },
+            MonomFormal { idx: (0, 1, 0) },
             Sqrt5Mpz::from_si_g(1632960000),
         );
-        let b2 = (MonomFormal { idx: (3, 0, 0) }, Sqrt5Mpz::from_si_g(1814400));
+        let b2 = (MonomFormal { idx: (2, 0, 0) }, Sqrt5Mpz::from_si_g(1814400));
+        let b3 = (MonomFormal { idx: (0, 0, 0) }, Sqrt5Mpz::from_si_g(0));
         Some(vec![
             vec![vec![a0], vec![a1], vec![a2], vec![a3]],
-            vec![vec![b0_1, b0_2], vec![b1], vec![b2]],
+            vec![vec![b0_1, b0_2], vec![b1], vec![b2], vec![b3]],
         ])
 
     }
