@@ -997,6 +997,27 @@ mod tests {
     }
 
     #[test]
+    fn test_gens5_3() {
+        let prec = 15;
+        let g2 = eisenstein_series(2, prec);
+        let g5 = g5_normalized(prec);
+        let g6 = f6_normalized(prec);
+        let f12 = rankin_cohen_sqrt5(5, &(&g2 * &g5), &g5).unwrap();
+
+        let gens = Structure5::gens(prec);
+        let mut forms = forms_generated(12, prec, &gens);
+        forms.insert(0, f12);
+        let rels = relations(100, &forms);
+        assert!(!rels[0][0].is_zero_g());
+
+        let f15 = rankin_cohen_sqrt5(5, &(&g2 * &g5), &(&g6 * &g2)).unwrap();
+        let mut forms = forms_generated(15, prec, &gens);
+        forms.insert(0, f15);
+        let rels = relations(100, &forms);
+        assert!(!rels[0][0].is_zero_g());
+    }
+
+    #[test]
     fn test_gens6() {
         let prec = 15;
         let g5 = g5_normalized(prec);
