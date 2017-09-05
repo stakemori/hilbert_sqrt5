@@ -254,7 +254,7 @@ fn save_as_pickle_3relations(rels: &Vec<(usize, [PWtPoly; 3])>, f: &mut File) {
 }
 
 #[allow(dead_code)]
-fn save_as_pickle_rel3(rel: &[PWtPoly], f: &mut File) {
+fn save_as_pickle_rel(rel: &[PWtPoly], f: &mut File) {
     let to_vec = |p: &PWtPoly| {
         p.iter()
             .map(|&(ref m, ref a)| {
@@ -819,11 +819,11 @@ mod tests {
         let gens1 = Structure3::gens1(10);
         let rel1 = relation_slow_3gens(&gens1, 50);
         let ref mut f1 = File::create("./data/str3gens1.sobj").unwrap();
-        save_as_pickle_rel3(&rel1, f1);
+        save_as_pickle_rel(&rel1, f1);
         let _gens = Structure3::gens(13);
         // let rel = relation_slow_3gens(&gens, 50);
         // let ref mut f = File::create("./data/str3gens.sobj").unwrap();
-        // save_as_pickle_rel3(&rel, f);
+        // save_as_pickle_rel(&rel, f);
     }
 
     #[test]
@@ -869,7 +869,7 @@ mod tests {
             assert!(!f.is_zero());
         }
         let ref mut f = File::create("./data/str6gens.sobj").unwrap();
-        save_as_pickle_rel3(&rel, f);
+        save_as_pickle_rel(&rel, f);
     }
 
     #[test]
@@ -877,7 +877,7 @@ mod tests {
         let gens1 = Structure6::gens1(10);
         let rel1 = relation_slow_3gens(&gens1, 50);
         let ref mut f1 = File::create("./data/str6gens1.sobj").unwrap();
-        save_as_pickle_rel3(&rel1, f1);
+        save_as_pickle_rel(&rel1, f1);
     }
 
     #[test]
@@ -885,7 +885,7 @@ mod tests {
         let gens = Structure6::gens2(10);
         let rel = relation_slow_3gens(&gens, 50);
         let ref mut f = File::create("./data/str6gens2.sobj").unwrap();
-        save_as_pickle_rel3(&rel, f);
+        save_as_pickle_rel(&rel, f);
     }
 
     #[test]
@@ -893,7 +893,7 @@ mod tests {
         let gens = Structure5::gens1(10);
         let rel = relation_slow_3gens(&gens, 50);
         let ref mut f = File::create("./data/str5gens1.sobj").unwrap();
-        save_as_pickle_rel3(&rel, f);
+        save_as_pickle_rel(&rel, f);
     }
 
     #[test]
@@ -901,7 +901,7 @@ mod tests {
         let gens = Structure5::gens2(10);
         let rel = relation_slow_3gens(&gens, 50);
         let ref mut f = File::create("./data/str5gens2.sobj").unwrap();
-        save_as_pickle_rel3(&rel, f);
+        save_as_pickle_rel(&rel, f);
     }
 
     #[test]
@@ -909,7 +909,7 @@ mod tests {
         let gens = Structure5::gens(10);
         let rel = relation_slow_3gens(&gens, 50);
         let ref mut f = File::create("./data/str5gens.sobj").unwrap();
-        save_as_pickle_rel3(&rel, f);
+        save_as_pickle_rel(&rel, f);
     }
 
     #[test]
@@ -917,7 +917,7 @@ mod tests {
         let gens = Structure7::gens1(10);
         let rel = relation_slow_3gens(&gens, 50);
         let ref mut f = File::create("./data/str7gens1.sobj").unwrap();
-        save_as_pickle_rel3(&rel, f);
+        save_as_pickle_rel(&rel, f);
     }
 
     #[test]
