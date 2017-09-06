@@ -309,4 +309,11 @@ mod tests {
         print_vth_cf(&h, v_h);
         print_vth_cf(&f, v_g + v_h);
     }
+
+    #[test]
+    fn test_g5() {
+        let prec = 10;
+        let g5 = g5_normalized(prec);
+        println!("{}", g5);
+    }
 }
