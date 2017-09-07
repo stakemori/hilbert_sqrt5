@@ -364,6 +364,16 @@ where
         self.weight = weight_pow(f.weight, a);
     }
 
+    pub fn pow(&self, a: usize) -> Self
+    where
+        T: Clone,
+        for<'a> T: AddAssign<&'a T>,
+    {
+        let mut tmp = Self::new(self.prec);
+        tmp.pow_mut(self, a);
+        tmp
+    }
+
     pub fn is_zero(&self) -> bool {
         v_u_bd_iter!((self.u_bds, v, u, bd) {
             if !self.fcvec.fc_ref(v, u, bd).is_zero_g() {
