@@ -18,6 +18,7 @@ use std::path::Path;
 use std::fs::remove_file;
 use serde::ser::{Serialize, Serializer};
 use serde::{Deserialize, Deserializer};
+use libc::{c_ulong, c_long};
 
 struct MpzWrapper {
     pub a: Mpz,
@@ -299,16 +300,20 @@ impl MonomFormal {
         monom_g2_g5_f6(prec, self.idx)
     }
     pub fn eval(v: &PWtPoly, prec: usize) -> HmfGen<Sqrt5Mpz> {
-        let mut res = HmfGen::new(prec);
-        res.set(&v[0].0.into_form(prec));
-        let mut res = From::from(&res);
-        res *= &v[0].1;
-        for &(ref monom, ref a) in v.iter().skip(1) {
-            let mut tmp: HmfGen<Sqrt5Mpz> = From::from(&monom.into_form(prec));
-            tmp *= a;
-            res += &tmp;
+        if v.is_empty() {
+            HmfGen::new(prec)
+        } else {
+            let mut res = HmfGen::new(prec);
+            res.set(&v[0].0.into_form(prec));
+            let mut res = From::from(&res);
+            res *= &v[0].1;
+            for &(ref monom, ref a) in v.iter().skip(1) {
+                let mut tmp: HmfGen<Sqrt5Mpz> = From::from(&monom.into_form(prec));
+                tmp *= a;
+                res += &tmp;
+            }
+            res
         }
-        res
     }
 }
 
@@ -725,6 +730,38 @@ impl Structure6 {
 
 pub struct Structure7;
 
+impl Structure for Structure7 {
+    fn gens(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+        Self::gens3(prec)
+    }
+
+    fn relations() -> Option<Vec<Relation>> {
+        let from = |x| Sqrt5Mpz::from_si_g(x);
+        let m = |x| MonomFormal { idx: x };
+        let a0 = from(1);
+        let a1 = from(-95256000);
+        let a3 = from(1684800);
+        let rel0 = vec![
+            vec![(m((0, 0, 1)), a0)],
+            vec![(m((0, 1, 0)), a1)],
+            vec![],
+            vec![(m((1, 0, 0)), a3)],
+        ];
+        let a0 = from(1);
+        let a1 = from(-76204800);
+        let a2 = from(6264);
+        let b2 = from(-9331200);
+        let a3 = from(-1244160000);
+        let rel1 = vec![
+            vec![(m((2, 1, 0)), a0)],
+            vec![(m((1, 0, 1)), a1)],
+            vec![(m((3, 0, 0)), a2), (m((0, 0, 1)), b2)],
+            vec![(m((0, 1, 0)), a3)],
+        ];
+        Some(vec![rel0, rel1])
+    }
+}
+
 impl Structure7 {
     #[allow(dead_code)]
     fn gens1(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
@@ -734,11 +771,54 @@ impl Structure7 {
         let gens5 = Structure5::gens(prec);
         let f7 = &gens3[0] * &gens4[0];
         let f8 = &gens3[0] * &gens4[1];
-        let f9 = &gens2[0] * &gens5[0];
+        let mut f9 = &gens2[0] * &gens5[0];
+        f9 *= 7 as c_ulong;
+        let mut g2: HmfGen<Sqrt5Mpz> = From::from(&eisenstein_series(2, prec));
+        g2 *= -21384 as c_long;
+        f9 += &(&g2 * &f7);
         assert_eq!(f7.weight, Some((7, 21)));
         assert_eq!(f8.weight, Some((8, 22)));
         assert_eq!(f9.weight, Some((9, 23)));
         vec![f7, f8, f9]
+    }
+
+    #[allow(dead_code)]
+    fn gens2(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+        let mut gens = Self::gens1(prec);
+        let mut f4 = HmfGen::new(prec);
+        {
+            let g5 = From::from(&g5_normalized(prec));
+            div_mut(&mut f4, &gens[2], &g5);
+        }
+        let f7 = gens.swap_remove(0);
+        let f8 = gens.swap_remove(1);
+        let g2 = eisenstein_series(2, prec);
+        let g5 = g5_normalized(prec);
+        let f9 = rankin_cohen_sqrt5(7, &(&g2 * &g2), &g5).unwrap();
+        assert_eq!(f4.weight, Some((4, 18)));
+        assert_eq!(f7.weight, Some((7, 21)));
+        assert_eq!(f8.weight, Some((8, 22)));
+        vec![f4, f7, f8, f9]
+    }
+
+    fn gens3(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+        let mut gens = Self::gens2(prec);
+        let mut f5 = HmfGen::new(prec);
+        {
+            let f9 = &gens[3];
+            let g2 = eisenstein_series(2, prec);
+            let g4 = &g2 * &g2;
+            let g4: HmfGen<Sqrt5Mpz> = From::from(&g4);
+            div_mut(&mut f5, f9, &g4);
+        }
+        let f4 = gens.remove(0);
+        let f7 = gens.remove(0);
+        let f8 = gens.remove(0);
+        assert_eq!(f4.weight, Some((4, 18)));
+        assert_eq!(f5.weight, Some((5, 19)));
+        assert_eq!(f7.weight, Some((7, 21)));
+        assert_eq!(f8.weight, Some((8, 22)));
+        vec![f4, f5, f7, f8]
     }
 }
 
@@ -770,6 +850,23 @@ fn forms_generated_with_monom(
         append(&mut res, f, k, prec);
     }
     res
+}
+
+#[allow(dead_code)]
+fn forms_generated_monom(k: usize, gens: &[HmfGen<Sqrt5Mpz>]) -> Vec<Vec<MonomFormal>> {
+    fn monoms(f: &HmfGen<Sqrt5Mpz>, k: usize) -> Vec<MonomFormal> {
+        let mut v = Vec::new();
+        let l = f.weight.unwrap().0;
+        if k == l {
+            v.push(MonomFormal { idx: (0, 0, 0) });
+        } else if k > l {
+            for a in monoms_of_g2_g5_f6(k - f.weight.unwrap().0).into_iter() {
+                v.push(a);
+            }
+        }
+        v
+    }
+    gens.iter().map(|f| monoms(f, k)).collect()
 }
 
 #[allow(dead_code)]
@@ -829,6 +926,11 @@ mod tests {
     #[test]
     fn check_relations6() {
         assert!(Structure6::check_relations(10));
+    }
+
+    #[test]
+    fn check_relations7() {
+        assert!(Structure7::check_relations(15));
     }
 
     #[test]
@@ -944,6 +1046,55 @@ mod tests {
     }
 
     #[test]
+    fn test_pickle_gen7_2() {
+        let mut gens = Structure7::gens2(10);
+        gens.remove(1);
+        let rel = relation_slow_3gens(&gens, 50);
+        let ref mut f = File::create("./data/str7gens2.sobj").unwrap();
+        save_as_pickle_rel(&rel, f);
+    }
+
+    #[test]
+    fn test_pickle_gen7_3() {
+        let mut gens = Structure7::gens3(10);
+        gens.remove(2);
+        let rel = relation_slow_3gens(&gens, 50);
+        let ref mut f = File::create("./data/str7gens3.sobj").unwrap();
+        save_as_pickle_rel(&rel, f);
+    }
+
+    #[test]
+    fn test_gens7() {
+        fn test(
+            k: usize,
+            prec: usize,
+            len: usize,
+            f: HmfGen<Sqrt5Mpz>,
+            gens: &Vec<HmfGen<Sqrt5Mpz>>,
+        ) -> bool {
+            let mut forms = forms_generated(k, prec, &gens);
+            forms.insert(0, f);
+            let rels = relations(len, &forms);
+            rels.iter().any(|v| !v[0].is_zero_g())
+        }
+        let prec = 15;
+        let gens = Structure7::gens3(prec);
+        let g2 = eisenstein_series(2, prec);
+        let g5 = g5_normalized(prec);
+        let g6 = f6_normalized(prec);
+        let f20 = rankin_cohen_sqrt5(7, &g2.pow(2), &(&g5.pow(2) * &g6)).unwrap();
+        let f21 = rankin_cohen_sqrt5(7, &g5, &(&g2.pow(5) * &g6)).unwrap();
+        let gens2 = Structure2::gens(prec);
+        let gens5 = Structure5::gens(prec);
+        let f17 = &gens2[1] * &gens5[3];
+        let f14 = &gens2[1] * &gens5[2];
+        assert!(test(14, prec, 100, f14, &gens));
+        assert!(test(17, prec, 100, f17, &gens));
+        assert!(test(20, prec, 200, f20, &gens));
+        assert!(test(21, prec, 200, f21, &gens));
+    }
+
+    #[test]
     fn test_gens5_relation12() {
         let prec = 15;
         let gens = Structure5::gens2(prec);
@@ -1040,6 +1191,55 @@ mod tests {
             s += &tmp;
         }
         assert!(s.is_zero());
+    }
+
+    #[allow(dead_code)]
+    fn forms_rel_to_rel(k: usize, gens: &[HmfGen<Sqrt5Mpz>], rel: &Vec<Sqrt5Mpz>) -> Relation {
+        let monomss = forms_generated_monom(k, &gens);
+        let mut rel = rel.clone();
+        let mut res = Vec::new();
+        for ms in &monomss {
+            let mut v = Vec::new();
+            for m in ms.iter() {
+                let a = rel.remove(0);
+                if !a.is_zero_g() {
+                    v.push((m.clone(), a));
+                }
+            }
+            res.push(v);
+        }
+        res
+    }
+
+    #[test]
+    fn test_gens7_rel() {
+        let prec = 15;
+        let gens = Structure7::gens3(prec);
+        for &k in &[10, 13] {
+            let forms = forms_generated(k, prec, &gens);
+            let rels = relations(100, &forms);
+            let rel = forms_rel_to_rel(k, &gens, &rels[0]);
+            if !(rels.is_empty()) {
+                println!("{}", k);
+                println!("{:?}", rel);
+                let ref mut f = File::create(format!("./data/str7rel{}.sobj", k)).unwrap();
+                save_as_pickle_rel(&rel, f);
+            }
+        }
+    }
+
+    #[test]
+    fn test_gens7_rel1() {
+        let prec = 15;
+        let gens = Structure7::gens(prec);
+        for k in 5..30 {
+            let forms = forms_generated(k, prec, &gens);
+            let rels = relations(200, &forms);
+            let dim = forms.len() - rels.len();
+            // [1, 1, 2, 2, 3, 3, 4, 4, 5, 6, 6, 7, 8, 8, 10, 10, 11, 12, 13,
+            // 14, 15, 16, 17, 18, 20]
+            println!("{}: {}", k, dim);
+        }
     }
 
     #[test]
