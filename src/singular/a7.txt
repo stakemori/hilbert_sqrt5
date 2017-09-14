@@ -17,4 +17,5 @@ rel13_27;
 module m7 = f4_18, f5_19, f7_21, f8_22;
 ideal m7_id5_7 = g5 * (13*g2^3 + 9600*g6);
 module mq7 = quotient(m7, m7_id5_7);
+syz(m7);
 module_equal(m7, mq7);

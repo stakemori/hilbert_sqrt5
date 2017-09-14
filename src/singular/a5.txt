@@ -22,4 +22,5 @@ rel5_11;
 rel5_12;
 /* groebner(m5); */
 /* groebner(mq5); */
+syz(m5);
 module_equal(m5, mq5);
