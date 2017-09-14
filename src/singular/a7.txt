@@ -1,0 +1,20 @@
+/* -*- mode: c -*- */
+poly a6_6 = 6264*g2^3 - 9331200*g6;
+// Take basis as f4/(g2 a6_6), f5/(g2 a6_6).
+vector am4_10 = [(1, 0)];
+vector am3_11 = [(0, 1)];
+
+vector f4_18 = am4_10 * g2 * a6_6;
+vector f5_19 = am3_11 * g2 * a6_6;
+vector a2_16 = (-g6 * am4_10 + 95256000*g5 * am3_11)/1684800;
+vector f8_22 = a2_16 * a6_6;
+vector f7_21 = -(g2^2*g5 * g2 * am4_10 - 76204800*g2*g6 * g2 * am3_11 -1244160000*g5 * a2_16);
+vector rel10_24 = g6 * f4_18 -95256000 * g5 * f5_19  + 1684800 * g2 * f8_22;
+vector rel13_27 = g2^2*g5 * f4_18 -76204800*g2*g6 * f5_19 + (6264*g2^3 - 9331200*g6) * f7_21 - 1244160000*g5 * f8_22;
+
+rel10_24;
+rel13_27;
+module m7 = f4_18, f5_19, f7_21, f8_22;
+ideal m7_id5_7 = g5 * (13*g2^3 + 9600*g6);
+module mq7 = quotient(m7, m7_id5_7);
+module_equal(m7, mq7);

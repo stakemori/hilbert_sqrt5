@@ -1167,6 +1167,15 @@ mod tests {
     }
 
     #[test]
+    fn test_bracket_inner_pol_gens7() {
+        let prec = 15;
+        let gens = Structure7::gens(prec);
+        let f = &mut File::create("./data/str7br5_7.sobj").unwrap();
+        let (pol, _) = bracket_inner_prod_as_pol(&gens[1], &gens[2], 50).unwrap();
+        save_poly_pickle(&pol, f);
+    }
+
+    #[test]
     fn test_gens5_relation11() {
         let prec = 15;
         let gens = Structure5::gens2(prec);

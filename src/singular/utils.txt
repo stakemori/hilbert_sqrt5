@@ -1,0 +1,37 @@
+/* -*- mode: c -*- */
+
+// Utility functions
+proc is_submodule(module m1, module m2)
+"
+Is m1 a submodule of m2?
+RETURN: 0 or 1 (0 is for false, 1 is for true).
+"
+{
+  module m2s = groebner(m2);
+  int i;
+  int n = size(m1);
+  for( i=1; i<=n; i++ ) {
+    if( reduce(m1[i], m2s)!=0 ) {
+      return(0);
+    }
+  }
+  return(1);
+}
+
+proc module_equal(module m1, module m2)
+"
+Test if m1 == m2.
+RETURN: 0 or 1 (0 is for false, 1 is for true).
+"
+{
+  if (is_submodule(m1, m2) == 0) {
+    return(0);
+  }
+  if (is_submodule(m2, m1) == 0) {
+    return(0);
+  }
+  return(1);
+}
+
+// Ring for scalar valued hilbert modular form.
+ring r=0,(g2,g5,g6),(c,dp);

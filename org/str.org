@@ -94,7 +94,7 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 #+END_SRC
 
 #+RESULTS:
-: 
+:
 : [2^3 * 3^3 * 5 * g5^2 * (-29*g2^3 + 43200*g6),
 :  2^8 * 3^4 * 5^2 * g5 * (13*g2^2*g6 + 12000*g5^2),
 :  g2 * (-5*g2*g5^2 + 4*g6^2)]
@@ -105,7 +105,7 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 #+END_SRC
 
 #+RESULTS:
-: 
+:
 : [g6 * g2^2 * (-29*g2^3 + 43200*g6),
 :  2^6 * 3^4 * 5^2 * 13 * g2^3 * (-29*g2^3 + 43200*g6),
 :  (-1) * 2^6 * 3^5 * 5^3 * 7^2 * g5 * (-29*g2^3 + 43200*g6)]
@@ -118,7 +118,7 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 #+END_SRC
 
 #+RESULTS:
-: 
+:
 : [(-1) * g6 * (-29*g2^3 + 43200*g6),
 :  2^6 * 3^5 * 5^3 * 7^2 * g5 * (-29*g2^3 + 43200*g6),
 :  (-1) * 2^6 * 3^4 * 5^2 * 13 * g2 * (-29*g2^3 + 43200*g6)]
@@ -158,3 +158,13 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 : 2^15 * 3^10 * 5^4 * 7^2 * (11*g2^2*g6 - 6000*g5^2)
 : 2^9 * 3^5 * 5^2 * 7 * g5 * (-11*g2^3 + 10800*g6)
 : (-1) * 2^8 * 3^6 * 5^2 * 7 * (-11*g2^3*g6 - 600*g2*g5^2 + 11880*g6^2)
+
+* Structure7 brackets
+
+#+BEGIN_SRC sage
+  load('~/work/rust/hilbert_sqrt5/src/modstr.py')
+  factor((to_pol1(load(join(Path, "data/str7br5_7.sobj")))/K.gen()).change_ring(ZZ))
+#+END_SRC
+
+#+RESULTS:
+: 2^10 * 3^5 * 5^5 * 7 * g5 * (13*g2^3 + 9600*g6)
