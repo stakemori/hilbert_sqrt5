@@ -129,6 +129,40 @@ pub fn relations(len: usize, forms: &[HmfGen<Sqrt5Mpz>]) -> Vec<Vec<Sqrt5Mpz>> {
     res
 }
 
+/// The second element is a denominator.
+pub fn bracket_inner_prod_as_pol(
+    f: &HmfGen<Sqrt5Mpz>,
+    g: &HmfGen<Sqrt5Mpz>,
+    len: usize,
+) -> Option<(PWtPoly, Sqrt5Mpz)> {
+    let h = bracket_inner_prod1(f, g).unwrap();
+    let prec = h.prec;
+    let monoms = monoms_of_g2_g5_f6(h.weight.unwrap().0);
+    let forms: Vec<_> = monoms
+        .iter()
+        .map(|x| From::from(&x.into_form(prec)))
+        .collect();
+    let mut rels = relations(len, &forms);
+    if rels.len() == 1 && !rels[0][0].is_zero_g() {
+        let cfs: Vec<_> = rels[0]
+            .iter()
+            .skip(1)
+            .map(|x| {
+                let mut tmp = Sqrt5Mpz::new_g();
+                tmp.set_g(x);
+                tmp *= -1 as c_long;
+                tmp
+            })
+            .collect();
+        Some((
+            monoms.into_iter().zip(cfs.into_iter()).collect(),
+            rels.remove(0).remove(0),
+        ))
+    } else {
+        None
+    }
+}
+
 /// A stupid function that returns a linear relation.
 pub fn relation(len: usize, f: &HmfGen<Sqrt5Mpz>, forms: &[HmfGen<Sqrt5Mpz>]) -> Vec<Sqrt5Mpz> {
     let mut vv = Vec::new();
