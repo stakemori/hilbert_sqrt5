@@ -138,10 +138,11 @@ pub fn bracket_inner_prod_as_pol(
     let h = bracket_inner_prod1(f, g).unwrap();
     let prec = h.prec;
     let monoms = monoms_of_g2_g5_f6(h.weight.unwrap().0);
-    let forms: Vec<_> = monoms
+    let mut forms: Vec<_> = monoms
         .iter()
         .map(|x| From::from(&x.into_form(prec)))
         .collect();
+    forms.insert(0, h);
     let mut rels = relations(len, &forms);
     if rels.len() == 1 && !rels[0][0].is_zero_g() {
         let cfs: Vec<_> = rels[0]
@@ -1132,6 +1133,37 @@ mod tests {
         ];
         let ref mut f = File::create("./data/str5rel12.sobj").unwrap();
         save_as_pickle_rel(&rel, f);
+    }
+
+    fn save_poly_pickle(x: &PWtPoly, f: &mut File) {
+        let v: Vec<_> = x.iter()
+            .map(|x| (x.0.idx, Into::<Sqrt5Wrapper>::into(&x.1)))
+            .collect();
+        save_as_pickle(v, f);
+    }
+
+    #[test]
+    fn test_bracket_inner_pol_gens5() {
+        let prec = 15;
+        let gens = Structure5::gens(prec);
+        let f5_6 = &mut File::create("./data/str5br5_6.sobj").unwrap();
+        let f5_7 = &mut File::create("./data/str5br5_7.sobj").unwrap();
+        let f6_7 = &mut File::create("./data/str5br6_7.sobj").unwrap();
+        let f5_10 = &mut File::create("./data/str5br5_10.sobj").unwrap();
+        let f6_10 = &mut File::create("./data/str5br6_10.sobj").unwrap();
+        let f7_10 = &mut File::create("./data/str5br7_10.sobj").unwrap();
+        let (pol5_6, _) = bracket_inner_prod_as_pol(&gens[0], &gens[1], 50).unwrap();
+        let (pol5_7, _) = bracket_inner_prod_as_pol(&gens[0], &gens[2], 50).unwrap();
+        let (pol6_7, _) = bracket_inner_prod_as_pol(&gens[1], &gens[2], 50).unwrap();
+        let (pol5_10, _) = bracket_inner_prod_as_pol(&gens[0], &gens[3], 50).unwrap();
+        let (pol6_10, _) = bracket_inner_prod_as_pol(&gens[1], &gens[3], 50).unwrap();
+        let (pol7_10, _) = bracket_inner_prod_as_pol(&gens[2], &gens[3], 50).unwrap();
+        save_poly_pickle(&pol5_6, f5_6);
+        save_poly_pickle(&pol5_7, f5_7);
+        save_poly_pickle(&pol6_7, f6_7);
+        save_poly_pickle(&pol5_10, f5_10);
+        save_poly_pickle(&pol6_10, f6_10);
+        save_poly_pickle(&pol7_10, f7_10);
     }
 
     #[test]

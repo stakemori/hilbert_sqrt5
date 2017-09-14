@@ -15,6 +15,12 @@ def to_pol(l):
     return sum(g2**a * g5**b * g6**c * (ZZ(s) + ZZ(t) * sqrt5) / ZZ(2) for (a, b, c), s, t in l)
 
 
+def to_pol1(l):
+    sqrt5 = K.gen()
+    g2, g5, g6 = gens()
+    return sum(g2**a * g5**b * g6**c * (ZZ(s) + ZZ(t) * sqrt5) / ZZ(2) for (a, b, c), (s, t) in l)
+
+
 def to_pols_normalized(ll):
     pols = [R(to_pol(l)) for l in ll]
     l = flatten([a.coefficients() for a in pols])
