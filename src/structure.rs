@@ -1169,19 +1169,19 @@ mod tests {
         println!("{:?}", rels);
     }
 
-    #[test]
-    fn test_gens5_2() {
-        fn rank(k: usize, prec: usize, len: usize, gens: &Vec<HmfGen<Sqrt5Mpz>>) -> usize {
-            let forms: Vec<_> = forms_generated(k, prec, gens);
-            let rels = relations(len, &forms);
-            forms.len() - rels.len()
-        }
-        let prec = 50;
-        let gens = Structure5::gens2(prec);
-        // [1, 1, 2, 1, 2, 3, 3, 4, 4, 4, 6, 6, 7, 7, 8, 9, 10, 11, 11, 12, 14, 14, 16, 16, 17, 19]
-        let v: Vec<_> = (5..31).map(|i| rank(i, prec, 800, &gens)).collect();
-        println!("{:?}", v);
-    }
+    // #[test]
+    // fn test_gens5_2() {
+    //     fn rank(k: usize, prec: usize, len: usize, gens: &Vec<HmfGen<Sqrt5Mpz>>) -> usize {
+    //         let forms: Vec<_> = forms_generated(k, prec, gens);
+    //         let rels = relations(len, &forms);
+    //         forms.len() - rels.len()
+    //     }
+    //     let prec = 50;
+    //     let gens = Structure5::gens2(prec);
+    //     // [1, 1, 2, 1, 2, 3, 3, 4, 4, 4, 6, 6, 7, 7, 8, 9, 10, 11, 11, 12, 14, 14, 16, 16, 17, 19]
+    //     let v: Vec<_> = (5..31).map(|i| rank(i, prec, 800, &gens)).collect();
+    //     println!("{:?}", v);
+    // }
 
     #[test]
     fn test_gens5_3() {
@@ -1262,29 +1262,29 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_gens7_rel1() {
-        let prec = 15;
-        let gens = Structure7::gens(prec);
-        for k in 5..30 {
-            let forms = forms_generated(k, prec, &gens);
-            let rels = relations(200, &forms);
-            let dim = forms.len() - rels.len();
-            // [1, 1, 2, 2, 3, 3, 4, 4, 5, 6, 6, 7, 8, 8, 10, 10, 11, 12, 13,
-            // 14, 15, 16, 17, 18, 20]
-            println!("{}: {}", k, dim);
-        }
-    }
+    // #[test]
+    // fn test_gens7_rel1() {
+    //     let prec = 15;
+    //     let gens = Structure7::gens(prec);
+    //     for k in 5..30 {
+    //         let forms = forms_generated(k, prec, &gens);
+    //         let rels = relations(200, &forms);
+    //         let dim = forms.len() - rels.len();
+    //         // [1, 1, 2, 2, 3, 3, 4, 4, 5, 6, 6, 7, 8, 8, 10, 10, 11, 12, 13,
+    //         // 14, 15, 16, 17, 18, 20]
+    //         println!("{}: {}", k, dim);
+    //     }
+    // }
 
-    #[test]
-    fn test_save_rels() {
-        let prec = 10;
-        let ref mut f = File::create("./data/rels.sobj").unwrap();
-        let v: Vec<_> = (1..10)
-            .map(|i| (i, three_forms_rel(i, prec, 50)))
-            .take_while(|x| x.1.is_some())
-            .map(|x| (x.0, x.1.unwrap()))
-            .collect();
-        save_as_pickle_3relations(&v, f);
-    }
+    // #[test]
+    // fn test_save_rels() {
+    //     let prec = 10;
+    //     let ref mut f = File::create("./data/rels.sobj").unwrap();
+    //     let v: Vec<_> = (1..10)
+    //         .map(|i| (i, three_forms_rel(i, prec, 50)))
+    //         .take_while(|x| x.1.is_some())
+    //         .map(|x| (x.0, x.1.unwrap()))
+    //         .collect();
+    //     save_as_pickle_3relations(&v, f);
+    // }
 }
