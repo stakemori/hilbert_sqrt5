@@ -732,11 +732,11 @@ impl Structure6 {
         let g5 = g5_normalized(prec);
         let f0 = rankin_cohen_sqrt5(i, &g2, &g2).unwrap();
         let mut gens = Structure3::gens(prec);
-        let mut f1 = gens.swap_remove(1);
-        f1.square();
-        assert_eq!(f1.weight, Some((6, 18)));
+        let mut f6 = gens.remove(0);
+        f6.square();
+        assert_eq!(f6.weight, Some((6, 18)));
         let f2 = rankin_cohen_sqrt5(i, &g2, &g5).unwrap();
-        vec![f0, f1, f2]
+        vec![f0, f6, f2]
     }
 
     #[allow(dead_code)]
@@ -968,12 +968,6 @@ mod tests {
     }
 
     #[test]
-    fn relation_slow3() {
-        let gens = Structure3::gens(10);
-        print_3rel(&relation_slow_3gens(&gens, 50));
-    }
-
-    #[test]
     fn test_pickle_gen3() {
         let gens1 = Structure3::gens1(10);
         let rel1 = relation_slow_3gens(&gens1, 50);
@@ -993,31 +987,16 @@ mod tests {
         let g6 = f6_normalized(prec);
         let f = rankin_cohen_sqrt5(3, &g2, &g6).unwrap();
         let gens = Structure3::gens(prec);
-        let f0 = &gens[0];
-        let f1 = &gens[1];
+        let f3 = &gens[0];
+        let f6 = &gens[1];
         let g5: HmfGen<Sqrt5Mpz> = From::from(&g5);
         let g2: HmfGen<Sqrt5Mpz> = From::from(&g2);
-        let h0 = f1 * &g5;
-        let h1 = f0 * &g2;
-        // {
-        //     let forms = vec![h0, h1];
-        //     println!("{:?}", relation(50, &f, &forms));
-        // }
+        let h0 = f3 * &g5;
+        let h1 = f6 * &g2;
 
-        let mut res = HmfGen::new(prec);
-        let mut tmp = HmfGen::new(prec);
-        let nums = vec![
-            Sqrt5Mpz::from_si_g(630),
-            Sqrt5Mpz::from_si_g(-840),
-            Sqrt5Mpz::from_si_g(-1),
-        ];
         let forms = vec![f, h0, h1];
-        for (f, n) in forms.iter().zip(nums.iter()) {
-            tmp.mul_mut_by_const(f, n);
-            res += &tmp;
-        }
-        println!("res: {}", res);
-        assert!(res.is_zero());
+        let rels = relations(50, &forms);
+        assert!(!rels[0][0].is_zero_g())
     }
 
     #[test]
