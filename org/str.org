@@ -163,8 +163,10 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 #+BEGIN_SRC sage
   load('~/work/rust/hilbert_sqrt5/src/modstr.py')
+  factor((to_pol1(load(join(Path, "data/str7br5_6.sobj")))/K.gen()).change_ring(ZZ))
   factor((to_pol1(load(join(Path, "data/str7br5_7.sobj")))/K.gen()).change_ring(ZZ))
 #+END_SRC
 
 #+RESULTS:
+: (-1) * 2^13 * 3^8 * 5^5 * 7 * 13 * g2 * (-29*g2^3 + 43200*g6)
 : 2^10 * 3^5 * 5^5 * 7 * g5 * (13*g2^3 + 9600*g6)

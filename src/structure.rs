@@ -1171,8 +1171,11 @@ mod tests {
         let prec = 15;
         let gens = Structure7::gens(prec);
         let f = &mut File::create("./data/str7br5_7.sobj").unwrap();
+        let f1 = &mut File::create("./data/str7br5_6.sobj").unwrap();
         let (pol, _) = bracket_inner_prod_as_pol(&gens[1], &gens[2], 50).unwrap();
+        let (pol1, _) = bracket_inner_prod_as_pol(&gens[0], &gens[1], 50).unwrap();
         save_poly_pickle(&pol, f);
+        save_poly_pickle(&pol1, f1);
     }
 
     #[test]
