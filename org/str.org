@@ -1,3 +1,4 @@
+* Table and init
 | diff | weights of gens                     |
 |    1 | (7, 9), (8, 10), (13, 15)           |
 |    2 | (4, 8), (7, 11)                     |
@@ -7,30 +8,6 @@
 |    6 | (2, 14), (3, 15), (6, 18)           |
 |    7 | (4, 18), (5, 19), (7, 21), (8, 22)  |
 
-#+BEGIN_SRC shell :results output
-  cargo test structure::tests::test_pickle_gen6_1
-#+END_SRC
-
-#+RESULTS:
-#+begin_example
-
-running 1 test
-test structure::tests::test_pickle_gen6_1 ... ok
-
-test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 29 filtered out
-
-
-running 0 tests
-
-test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 21 filtered out
-
-
-running 0 tests
-
-test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
-
-#+end_example
-
 #+BEGIN_SRC sage
   from os.path import join
 
@@ -39,7 +16,7 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 
 #+RESULTS:
 
-
+* Structure 6 gens
 #+BEGIN_SRC sage
   load('~/work/rust/hilbert_sqrt5/src/modstr.py')
   to_pols_normalized(load(join(Path, "data/str6gens1.sobj")))
@@ -64,6 +41,8 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 #+RESULTS:
 : [-1680*g6, -63000*g5, g2]
 
+
+* Structure 5 gens
 #+BEGIN_SRC sage
   load('~/work/rust/hilbert_sqrt5/src/modstr.py')
   [factor(a) for a in to_pols_normalized(load(join(Path, "data/str5gens1.sobj")))]
@@ -88,6 +67,8 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 #+RESULTS:
 : [g2*g5, 29937600*g6, 18144000*g5, -165*g2]
 
+
+* Structure 7 gens
 #+BEGIN_SRC sage
   load('~/work/rust/hilbert_sqrt5/src/modstr.py')
   [factor(a.change_ring(ZZ)) for a in to_pols_normalized(load(join(Path, "data/str7gens1.sobj")))]
@@ -158,6 +139,7 @@ test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 : 2^15 * 3^10 * 5^4 * 7^2 * (11*g2^2*g6 - 6000*g5^2)
 : 2^9 * 3^5 * 5^2 * 7 * g5 * (-11*g2^3 + 10800*g6)
 : (-1) * 2^8 * 3^6 * 5^2 * 7 * (-11*g2^3*g6 - 600*g2*g5^2 + 11880*g6^2)
+
 
 * Structure7 brackets
 
