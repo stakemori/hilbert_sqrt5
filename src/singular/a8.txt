@@ -1,4 +1,5 @@
 /* -*- mode: c -*- */
+execute(read("/home/sho/work/rust/hilbert_sqrt5/src/singular/utils.txt"));
 poly a14 = 2^3 * 3^2 * 7 * g2 * (-5*g2*g5^2 + 9*g6^2);
 poly a15 = (-1) * 2 * 3 * 5^4 * g5 * (7*g2^2*g6 - 12000*g5^2);
 poly a16 = (-1) * 5^2 * (-135*g2^3*g5^2 + 196*g2^2*g6^2 - 48000*g5^2*g6);
@@ -22,3 +23,4 @@ module sm8 = syz(m8);
 m8;
 sm8;
 syz(sm8);
+quit;

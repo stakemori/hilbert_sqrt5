@@ -32,7 +32,7 @@ mod str_exe {
     use hilbert_sqrt5::theta_chars::g5_normalized;
     use hilbert_sqrt5::elements::HmfGen;
     use std::fs::File;
-    use hilbert_sqrt5::diff_op::rankin_cohen_sqrt5;
+    use hilbert_sqrt5::diff_op::{rankin_cohen_sqrt5, star_op};
     use hilbert_sqrt5::bignum::Sqrt5Mpz;
     use hilbert_sqrt5::bignum::BigNumber;
 
@@ -261,6 +261,16 @@ mod str_exe {
         save_as_pickle((v, a), f);
     }
 
+    fn save_star_norm_as_poly_pickle(f: &HmfGen<Sqrt5Mpz>, len: usize, fl: &mut File) {
+        let mut res = HmfGen::new(f.prec);
+        star_op(&mut res, f);
+        res *= f;
+        let wt = res.weight.unwrap();
+        assert_eq!(wt.0, wt.1);
+        let poly = r_elt_as_pol(&res, len).unwrap();
+        save_poly_pickle(&poly, fl);
+    }
+
     #[test]
     fn test_bracket_inner_pol_gens5() {
         let prec = 15;
@@ -433,6 +443,33 @@ mod str_exe {
                 let ref mut f = File::create(format!("./data/str7rel{}.sobj", k)).unwrap();
                 save_as_pickle_rel(&rel, f);
             }
+        }
+    }
+
+    #[test]
+    fn test_g8_gens_construction() {
+        let prec = 15;
+        let gens = Structure8::gens1(prec);
+        let g2 = &eisenstein_series(2, prec);
+        let g5 = &g5_normalized(prec);
+        let g6 = &f6_normalized(prec);
+        let f6 = &gens[0];
+        let f7 = &gens[1];
+        let into = Into::<HmfGen<Sqrt5Mpz>>::into;
+        let f17 = into(g2.pow(3) * g5 * 47 + g5 * g6 * 86400) * f6 +
+            into(g2.pow(2) * g6 * (-1890) + g5.pow(2) * 3240000) * f7;
+        let f18 = into(g2.pow(3) * g6 * 47 + g6.pow(2) * 86400) * f6 +
+            into(g2.pow(3) * g5 * (-1050) + g5 * g6 * 3240000) * f7;
+
+        for (f, &pth) in vec![f17, f18].iter().zip(
+            &[
+                "./data/str8gens_norm_17.sobj",
+                "./data/str8gens_norm_18.sobj",
+            ],
+        )
+        {
+            let ref mut fl = File::create(pth).unwrap();
+            save_star_norm_as_poly_pickle(f, 250, fl);
         }
     }
 

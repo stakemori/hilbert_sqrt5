@@ -122,6 +122,25 @@
 
 
 * Structure 8 gens
+** Singular result
+#+BEGIN_SRC sh :results output
+  Singular -q ../src/singular/a8.txt
+#+END_SRC
+
+#+RESULTS:
+: 0
+: 1
+: m8[1]=[47*g2^3*g5+86400*g5*g6,-1890*g2^2*g6+3240000*g5^2]
+: m8[2]=[47*g2^3*g6+86400*g6^2,-1050*g2^3*g5+3240000*g5*g6]
+: m8[3]=[5*g2^2*g5^2-9*g2*g6^2]
+: m8[4]=[0,5*g2^2*g5^2-9*g2*g6^2]
+: sm8[1]=[g6,-g5,0,-210*g2]
+: sm8[2]=[5*g2^2*g5,-9*g2*g6,-47*g2^3-86400*g6,-3240000*g5]
+: _[1]=0
+
+Conclusion: Two relations among 4 generators.
+
+** Gens check
 #+BEGIN_SRC sage
   load('~/work/rust/hilbert_sqrt5/src/modstr.py')
   [factor(a.change_ring(ZZ)) for a in to_pols_normalized(load(join(Path, "data/str8gens1.sobj")))]
@@ -131,6 +150,17 @@
 : [(-1) * 5^2 * (-135*g2^3*g5^2 + 196*g2^2*g6^2 - 48000*g5^2*g6),
 :  (-1) * 2 * 3 * 5^4 * g5 * (7*g2^2*g6 - 12000*g5^2),
 :  2^3 * 3^2 * 7 * g2 * (-5*g2*g5^2 + 9*g6^2)]
+
+#+BEGIN_SRC sage
+  load('~/work/rust/hilbert_sqrt5/src/modstr.py')
+  pl8_6_7 = to_pols_normalized(load(join(Path, "data/str8gens1.sobj")))[-1]
+  (pl8_6_7**2).divides(to_pol1(load(join(Path, "data/str8gens_norm_17.sobj"))))
+  (pl8_6_7**2).divides(to_pol1(load(join(Path, "data/str8gens_norm_18.sobj"))))
+#+END_SRC
+
+#+RESULTS:
+: True
+: True
 
 
 * Structure5 brackets
