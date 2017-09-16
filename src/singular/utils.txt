@@ -34,4 +34,4 @@ RETURN: 0 or 1 (0 is for false, 1 is for true).
 }
 
 // Ring for scalar valued hilbert modular form.
-ring r=0,(g2,g5,g6), wp(2,5,6);
+ring r=0,(g2,g5,g6), (c,dp);
