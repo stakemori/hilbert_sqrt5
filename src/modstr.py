@@ -15,10 +15,13 @@ def to_pol(l):
     return sum(g2**a * g5**b * g6**c * (ZZ(s) + ZZ(t) * sqrt5) / ZZ(2) for (a, b, c), s, t in l)
 
 
-def to_pol1(l):
+def to_pol1(tpl):
     sqrt5 = K.gen()
+    l, dnm = tpl
     g2, g5, g6 = gens()
-    return sum(g2**a * g5**b * g6**c * (ZZ(s) + ZZ(t) * sqrt5) / ZZ(2) for (a, b, c), (s, t) in l)
+    denm = (ZZ(dnm[0]) + ZZ(dnm[1]) * sqrt5)
+    return sum(g2**a * g5**b * g6**c * (ZZ(s) + ZZ(t) * sqrt5) /
+               ZZ(2) for (a, b, c), (s, t) in l) / denm
 
 
 def to_pols_normalized(ll):

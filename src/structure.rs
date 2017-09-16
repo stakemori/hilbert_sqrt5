@@ -857,6 +857,11 @@ impl Structure7 {
     }
 }
 
+pub struct Structure8;
+
+impl Structure8 {
+}
+
 #[allow(dead_code)]
 fn forms_generated_with_monom(
     k: usize,
@@ -1135,11 +1140,12 @@ mod tests {
         save_as_pickle_rel(&rel, f);
     }
 
-    fn save_poly_pickle(x: &PWtPoly, f: &mut File) {
-        let v: Vec<_> = x.iter()
+    fn save_poly_pickle(x: &(PWtPoly, Sqrt5Mpz), f: &mut File) {
+        let v: Vec<_> = x.0.iter()
             .map(|x| (x.0.idx, Into::<Sqrt5Wrapper>::into(&x.1)))
             .collect();
-        save_as_pickle(v, f);
+        let a: Sqrt5Wrapper = From::from(&x.1);
+        save_as_pickle((v, a), f);
     }
 
     #[test]
@@ -1152,12 +1158,12 @@ mod tests {
         let f5_10 = &mut File::create("./data/str5br5_10.sobj").unwrap();
         let f6_10 = &mut File::create("./data/str5br6_10.sobj").unwrap();
         let f7_10 = &mut File::create("./data/str5br7_10.sobj").unwrap();
-        let (pol5_6, _) = bracket_inner_prod_as_pol(&gens[0], &gens[1], 50).unwrap();
-        let (pol5_7, _) = bracket_inner_prod_as_pol(&gens[0], &gens[2], 50).unwrap();
-        let (pol6_7, _) = bracket_inner_prod_as_pol(&gens[1], &gens[2], 50).unwrap();
-        let (pol5_10, _) = bracket_inner_prod_as_pol(&gens[0], &gens[3], 50).unwrap();
-        let (pol6_10, _) = bracket_inner_prod_as_pol(&gens[1], &gens[3], 50).unwrap();
-        let (pol7_10, _) = bracket_inner_prod_as_pol(&gens[2], &gens[3], 50).unwrap();
+        let pol5_6 = bracket_inner_prod_as_pol(&gens[0], &gens[1], 50).unwrap();
+        let pol5_7 = bracket_inner_prod_as_pol(&gens[0], &gens[2], 50).unwrap();
+        let pol6_7 = bracket_inner_prod_as_pol(&gens[1], &gens[2], 50).unwrap();
+        let pol5_10 = bracket_inner_prod_as_pol(&gens[0], &gens[3], 50).unwrap();
+        let pol6_10 = bracket_inner_prod_as_pol(&gens[1], &gens[3], 50).unwrap();
+        let pol7_10 = bracket_inner_prod_as_pol(&gens[2], &gens[3], 50).unwrap();
         save_poly_pickle(&pol5_6, f5_6);
         save_poly_pickle(&pol5_7, f5_7);
         save_poly_pickle(&pol6_7, f6_7);
@@ -1172,8 +1178,8 @@ mod tests {
         let gens = Structure7::gens(prec);
         let f = &mut File::create("./data/str7br5_7.sobj").unwrap();
         let f1 = &mut File::create("./data/str7br5_6.sobj").unwrap();
-        let (pol, _) = bracket_inner_prod_as_pol(&gens[1], &gens[2], 50).unwrap();
-        let (pol1, _) = bracket_inner_prod_as_pol(&gens[0], &gens[1], 50).unwrap();
+        let pol = bracket_inner_prod_as_pol(&gens[1], &gens[2], 50).unwrap();
+        let pol1 = bracket_inner_prod_as_pol(&gens[0], &gens[1], 50).unwrap();
         save_poly_pickle(&pol, f);
         save_poly_pickle(&pol1, f1);
     }
