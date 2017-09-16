@@ -852,6 +852,9 @@ impl Structure7 {
     }
 }
 
+
+// This does not implement Structrue, but the structure is known and proved
+// using Singular.
 pub struct Structure8;
 
 impl Structure8 {
