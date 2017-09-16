@@ -527,6 +527,35 @@ where
     }
 }
 
+macro_rules! impl_op_take {
+    ($tr: ident, $mth: ident) => {
+        impl<T> $tr<HmfGen<T>> for HmfGen<T>
+            where T: BigNumber + Clone,
+        for<'c> T: AddAssign<&'c T>,
+        {
+            type Output = HmfGen<T>;
+            fn $mth(self, other: Self) -> Self {
+                let a = &self;
+                a.$mth(&other)
+            }
+        }
+
+        impl<'a, T> $tr<&'a HmfGen<T>> for HmfGen<T>
+            where T: BigNumber + Clone,
+        for<'c> T: AddAssign<&'c T>,
+        {
+            type Output = HmfGen<T>;
+            fn $mth(self, other: &Self) -> Self {
+                let a = &self;
+                a.$mth(other)
+            }
+        }
+    }
+}
+impl_op_take!(Add, add);
+impl_op_take!(Mul, mul);
+impl_op_take!(Sub, sub);
+
 impl<'a, 'b, T> Mul<&'a HmfGen<T>> for &'b HmfGen<T>
 where
     T: BigNumber + Clone,
@@ -549,6 +578,30 @@ where
     fn mul(self, other: &T) -> HmfGen<T> {
         let mut res = HmfGen::new(self.prec);
         res.mul_mut_by_const(self, other);
+        res
+    }
+}
+
+impl<'a, T> Mul<c_long> for &'a HmfGen<T>
+where
+    T: BigNumber + Clone,
+{
+    type Output = HmfGen<T>;
+    fn mul(self, other: c_long) -> HmfGen<T> {
+        let mut res = HmfGen::new(self.prec);
+        res.mul_mut_by_const(self, &T::from_si_g(other));
+        res
+    }
+}
+
+impl<T> Mul<c_long> for HmfGen<T>
+where
+    T: BigNumber + Clone,
+{
+    type Output = HmfGen<T>;
+    fn mul(self, other: c_long) -> HmfGen<T> {
+        let mut res = HmfGen::new(self.prec);
+        res.mul_mut_by_const(&self, &T::from_si_g(other));
         res
     }
 }
