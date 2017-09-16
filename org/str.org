@@ -121,6 +121,18 @@
 : [g2^2*g5, -76204800*g2*g6, 6264*g2^3 - 9331200*g6, -1244160000*g5]
 
 
+* Structure 8 gens
+#+BEGIN_SRC sage
+  load('~/work/rust/hilbert_sqrt5/src/modstr.py')
+  [factor(a.change_ring(ZZ)) for a in to_pols_normalized(load(join(Path, "data/str8gens1.sobj")))]
+#+END_SRC
+
+#+RESULTS:
+: [(-1) * 5^2 * (-135*g2^3*g5^2 + 196*g2^2*g6^2 - 48000*g5^2*g6),
+:  (-1) * 2 * 3 * 5^4 * g5 * (7*g2^2*g6 - 12000*g5^2),
+:  2^3 * 3^2 * 7 * g2 * (-5*g2*g5^2 + 9*g6^2)]
+
+
 * Structure5 brackets
 #+BEGIN_SRC sage
   load('~/work/rust/hilbert_sqrt5/src/modstr.py')

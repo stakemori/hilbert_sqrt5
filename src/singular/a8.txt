@@ -1,0 +1,24 @@
+/* -*- mode: c -*- */
+poly a14 = 2^3 * 3^2 * 7 * g2 * (-5*g2*g5^2 + 9*g6^2);
+poly a15 = (-1) * 2 * 3 * 5^4 * g5 * (7*g2^2*g6 - 12000*g5^2);
+poly a16 = (-1) * 5^2 * (-135*g2^3*g5^2 + 196*g2^2*g6^2 - 48000*g5^2*g6);
+
+vector am8_8 = [(1, 0)];
+vector am7_9 = [(0, 1)];
+vector f6_22 = a14 * am8_8;
+vector f7_23 = a14 * am7_9;
+vector f8_24 = -(a16 * am8_8 + a15 * am7_9);
+
+vector rel8_22 = a16 * f6_22 + a15 * f7_23 + a14 * f8_24;
+rel8_22;
+module n8 = f6_22, f7_23, f8_24;
+
+ideal id8_7_8 = a15;
+module qn8 = quotient(n8, id8_7_8);
+
+module m8 = qn8[6], qn8[4], qn8[5], qn8[1];
+module_equal(m8, qn8);
+module sm8 = syz(m8);
+m8;
+sm8;
+syz(sm8);
