@@ -129,20 +129,17 @@ pub fn relations(len: usize, forms: &[HmfGen<Sqrt5Mpz>]) -> Vec<Vec<Sqrt5Mpz>> {
     res
 }
 
-/// The second element is a denominator.
-pub fn bracket_inner_prod_as_pol(
-    f: &HmfGen<Sqrt5Mpz>,
-    g: &HmfGen<Sqrt5Mpz>,
-    len: usize,
-) -> Option<(PWtPoly, Sqrt5Mpz)> {
-    let h = bracket_inner_prod1(f, g).unwrap();
-    let prec = h.prec;
-    let monoms = monoms_of_g2_g5_f6(h.weight.unwrap().0);
+/// f: polynomial of `g2, g5, g6` as q-expansion. Return the corresponding
+/// polynomia. The second element is a denominator.
+pub fn r_elt_as_pol(f: &HmfGen<Sqrt5Mpz>, len: usize) -> Option<(PWtPoly, Sqrt5Mpz)> {
+    let f = f.clone();
+    let prec = f.prec;
+    let monoms = monoms_of_g2_g5_f6(f.weight.unwrap().0);
     let mut forms: Vec<_> = monoms
         .iter()
         .map(|x| From::from(&x.into_form(prec)))
         .collect();
-    forms.insert(0, h);
+    forms.insert(0, f);
     let mut rels = relations(len, &forms);
     if rels.len() == 1 && !rels[0][0].is_zero_g() {
         let cfs: Vec<_> = rels[0]
@@ -162,6 +159,15 @@ pub fn bracket_inner_prod_as_pol(
     } else {
         None
     }
+}
+
+pub fn bracket_inner_prod_as_pol(
+    f: &HmfGen<Sqrt5Mpz>,
+    g: &HmfGen<Sqrt5Mpz>,
+    len: usize,
+) -> Option<(PWtPoly, Sqrt5Mpz)> {
+    let h = bracket_inner_prod1(f, g).unwrap();
+    r_elt_as_pol(&h, len)
 }
 
 /// A stupid function that returns a linear relation.
