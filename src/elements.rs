@@ -232,6 +232,16 @@ where
     }
 }
 
+impl<T> From<HmfGen<Mpz>> for HmfGen<T>
+where
+    for<'b> T: From<&'b Mpz>,
+    T: RealQuadElement<Mpz>,
+{
+    fn from(f: HmfGen<Mpz>) -> Self {
+        From::from(&f)
+    }
+}
+
 impl<T> RealQuadElement<HmfGen<Mpz>> for HmfGen<T>
 where
     T: RealQuadElement<Mpz>,
