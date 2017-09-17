@@ -560,6 +560,17 @@ macro_rules! impl_op_take {
                 a.$mth(other)
             }
         }
+
+        impl<'a, T> $tr<HmfGen<T>> for &'a HmfGen<T>
+            where T: BigNumber + Clone,
+        for<'c> T: AddAssign<&'c T>,
+        {
+            type Output = HmfGen<T>;
+            fn $mth(self, other: HmfGen<T>) -> HmfGen<T> {
+                self.$mth(&other)
+            }
+        }
+
     }
 }
 impl_op_take!(Add, add);
@@ -592,6 +603,18 @@ where
     }
 }
 
+impl<'a, T> Mul<&'a T> for HmfGen<T>
+where
+    T: BigNumber + Clone,
+{
+    type Output = HmfGen<T>;
+    fn mul(self, other: &T) -> HmfGen<T> {
+        let mut res = HmfGen::new(self.prec);
+        res.mul_mut_by_const(&self, other);
+        res
+    }
+}
+
 impl<'a, T> Mul<c_long> for &'a HmfGen<T>
 where
     T: BigNumber + Clone,
@@ -601,6 +624,18 @@ where
         let mut res = HmfGen::new(self.prec);
         res.mul_mut_by_const(self, &T::from_si_g(other));
         res
+    }
+}
+
+impl<'b, T> Mul<&'b Mpz> for HmfGen<T>
+    where
+    for <'c> T: From<&'c Mpz>,
+    T: BigNumber + Clone + RealQuadElement<Mpz>,
+{
+    type Output = HmfGen<T>;
+    fn mul(self, other: &Mpz) -> HmfGen<T> {
+        let a: T = From::from(other);
+        &self * &a
     }
 }
 
