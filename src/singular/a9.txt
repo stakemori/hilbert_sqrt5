@@ -1,0 +1,32 @@
+/* -*- mode: c -*- */
+execute(read("/home/sho/work/rust/hilbert_sqrt5/src/singular/utils.txt"));
+poly a = 2^2 * 5^2 * 11 * 13 * (323*g2^8*g6 - 323874*g2^6*g5^2 + 1808610*g2^5*g6^2 -
+                                7555592736*g2^3*g5^2*g6 + 1073507904000*g2*g5^4 +
+                                1902585672*g2^2*g6^3 - 6661399046400*g5^2*g6^2);
+poly b = 2^2 * 5^2 * 11 * 13 * g5 * g2^2 * (323*g2^6 + 2669106*g2^3*g6 + 710402400*g2*g5^2 + 2336273280*g6^2);
+poly c = (-1) * 2^4 * 5^2 * g2 * (-323*g2^8 + 1486092*g2^5*g6 -
+                                  3176220600*g2^3*g5^2 + 11920045860*g2^2*g6^2 - 21117030480000*g5^2*g6);
+
+vector e1 = [(1, 0)];
+vector e2 = [(0, 1)];
+
+vector f7 = c * e1;
+vector f8 = c * e2;
+vector f11 = - (a*e1 + b*e2);
+module n9 = f7, f8, f11;
+ideal id = a;
+module qn = quotient(n9, id);
+module qn1 = groebner(qn);
+module sqn = syz(qn1);
+
+/* qn1; */
+/* sqn; */
+module m9 = qn1[10], qn1[8], qn1[5], qn1[2], qn1[1];
+m9;
+module sm9 = syz(m9);
+sm9;
+
+module sm9_2 = syz(sm9);
+sm9_2;
+module_equal(m9, qn1);
+quit;

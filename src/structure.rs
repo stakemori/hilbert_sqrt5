@@ -881,6 +881,18 @@ impl Structure8 {
     }
 }
 
+pub struct Structure9;
+
+impl Structure9 {
+    pub fn gens1(prec: u64) -> Vec<HmfGen<Sqrt5Mpz>> {
+        let gens = three_forms(9, prec as usize).unwrap();
+        assert_eq!(gens[0].weight, Some((7, 25)));
+        assert_eq!(gens[1].weight, Some((8, 26)));
+        assert_eq!(gens[2].weight, Some((11, 29)));
+        gens
+    }
+}
+
 pub fn forms_generated_with_monom(
     k: usize,
     prec: usize,
