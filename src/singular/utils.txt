@@ -33,5 +33,16 @@ RETURN: 0 or 1 (0 is for false, 1 is for true).
   return(1);
 }
 
+proc print_const_index(vector v) {
+  int n = nrows(v);
+  int i;
+  for(i=1; i<=n; i++) {
+    if(deg(v[i]) == 0) {
+        return(i);
+    }
+  }
+  return(-1);
+}
+
 // Ring for scalar valued hilbert modular form.
 ring r=0,(g2,g5,g6), (c,dp);
