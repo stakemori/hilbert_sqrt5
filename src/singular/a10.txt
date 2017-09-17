@@ -1,0 +1,24 @@
+/* -*- mode: c -*- */
+execute(read("/home/sho/work/rust/hilbert_sqrt5/src/singular/utils.txt"));
+poly a = (74489415/2) * g5 * (g2^9 + 488526/41*g2^6*g6 + 383414400/41*g2^4*g5^2 - 291611880/41*g2^3*g6^2 + 86067360000/41*g2*g5^2*g6 - 169827840000/41*g6^3);
+poly b = (8938729800) * g2 * (g2^6*g6 + 4800*g2^4*g5^2 + 3270240/451*g2^3*g6^2 + 570240000/41*g2*g5^2*g6 - 4478976000/451*g6^3);
+poly c = (98227800) * g2^2 * (g2^6 - 690852/451*g2^3*g6 + 1448496000/41*g2*g5^2 - 37868083200/451*g6^2);
+
+vector e1 = [(1, 0)];
+vector e2 = [(0, 1)];
+vector f4 = c * e1;
+vector f7 = c * e2;
+vector f11 = - (a*e1 + b*e2);
+
+module n = f4, f7, f11;
+ideal id = a;
+module qn = quotient(n, id);
+list L = mres(qn, 0);
+print("'''");
+L;
+print("'''");
+module m10 = L[1];
+module sm10 = L[2];
+m10;
+sm10;
+quit;

@@ -226,6 +226,81 @@ sm9[2]=[17*g2^2,-404985600*g5,-17*g2^3-112496*g6,126558*g2*g5]
 : True
 : True
 
+
+* Structure 10 gens
+Generators of weights 2, 5, 5, 6 and relations of weight  11, 12.
+** Singular result
+#+BEGIN_SRC sh :results raw
+  echo "#+BEGIN_SRC sage :results none"
+  echo "m10 = {}"
+  echo "sm10 = {}"
+  Singular -q ../src/singular/a10.txt
+  echo "#+END_SRC"
+#+END_SRC
+
+#+RESULTS:
+#+BEGIN_SRC sage :results none
+m10 = {}
+sm10 = {}
+'''
+[1]:
+   _[1]=[1798193397*g2^3*g5*g6-3754266516000*g2*g5^3+9017763955200*g5*g6^2,-59081*g2^7+117588672*g2^4*g6-1920796416000*g2^2*g5^2+5189042995200*g2*g6^2]
+   _[2]=[77*g2^6*g6-396880*g2^4*g5^2-767004*g2^3*g6^2-42192000*g2*g5^2*g6,17600*g2^5*g5-276480000*g2^2*g5*g6]
+   _[3]=[24575309759*g2^6*g5+789630086044800000*g2*g5^3-1874672633433600000*g5*g6^2,12904381820*g2^7-19200158784000*g2^4*g6+459386484480000000*g2^2*g5^2-1078732704153600000*g2*g6^2]
+   _[4]=[451*g2^7-690852*g2^4*g6+15933456000*g2^2*g5^2-37868083200*g2*g6^2]
+[2]:
+   _[1]=[7672400000*g2*g5,2234119069*g2^3+18831989030400*g6,32080*g2*g5,-381434963*g2^2*g6+217962836000*g5^2]
+   _[2]=[314741020*g2^3-3121333056000*g6,-3262642099516800*g5,1441*g2^3-15014592*g6,-78521111669*g2^2*g5]
+[3]:
+   _[1]=0
+'''
+m10[1]=[1798193397*g2^3*g5*g6-3754266516000*g2*g5^3+9017763955200*g5*g6^2,-59081*g2^7+117588672*g2^4*g6-1920796416000*g2^2*g5^2+5189042995200*g2*g6^2]
+m10[2]=[77*g2^6*g6-396880*g2^4*g5^2-767004*g2^3*g6^2-42192000*g2*g5^2*g6,17600*g2^5*g5-276480000*g2^2*g5*g6]
+m10[3]=[24575309759*g2^6*g5+789630086044800000*g2*g5^3-1874672633433600000*g5*g6^2,12904381820*g2^7-19200158784000*g2^4*g6+459386484480000000*g2^2*g5^2-1078732704153600000*g2*g6^2]
+m10[4]=[451*g2^7-690852*g2^4*g6+15933456000*g2^2*g5^2-37868083200*g2*g6^2]
+sm10[1]=[7672400000*g2*g5,2234119069*g2^3+18831989030400*g6,32080*g2*g5,-381434963*g2^2*g6+217962836000*g5^2]
+sm10[2]=[314741020*g2^3-3121333056000*g6,-3262642099516800*g5,1441*g2^3-15014592*g6,-78521111669*g2^2*g5]
+#+END_SRC
+
+#+BEGIN_SRC sage
+  [m10[i][0].weighted_degree([2, 5, 6]) - 12 for i in range(1, 5)]
+  [sm10[i][0].weighted_degree([2, 5, 6]) + 5 for i in [1, 2]]
+  [sm10[i][1].weighted_degree([2, 5, 6]) + 6 for i in [1, 2]]
+#+END_SRC
+
+#+RESULTS:
+: [5, 6, 5, 2]
+: [12, 11]
+: [12, 11]
+
+#+BEGIN_SRC sage
+  load('~/work/rust/hilbert_sqrt5/src/modstr.py')
+  for i, f in zip(range(1, 5), ["f21", "f22", "h21", "f18"]):
+      print "let %s = %s;" % (f, tpl_to_rust_code(m10[i], ["f4", "f7"]))
+#+END_SRC
+
+#+RESULTS:
+: let f21 = into(g2.pow(3) * g5 * g6 * (1798193397) + g5 * g6.pow(2) * &Mpz::from_str_radix("9017763955200", 10).unwrap() + g2 * g5.pow(3) * &Mpz::from_str_radix("-3754266516000", 10).unwrap()) * f4 + into(g2.pow(4) * g6 * (117588672) + g2 * g6.pow(2) * &Mpz::from_str_radix("5189042995200", 10).unwrap() + g2.pow(2) * g5.pow(2) * &Mpz::from_str_radix("-1920796416000", 10).unwrap() + g2.pow(7) * (-59081)) * f7;
+: let f22 = into(g2.pow(6) * g6 * (77) + g2.pow(3) * g6.pow(2) * (-767004) + g2 * g5.pow(2) * g6 * (-42192000) + g2.pow(4) * g5.pow(2) * (-396880)) * f4 + into(g2.pow(2) * g5 * g6 * (-276480000) + g2.pow(5) * g5 * (17600)) * f7;
+: let h21 = into(g5 * g6.pow(2) * &Mpz::from_str_radix("-1874672633433600000", 10).unwrap() + g2.pow(6) * g5 * &Mpz::from_str_radix("24575309759", 10).unwrap() + g2 * g5.pow(3) * &Mpz::from_str_radix("789630086044800000", 10).unwrap()) * f4 + into(g2.pow(4) * g6 * &Mpz::from_str_radix("-19200158784000", 10).unwrap() + g2 * g6.pow(2) * &Mpz::from_str_radix("-1078732704153600000", 10).unwrap() + g2.pow(2) * g5.pow(2) * &Mpz::from_str_radix("459386484480000000", 10).unwrap() + g2.pow(7) * &Mpz::from_str_radix("12904381820", 10).unwrap()) * f7;
+: let f18 = into(g2.pow(4) * g6 * (-690852) + g2 * g6.pow(2) * &Mpz::from_str_radix("-37868083200", 10).unwrap() + g2.pow(2) * g5.pow(2) * &Mpz::from_str_radix("15933456000", 10).unwrap() + g2.pow(7) * (451)) * f4;
+
+** Check construction
+#+BEGIN_SRC sage
+  a16 = (98227800) * g2^2 * (g2^6 - 690852/451*g2^3*g6 + 1448496000/41*g2*g5^2 - 37868083200/451*g6^2)
+  (a16**2).divides(to_pol1(load(join(Path, "data/str10gens_norm_21.sobj"))))
+  (a16**2).divides(to_pol1(load(join(Path, "data/str10gens_norm_22.sobj"))))
+  (a16**2).divides(to_pol1(load(join(Path, "data/str10gens_norm_21_1.sobj"))))
+  (a16**2).divides(to_pol1(load(join(Path, "data/str10gens_norm_18.sobj"))))
+#+END_SRC
+
+#+RESULTS:
+: True
+: True
+: True
+: True
+
+
 * Structure5 brackets
 #+BEGIN_SRC sage
   load('~/work/rust/hilbert_sqrt5/src/modstr.py')
@@ -270,3 +345,16 @@ sm9[2]=[17*g2^2,-404985600*g5,-17*g2^3-112496*g6,126558*g2*g5]
 : (-1) * 2^4 * 5^2 * g2 * (-323*g2^8 + 1486092*g2^5*g6 - 3176220600*g2^3*g5^2 + 11920045860*g2^2*g6^2 - 21117030480000*g5^2*g6)
 : (-1) * 2^2 * 5^2 * 11 * 13 * g5 * g2^2 * (323*g2^6 + 2669106*g2^3*g6 + 710402400*g2*g5^2 + 2336273280*g6^2)
 : 2^2 * 5^2 * 11 * 13 * (323*g2^8*g6 - 323874*g2^6*g5^2 + 1808610*g2^5*g6^2 - 7555592736*g2^3*g5^2*g6 + 1073507904000*g2*g5^4 + 1902585672*g2^2*g6^3 - 6661399046400*g5^2*g6^2)
+
+* Structure 10 brackets
+ #+BEGIN_SRC sage
+  load('~/work/rust/hilbert_sqrt5/src/modstr.py')
+  factor((to_pol1(load(join(Path, "data/str10br4_7.sobj")))/K.gen()))
+  factor((to_pol1(load(join(Path, "data/str10br4_11.sobj")))/K.gen()))
+  factor((to_pol1(load(join(Path, "data/str10br7_11.sobj")))/K.gen()))
+#+END_SRC
+
+#+RESULTS:
+: (98227800) * g2^2 * (g2^6 - 690852/451*g2^3*g6 + 1448496000/41*g2*g5^2 - 37868083200/451*g6^2)
+: (-8938729800) * g2 * (g2^6*g6 + 4800*g2^4*g5^2 + 3270240/451*g2^3*g6^2 + 570240000/41*g2*g5^2*g6 - 4478976000/451*g6^3)
+: (74489415/2) * g5 * (g2^9 + 488526/41*g2^6*g6 + 383414400/41*g2^4*g5^2 - 291611880/41*g2^3*g6^2 + 86067360000/41*g2*g5^2*g6 - 169827840000/41*g6^3)

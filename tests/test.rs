@@ -418,6 +418,68 @@ mod str_exe {
     }
 
     #[test]
+    fn test_gens10() {
+        let prec = 15;
+        let gens = Structure10::gens1(prec as u64);
+        let g2 = &eisenstein_series(2, prec);
+        let g5 = &g5_normalized(prec);
+        let g6 = &f6_normalized(prec);
+        let f4 = &gens[0];
+        let f7 = &gens[1];
+        let into = Into::<HmfGen<Sqrt5Mpz>>::into;
+        let f21 = into(
+            g2.pow(3) * g5 * g6 * (1798193397) +
+                g5 * g6.pow(2) * &Mpz::from_str_radix("9017763955200", 10).unwrap() +
+                g2 * g5.pow(3) * &Mpz::from_str_radix("-3754266516000", 10).unwrap(),
+        ) * f4 +
+            into(
+                g2.pow(4) * g6 * (117588672) +
+                    g2 * g6.pow(2) * &Mpz::from_str_radix("5189042995200", 10).unwrap() +
+                    g2.pow(2) * g5.pow(2) * &Mpz::from_str_radix("-1920796416000", 10).unwrap() +
+                    g2.pow(7) * (-59081),
+            ) * f7;
+        let f22 = into(
+            g2.pow(6) * g6 * (77) + g2.pow(3) * g6.pow(2) * (-767004) +
+                g2 * g5.pow(2) * g6 * (-42192000) +
+                g2.pow(4) * g5.pow(2) * (-396880),
+        ) * f4 +
+            into(
+                g2.pow(2) * g5 * g6 * (-276480000) + g2.pow(5) * g5 * (17600),
+            ) * f7;
+        let h21 = into(
+            g5 * g6.pow(2) * &Mpz::from_str_radix("-1874672633433600000", 10).unwrap() +
+                g2.pow(6) * g5 * &Mpz::from_str_radix("24575309759", 10).unwrap() +
+                g2 * g5.pow(3) * &Mpz::from_str_radix("789630086044800000", 10).unwrap(),
+        ) * f4 +
+            into(
+                g2.pow(4) * g6 * &Mpz::from_str_radix("-19200158784000", 10).unwrap() +
+                    g2 * g6.pow(2) * &Mpz::from_str_radix("-1078732704153600000", 10).unwrap() +
+                    g2.pow(2) * g5.pow(2) *
+                        &Mpz::from_str_radix("459386484480000000", 10).unwrap() +
+                    g2.pow(7) * &Mpz::from_str_radix("12904381820", 10).unwrap(),
+            ) * f7;
+        let f18 = into(
+            g2.pow(4) * g6 * (-690852) +
+                g2 * g6.pow(2) * &Mpz::from_str_radix("-37868083200", 10).unwrap() +
+                g2.pow(2) * g5.pow(2) * &Mpz::from_str_radix("15933456000", 10).unwrap() +
+                g2.pow(7) * (451),
+        ) * f4;
+
+        for (f, &pth) in vec![f21, f22, h21, f18].iter().zip(
+            &[
+                "./data/str10gens_norm_21.sobj",
+                "./data/str10gens_norm_22.sobj",
+                "./data/str10gens_norm_21_1.sobj",
+                "./data/str10gens_norm_18.sobj",
+            ],
+        )
+        {
+            let ref mut fl = File::create(pth).unwrap();
+            save_star_norm_as_poly_pickle(f, 250, fl);
+        }
+    }
+
+    #[test]
     fn test_gens5_relation11() {
         let prec = 15;
         let gens = Structure5::gens2(prec);
@@ -551,6 +613,23 @@ mod str_exe {
         }
     }
 
+    #[test]
+    fn test_bracket_innter_pol_cand10() {
+        let prec = 15;
+        let gens = Structure10::gens1(prec);
+        for (&(i, j), path) in vec![(0, 1), (0, 2), (1, 2)].iter().zip(
+            &[
+                "./data/str10br4_7.sobj",
+                "./data/str10br4_11.sobj",
+                "./data/str10br7_11.sobj",
+            ],
+        )
+        {
+            let f = &mut File::create(path).unwrap();
+            let pol = bracket_inner_prod_as_pol(&gens[i], &gens[j], 100).unwrap();
+            save_poly_pickle(&pol, f);
+        }
+    }
     // #[test]
     // fn test_gens7_rel1() {
     //     let prec = 15;
