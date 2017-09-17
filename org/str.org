@@ -11,6 +11,7 @@
 #+BEGIN_SRC sage
   from os.path import join
 
+  load('~/work/rust/hilbert_sqrt5/src/modstr.py')
   Path = os.path.expanduser('~/work/rust/hilbert_sqrt5/')
 #+END_SRC
 
@@ -123,22 +124,38 @@
 
 * Structure 8 gens
 ** Singular result
-#+BEGIN_SRC sh :results output
+#+BEGIN_SRC sh :results raw
+  echo "#+BEGIN_SRC sage :results none"
+  echo "m8 = {}"
+  echo "sm8 = {}"
   Singular -q ../src/singular/a8.txt
+  echo "#+END_SRC"
 #+END_SRC
 
 #+RESULTS:
-: module_equal?
-: 1
-: m8[1]=[47*g2^3*g5+86400*g5*g6,-1890*g2^2*g6+3240000*g5^2]
-: m8[2]=[47*g2^3*g6+86400*g6^2,-1050*g2^3*g5+3240000*g5*g6]
-: m8[3]=[5*g2^2*g5^2-9*g2*g6^2]
-: m8[4]=[0,5*g2^2*g5^2-9*g2*g6^2]
-: sm8[1]=[g6,-g5,0,-210*g2]
-: sm8[2]=[5*g2^2*g5,-9*g2*g6,-47*g2^3-86400*g6,-3240000*g5]
-: _[1]=0
+#+BEGIN_SRC sage :results none
+m8 = {}
+sm8 = {}
+1
+m8[1]=[47*g2^3*g5+86400*g5*g6,-1890*g2^2*g6+3240000*g5^2]
+m8[2]=[47*g2^3*g6+86400*g6^2,-1050*g2^3*g5+3240000*g5*g6]
+m8[3]=[5*g2^2*g5^2-9*g2*g6^2]
+m8[4]=[0,5*g2^2*g5^2-9*g2*g6^2]
+sm8[1]=[g6,-g5,0,-210*g2]
+sm8[2]=[5*g2^2*g5,-9*g2*g6,-47*g2^3-86400*g6,-3240000*g5]
+#+END_SRC
+
+#+BEGIN_SRC sage
+  [m8[i][0].weighted_degree([2, 5, 6]) - 8 for i in range(1, 4)] + [m8[4][1].weighted_degree([2, 5, 6]) - 7]
+  [sm8[i][0].weighted_degree([2, 5, 6]) + 3 for i in [1, 2]]
+#+END_SRC
+
+#+RESULTS:
+: [3, 4, 6, 7]
+: [9, 12]
 
 Conclusion: Two relations among 4 generators.
+
 
 ** Gens check
 #+BEGIN_SRC sage

@@ -17,11 +17,11 @@ ideal id8_7_8 = a15;
 module qn8 = quotient(n8, id8_7_8);
 
 module m8 = qn8[6], qn8[4], qn8[5], qn8[1];
-print("module_equal?");
 module_equal(m8, qn8);
 
 module sm8 = syz(m8);
 m8;
 sm8;
-syz(sm8);
+module sm8_2 = syz(sm8);
+/* sm8_2; */
 quit;
