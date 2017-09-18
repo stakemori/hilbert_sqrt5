@@ -516,8 +516,7 @@ fn three_forms(i: usize, prec: usize) -> Option<Vec<HmfGen<Sqrt5Mpz>>> {
     }
 }
 
-#[allow(dead_code)]
-fn three_forms_rel(i: usize, prec: usize, len: usize) -> Option<[PWtPoly; 3]> {
+pub fn three_forms_rel(i: usize, prec: usize, len: usize) -> Option<[PWtPoly; 3]> {
     let gens = three_forms(i, prec);
     gens.map(|ref x| relation_slow_3gens(x, len))
 }

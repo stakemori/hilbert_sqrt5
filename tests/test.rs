@@ -644,17 +644,17 @@ mod str_exe {
     //     }
     // }
 
-    // #[test]
-    // fn test_save_rels() {
-    //     let prec = 10;
-    //     let ref mut f = File::create("./data/rels.sobj").unwrap();
-    //     let v: Vec<_> = (1..10)
-    //         .map(|i| (i, three_forms_rel(i, prec, 50)))
-    //         .take_while(|x| x.1.is_some())
-    //         .map(|x| (x.0, x.1.unwrap()))
-    //         .collect();
-    //     save_as_pickle_3relations(&v, f);
-    // }
+    #[test]
+    fn test_save_rels() {
+        let prec = 15;
+        let ref mut f = File::create("./data/rels.sobj").unwrap();
+        let v: Vec<_> = (11..20)
+            .map(|i| (i, three_forms_rel(i, prec, 50)))
+            .take_while(|x| x.1.is_some())
+            .map(|x| (x.0, x.1.unwrap()))
+            .collect();
+        save_as_pickle_3relations(&v, f);
+    }
 }
 
 mod div {
