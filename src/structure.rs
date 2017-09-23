@@ -19,6 +19,9 @@ use std::fs::remove_file;
 use serde::ser::{Serialize, Serializer};
 use serde::{Deserialize, Deserializer};
 use libc::{c_ulong, c_long};
+use flint::fmpz::Fmpz;
+use flint::fmpz_mat::FmpzMat;
+use std::convert::From;
 
 struct MpzWrapper {
     pub a: Mpz,
@@ -127,6 +130,25 @@ pub fn relations(len: usize, forms: &[HmfGen<Sqrt5Mpz>]) -> Vec<Vec<Sqrt5Mpz>> {
     };
     remove_file(&path).unwrap();
     res
+}
+
+pub fn relations_over_z(len: usize, forms: &[HmfGen<Mpz>]) -> Vec<Vec<Mpz>> {
+    let vv: Vec<_> = forms.iter().map(|f| f.fc_vector(len)).collect();
+    let vv: Vec<Vec<Fmpz>> = vv.iter()
+        .map(|v| v.iter().map(From::from).collect())
+        .collect();
+    let n = forms.len();
+    let m = vv[0].len();
+    let mut mat = FmpzMat::new(m as i64, n as i64);
+    for (i, v) in vv.iter().enumerate() {
+        for (j, x) in v.iter().enumerate() {
+            mat.set_entry(j as isize, i as isize, x);
+        }
+    }
+    mat.nullspace_basis()
+        .iter()
+        .map(|v| v.iter().map(From::from).collect())
+        .collect()
 }
 
 /// f: polynomial of `g2, g5, g6` as q-expansion. Return the corresponding

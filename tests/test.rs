@@ -657,6 +657,21 @@ mod str_exe {
     }
 }
 
+mod str_test {
+    use hilbert_sqrt5::structure::*;
+    use hilbert_sqrt5::eisenstein::{eisenstein_series};
+
+    #[test]
+    fn test_relations_over_z() {
+        let prec = 10;
+        let g2 = eisenstein_series(2, prec);
+        let f = &g2 * 2;
+        let forms = [f, g2];
+        let rels = relations_over_z(50, &forms);
+        assert_eq!(rels.len(), 1);
+    }
+}
+
 mod div {
     use super::*;
     use hilbert_sqrt5::elements::{div_mut, div_mut_with_denom};

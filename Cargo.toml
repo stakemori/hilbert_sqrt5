@@ -4,7 +4,8 @@ version = "0.1.0"
 authors = ["Sho Takemori <stakemorii@gmail.com>"]
 
 [dependencies]
-rust-gmp = { path = "/home/sho/work/rust/rust-gmp/"}
+flint = { path = "/home/sho/work/rust/flint-rust/" }
+rust-gmp = { git = "https://github.com/stakemori/rust-gmp.git", branch = "develop"}
 libc = "0.2"
 serde = "1.0"
 serde_derive = "1.0"

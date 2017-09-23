@@ -1,5 +1,6 @@
 #![crate_name = "hilbert_sqrt5"]
 #![warn(deprecated)]
+extern crate flint;
 extern crate gmp;
 extern crate libc;
 extern crate rand;
