@@ -44,6 +44,27 @@
 
 
 * Structure 5 gens
+** Singular code
+#+BEGIN_SRC sh :results output
+  Singular -q ../src/singular/a5_1.txt
+#+END_SRC
+
+#+RESULTS:
+#+begin_example
+[1]:
+   _[1]=[0,g2^4-1080*g2*g6]
+   _[2]=[45*g2*g5,-44*g2^3]
+   _[3]=[3*g2^3*g6-3240*g6^2,-1600*g2^3*g5+1728000*g5*g6]
+   _[4]=[g2^4-1080*g2*g6]
+[2]:
+   _[1]=[1600*g5,0,g2,-3*g6]
+   _[2]=[44*g2^2,g2^3-1080*g6,0,-45*g5]
+[3]:
+   _[1]=0
+#+end_example
+
+
+  
 #+BEGIN_SRC sage
   load('~/work/rust/hilbert_sqrt5/src/modstr.py')
   [factor(a) for a in to_pols_normalized(load(join(Path, "data/str5gens1.sobj")))]
@@ -377,13 +398,30 @@ sm10[2]=[314741020*g2^3-3121333056000*g6,-3262642099516800*g5,1441*g2^3-15014592
 : (74489415/2) * g5 * (g2^9 + 488526/41*g2^6*g6 + 383414400/41*g2^4*g5^2 - 291611880/41*g2^3*g6^2 + 86067360000/41*g2*g5^2*g6 - 169827840000/41*g6^3)
 
 * Structure6 brackets
-   #+BEGIN_SRC sage
-     load('~/work/rust/hilbert_sqrt5/src/modstr.py')
-     for p in load(join(Path, "data/str6_brs.sobj")):
-         print to_pol_over_z(p).change_ring(ZZ).factor()
+#+BEGIN_SRC sage
+  load('~/work/rust/hilbert_sqrt5/src/modstr.py')
+  for p in load(join(Path, "data/str6_brs.sobj")):
+      print to_pol_over_z(p).change_ring(ZZ).factor()
 #+END_SRC
 
 #+RESULTS:
 : 2^14 * 3^5 * 5^4 * 7^3 * g5 * g2
 : 2^8 * 3^3 * 5 * 7^2 * g2^4
 : 2^11 * 3^4 * 5^2 * 7^3 * (2*g2^2*g6 + 375*g5^2)
+
+* Structure 5 brackets
+6, 7, 10
+#+BEGIN_SRC sage
+  load('~/work/rust/hilbert_sqrt5/src/modstr.py')
+  for p in load(join(Path, "data/str5_brs.sobj")):
+      p = to_pol_over_z(p).change_ring(ZZ)
+      if p != 0:
+          print p.factor()
+      else:
+          print 0
+#+END_SRC
+
+#+RESULTS:
+: (-1) * 2^6 * 3^2 * 5^2 * 11^2 * g2 * (-g2^3 + 1080*g6)
+: 2^17 * 3^4 * 5^4 * 7 * 11 * g5 * (-11*g2^3 + 10800*g6)
+: 2^8 * 3^3 * 5^2 * 7 * (-11*g2^6 + 3960*g2^3*g6 - 432000*g2*g5^2 + 8553600*g6^2)

@@ -671,19 +671,37 @@ mod str_exe {
         save_as_pickle_3relations(&v, f);
     }
 
+    fn brackets(len:usize, forms: &[HmfGen<Sqrt5Mpz>]) -> Vec<(PWtPolyZ, Mpz)> {
+        forms.iter()
+            .enumerate()
+            .flat_map(|(i, f)| {
+                forms.iter().skip(i + 1).map(|g| {
+                    bracket_inner_prod_as_pol_over_z_maybe(f, g, len).unwrap()
+                }).collect::<Vec<_>>()
+            })
+            .collect()
+    }
+
     #[test]
     fn test_save_rels6() {
         let prec = 15;
         let gens1 = Structure6::gens1(prec);
-        let v: Vec<_> = gens1.iter()
-            .enumerate()
-            .flat_map(|(i, f)| {
-                gens1.iter().skip(i + 1).map(|g| {
-                    bracket_inner_prod_as_pol_over_z_maybe(f, g, 50).unwrap()
-                }).collect::<Vec<_>>()
-            })
-            .collect();
+        let v = brackets(50, &gens1);
         let ref mut f = File::create("./data/str6_brs.sobj").unwrap();
+        save_polys_over_z_pickle(&v, f);
+    }
+
+    #[test]
+    fn test_save_rels5() {
+        let prec = 15;
+        let gens1 = mixed_weight_forms(5, prec, 5);
+        let gens = [gens1[0].clone(), gens1[1].clone(), gens1[4].clone()];
+        for f in &gens {
+            print!("{}, ", f.weight.unwrap().0);
+        }
+        println!("\n");
+        let v = brackets(50, &gens);
+        let ref mut f = File::create("./data/str5_brs.sobj").unwrap();
         save_polys_over_z_pickle(&v, f);
     }
 }

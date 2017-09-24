@@ -547,8 +547,7 @@ impl Structure for Structure4 {
     }
 }
 
-#[allow(dead_code)]
-fn three_forms(i: usize, prec: usize) -> Option<Vec<HmfGen<Sqrt5Mpz>>> {
+pub fn three_forms(i: usize, prec: usize) -> Option<Vec<HmfGen<Sqrt5Mpz>>> {
     let v = if is_even!(i) {
         let g2 = eisenstein_series(2, prec);
         let g5 = g5_normalized(prec);
@@ -571,6 +570,30 @@ fn three_forms(i: usize, prec: usize) -> Option<Vec<HmfGen<Sqrt5Mpz>>> {
     } else {
         Some(v)
     }
+}
+
+/// Return a vector of length `len` of mixed weight modular forms.
+pub fn mixed_weight_forms(df: usize, prec: usize, len: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+    let mut num = 0;
+    let mut res = Vec::new();
+    for (i, m) in (2..).flat_map(monoms_of_g2_g5_f6).enumerate() {
+        for n in (2..).flat_map(monoms_of_g2_g5_f6).take(if is_even!(df) {
+            i + 1
+        } else {
+            i
+        })
+        {
+            if num >= len {
+                return res;
+            }
+            let f = rankin_cohen_sqrt5(df, &m.into_form(prec), &n.into_form(prec)).unwrap();
+            if !f.is_zero() {
+                num += 1;
+                res.push(f);
+            }
+        }
+    }
+    res
 }
 
 pub fn three_forms_rel(i: usize, prec: usize, len: usize) -> Option<[PWtPoly; 3]> {
@@ -1016,4 +1039,16 @@ pub fn forms_generated(k: usize, prec: usize, gens: &[HmfGen<Sqrt5Mpz>]) -> Vec<
         res.push(&f * &g);
     }
     res
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_works() {
+        let v: Vec<_> = (2..).flat_map(monoms_of_g2_g5_f6).take(10).collect();
+        println!("{:?}", v);
+    }
 }
