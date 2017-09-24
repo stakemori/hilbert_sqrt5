@@ -785,13 +785,15 @@ impl Structure6 {
         let i = 6;
         let g2 = eisenstein_series(2, prec);
         let g5 = g5_normalized(prec);
-        let f0 = rankin_cohen_sqrt5(i, &g2, &g2).unwrap();
+        let f4 = rankin_cohen_sqrt5(i, &g2, &g2).unwrap();
         let mut gens = Structure3::gens(prec);
         let mut f6 = gens.remove(0);
         f6.square();
+        let f7 = rankin_cohen_sqrt5(i, &g2, &g5).unwrap();
         assert_eq!(f6.weight, Some((6, 18)));
-        let f2 = rankin_cohen_sqrt5(i, &g2, &g5).unwrap();
-        vec![f0, f6, f2]
+        assert_eq!(f4.weight, Some((4, 16)));
+        assert_eq!(f7.weight, Some((7, 19)));
+        vec![f4, f6, f7]
     }
 
     pub fn gens2(prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
