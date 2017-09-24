@@ -261,6 +261,21 @@ mod str_exe {
         save_as_pickle((v, a), f);
     }
 
+    fn save_polys_over_z_pickle(xs: &[(PWtPolyZ, Mpz)], f: &mut File) {
+        let v: Vec<(Vec<_>, MpzWrapper)> = xs.iter()
+            .map(|x| {
+                (
+                    x.0
+                        .iter()
+                        .map(|elt| (elt.0.idx, Into::<MpzWrapper>::into(&elt.1)))
+                        .collect(),
+                    Into::into(&x.1),
+                )
+            })
+            .collect();
+        save_as_pickle(&v, f);
+    }
+
     fn save_star_norm_as_poly_pickle(f: &HmfGen<Sqrt5Mpz>, len: usize, fl: &mut File) {
         let mut res = HmfGen::new(f.prec);
         star_op(&mut res, f);
@@ -655,11 +670,27 @@ mod str_exe {
             .collect();
         save_as_pickle_3relations(&v, f);
     }
+
+    #[test]
+    fn test_save_rels6() {
+        let prec = 15;
+        let gens1 = Structure6::gens1(prec);
+        let v: Vec<_> = gens1.iter()
+            .enumerate()
+            .flat_map(|(i, f)| {
+                gens1.iter().skip(i + 1).map(|g| {
+                    bracket_inner_prod_as_pol_over_z_maybe(f, g, 50).unwrap()
+                }).collect::<Vec<_>>()
+            })
+            .collect();
+        let ref mut f = File::create("./data/str6_brs.sobj").unwrap();
+        save_polys_over_z_pickle(&v, f);
+    }
 }
 
 mod str_test {
     use hilbert_sqrt5::structure::*;
-    use hilbert_sqrt5::eisenstein::{eisenstein_series};
+    use hilbert_sqrt5::eisenstein::eisenstein_series;
 
     #[test]
     fn test_relations_over_z() {

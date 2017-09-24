@@ -23,7 +23,7 @@ use flint::fmpz::Fmpz;
 use flint::fmpz_mat::FmpzMat;
 use std::convert::From;
 
-struct MpzWrapper {
+pub struct MpzWrapper {
     pub a: Mpz,
 }
 
@@ -151,6 +151,26 @@ pub fn relations_over_z(len: usize, forms: &[HmfGen<Mpz>]) -> Vec<Vec<Mpz>> {
         .collect()
 }
 
+// TODO: Remove duplicate of code.
+/// Similar to `r_elt_as_pol`.
+pub fn r_elt_as_pol_over_z(f: &HmfGen<Mpz>, len: usize) -> Option<(Vec<(MonomFormal, Mpz)>, Mpz)> {
+    let f = f.clone();
+    let prec = f.prec;
+    let monoms = monoms_of_g2_g5_f6(f.weight.unwrap().0);
+    let mut forms: Vec<_> = monoms.iter().map(|x| x.into_form(prec)).collect();
+    forms.insert(0, f);
+    let mut rels = relations_over_z(len, &forms);
+    if rels.len() == 1 && !rels[0][0].is_zero() {
+        let cfs: Vec<_> = rels[0].iter().skip(1).map(|x| -x).collect();
+        Some((
+            monoms.into_iter().zip(cfs.into_iter()).collect(),
+            rels.remove(0).remove(0),
+        ))
+    } else {
+        None
+    }
+}
+
 /// f: polynomial of `g2, g5, g6` as q-expansion. Return the corresponding
 /// polynomia. The second element is a denominator.
 pub fn r_elt_as_pol(f: &HmfGen<Sqrt5Mpz>, len: usize) -> Option<(PWtPoly, Sqrt5Mpz)> {
@@ -192,6 +212,20 @@ pub fn bracket_inner_prod_as_pol(
     r_elt_as_pol(&h, len)
 }
 
+pub fn bracket_inner_prod_as_pol_over_z_maybe(
+    f: &HmfGen<Sqrt5Mpz>,
+    g: &HmfGen<Sqrt5Mpz>,
+    len: usize,
+) -> Option<(PWtPolyZ, Mpz)> {
+    let h = bracket_inner_prod1(f, g).unwrap();
+    if !h.rt_part().is_zero() {
+        None
+    } else {
+        let h_ir = h.ir_part();
+        r_elt_as_pol_over_z(&h_ir, len)
+    }
+}
+
 /// A stupid function that returns a linear relation.
 pub fn relation(len: usize, f: &HmfGen<Sqrt5Mpz>, forms: &[HmfGen<Sqrt5Mpz>]) -> Vec<Sqrt5Mpz> {
     let mut vv = Vec::new();
@@ -204,6 +238,7 @@ pub fn relation(len: usize, f: &HmfGen<Sqrt5Mpz>, forms: &[HmfGen<Sqrt5Mpz>]) ->
 }
 
 pub type PWtPoly = Vec<(MonomFormal, Sqrt5Mpz)>;
+pub type PWtPolyZ = Vec<(MonomFormal, Mpz)>;
 pub type Relation = Vec<PWtPoly>;
 
 pub fn relation_monom(len: usize, f: &HmfGen<Sqrt5Mpz>) -> (Sqrt5Mpz, PWtPoly) {
