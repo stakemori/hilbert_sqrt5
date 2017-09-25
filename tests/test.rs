@@ -712,11 +712,13 @@ mod str_exe {
 
     #[test]
     fn test_save_rels_up_to_50() {
-        for i in 2..51 {
+        for i in 36..51 {
             println!("{}", i);
-            let prec = 2*i/5 + 10;
+            let prec = (2*i + 6)/5 + 2;
+            println!("{}", prec);
             let forms = mixed_weight_forms(i, prec, 6);
             let weight: Vec<_> = forms.iter().map(|f| f.weight.unwrap().0).collect();
+            println!("{:?}", weight);
             let ref mut f = File::create(format!("./data/brackets/str{}_brs.sobj", i)).unwrap();
             let ref mut f_wt = File::create(format!("./data/brackets/str{}_weights.sobj", i)).unwrap();
             save_as_pickle(weight, f_wt);
