@@ -705,9 +705,24 @@ mod str_exe {
             print!("{}, ", f.weight.unwrap().0);
         }
         println!("\n");
-        let v = brackets(50, &gens);
+        let v = brackets(&gens);
         let ref mut f = File::create("./data/str5_brs.sobj").unwrap();
         save_polys_over_z_pickle(&v, f);
+    }
+
+    #[test]
+    fn test_save_rels_up_to_50() {
+        for i in 2..51 {
+            println!("{}", i);
+            let prec = 2*i/5 + 10;
+            let forms = mixed_weight_forms(i, prec, 6);
+            let weight: Vec<_> = forms.iter().map(|f| f.weight.unwrap().0).collect();
+            let ref mut f = File::create(format!("./data/brackets/str{}_brs.sobj", i)).unwrap();
+            let ref mut f_wt = File::create(format!("./data/brackets/str{}_weights.sobj", i)).unwrap();
+            save_as_pickle(weight, f_wt);
+            let brs = brackets(&forms);
+            save_polys_over_z_pickle(&brs, f);
+        }
     }
 }
 
