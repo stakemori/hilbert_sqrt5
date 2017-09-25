@@ -671,13 +671,18 @@ mod str_exe {
         save_as_pickle_3relations(&v, f);
     }
 
-    fn brackets(len:usize, forms: &[HmfGen<Sqrt5Mpz>]) -> Vec<(PWtPolyZ, Mpz)> {
-        forms.iter()
+    fn brackets(len: usize, forms: &[HmfGen<Sqrt5Mpz>]) -> Vec<(PWtPolyZ, Mpz)> {
+        forms
+            .iter()
             .enumerate()
             .flat_map(|(i, f)| {
-                forms.iter().skip(i + 1).map(|g| {
-                    bracket_inner_prod_as_pol_over_z_maybe(f, g, len).unwrap()
-                }).collect::<Vec<_>>()
+                forms
+                    .iter()
+                    .skip(i + 1)
+                    .map(|g| {
+                        bracket_inner_prod_as_pol_over_z_maybe(f, g, len).unwrap()
+                    })
+                    .collect::<Vec<_>>()
             })
             .collect()
     }
