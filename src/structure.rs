@@ -133,7 +133,7 @@ pub fn relations(len: usize, forms: &[HmfGen<Sqrt5Mpz>]) -> Vec<Vec<Sqrt5Mpz>> {
 }
 
 pub fn relations_over_z(forms: &[HmfGen<Mpz>]) -> Vec<Vec<Mpz>> {
-    let vv: Vec<_> = forms.iter().map(|f| f.fc_vector(f.u_bds.vec.len())).collect();
+    let vv: Vec<_> = forms.iter().map(|f| f.fc_vector_all()).collect();
     let vv: Vec<Vec<Fmpz>> = vv.iter()
         .map(|v| v.iter().map(From::from).collect())
         .collect();

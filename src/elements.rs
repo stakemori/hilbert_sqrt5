@@ -420,6 +420,10 @@ where
         res
     }
 
+    pub fn fc_vector_all(&self) -> Vec<T> where T: Clone{
+        self.fcvec.vec.clone().into_iter().flat_map(|v| v).collect()
+    }
+
     pub fn fc_vector_real_quad(&self, len: usize) -> Vec<(Mpz, Mpz)>
     where
         T: RealQuadElement<Mpz>,
