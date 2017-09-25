@@ -58,6 +58,7 @@ class FormsData(object):
         d = self.brackets_dict
         return [-d[(g, x)], d[(f, x)]]
 
+    # Up to 50 this returns some.
     def relatively_prime_3forms_maybe(self):
         l = ((f, g, h) for f in self.forms for g in self.forms if f[0] < g[0]
              for h in self.forms if g[0] < h[0]
@@ -76,6 +77,25 @@ class FormsData(object):
         for t in l:
             return t
         return None
+
+    def min_reol_maybe_with3gens(self):
+        forms = self.relatively_prime_3forms_maybe()
+        d = self.brackets_dict
+        if forms is None:
+            return None
+        F = FreeModule(R, 2)
+        f, g, h = forms
+        e0, e1 = F.gens()
+        a = d[(g, h)]
+        b = -d[(f, h)]
+        c = d[(f, g)]
+        f = e0 * c
+        g = e1 * c
+        h = -(a * e0 + b * e1)
+        n = smodule(f, g, h)
+        idb = sideal(b)
+        m = squotient(n, idb)
+        return slist(smres(m, 0))
 
 
 def gens():
