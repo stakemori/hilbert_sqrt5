@@ -671,7 +671,7 @@ mod str_exe {
         save_as_pickle_3relations(&v, f);
     }
 
-    fn brackets(len: usize, forms: &[HmfGen<Sqrt5Mpz>]) -> Vec<(PWtPolyZ, Mpz)> {
+    fn brackets(forms: &[HmfGen<Sqrt5Mpz>]) -> Vec<(PWtPolyZ, Mpz)> {
         forms
             .iter()
             .enumerate()
@@ -680,7 +680,7 @@ mod str_exe {
                     .iter()
                     .skip(i + 1)
                     .map(|g| {
-                        bracket_inner_prod_as_pol_over_z_maybe(f, g, len).unwrap()
+                        bracket_inner_prod_as_pol_over_z_maybe(f, g).unwrap()
                     })
                     .collect::<Vec<_>>()
             })
@@ -691,7 +691,7 @@ mod str_exe {
     fn test_save_rels6() {
         let prec = 15;
         let gens1 = Structure6::gens1(prec);
-        let v = brackets(50, &gens1);
+        let v = brackets(&gens1);
         let ref mut f = File::create("./data/str6_brs.sobj").unwrap();
         save_polys_over_z_pickle(&v, f);
     }
@@ -721,7 +721,7 @@ mod str_test {
         let g2 = eisenstein_series(2, prec);
         let f = &g2 * 2;
         let forms = [f, g2];
-        let rels = relations_over_z(50, &forms);
+        let rels = relations_over_z(&forms);
         assert_eq!(rels.len(), 1);
     }
 }

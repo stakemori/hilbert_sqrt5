@@ -132,8 +132,8 @@ pub fn relations(len: usize, forms: &[HmfGen<Sqrt5Mpz>]) -> Vec<Vec<Sqrt5Mpz>> {
     res
 }
 
-pub fn relations_over_z(len: usize, forms: &[HmfGen<Mpz>]) -> Vec<Vec<Mpz>> {
-    let vv: Vec<_> = forms.iter().map(|f| f.fc_vector(len)).collect();
+pub fn relations_over_z(forms: &[HmfGen<Mpz>]) -> Vec<Vec<Mpz>> {
+    let vv: Vec<_> = forms.iter().map(|f| f.fc_vector(f.u_bds.vec.len())).collect();
     let vv: Vec<Vec<Fmpz>> = vv.iter()
         .map(|v| v.iter().map(From::from).collect())
         .collect();
@@ -153,13 +153,13 @@ pub fn relations_over_z(len: usize, forms: &[HmfGen<Mpz>]) -> Vec<Vec<Mpz>> {
 
 // TODO: Remove duplicate of code.
 /// Similar to `r_elt_as_pol`.
-pub fn r_elt_as_pol_over_z(f: &HmfGen<Mpz>, len: usize) -> Option<(Vec<(MonomFormal, Mpz)>, Mpz)> {
+pub fn r_elt_as_pol_over_z(f: &HmfGen<Mpz>) -> Option<(Vec<(MonomFormal, Mpz)>, Mpz)> {
     let f = f.clone();
     let prec = f.prec;
     let monoms = monoms_of_g2_g5_f6(f.weight.unwrap().0);
     let mut forms: Vec<_> = monoms.iter().map(|x| x.into_form(prec)).collect();
     forms.insert(0, f);
-    let mut rels = relations_over_z(len, &forms);
+    let mut rels = relations_over_z(&forms);
     if rels.len() == 1 && !rels[0][0].is_zero() {
         let cfs: Vec<_> = rels[0].iter().skip(1).map(|x| -x).collect();
         Some((
@@ -215,14 +215,13 @@ pub fn bracket_inner_prod_as_pol(
 pub fn bracket_inner_prod_as_pol_over_z_maybe(
     f: &HmfGen<Sqrt5Mpz>,
     g: &HmfGen<Sqrt5Mpz>,
-    len: usize,
 ) -> Option<(PWtPolyZ, Mpz)> {
     let h = bracket_inner_prod1(f, g).unwrap();
     if !h.rt_part().is_zero() {
         None
     } else {
         let h_ir = h.ir_part();
-        r_elt_as_pol_over_z(&h_ir, len)
+        r_elt_as_pol_over_z(&h_ir)
     }
 }
 
