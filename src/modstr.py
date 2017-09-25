@@ -15,7 +15,7 @@ slist = singular_function("list")
 
 def load_wts_brs(i):
     brs = load("/home/sho/work/rust/hilbert_sqrt5/data/brackets/str%s_brs.sobj" % i)
-    wts = load("/home/sho/work/rust/hilbert_sqrt5/data/brackets/str{}_weights..sobj" % i)
+    wts = load("/home/sho/work/rust/hilbert_sqrt5/data/brackets/str%s_weights.sobj" % i)
     return FormsData(wts, [to_pol_over_z(p) for p in brs])
 
 
