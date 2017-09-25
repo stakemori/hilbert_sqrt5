@@ -1,9 +1,81 @@
 # -*- coding: utf-8; mode: sage -*-
-from sage.all import QuadraticField, PolynomialRing, ZZ, flatten, gcd
-
+from sage.all import QuadraticField, PolynomialRing, ZZ, flatten, gcd, load, FreeModule
+from sage.libs.singular.function import singular_function
 K = QuadraticField(5)
 R = PolynomialRing(K, names='g2, g5, g6')
 g2, g5, g6 = R.gens()
+
+
+smodule = singular_function("module")
+sideal = singular_function("ideal")
+squotient = singular_function("quotient")
+smres = singular_function("mres")
+slist = singular_function("list")
+
+
+def load_wts_brs(i):
+    brs = load("/home/sho/work/rust/hilbert_sqrt5/data/brackets/str%s_brs.sobj" % i)
+    wts = load("/home/sho/work/rust/hilbert_sqrt5/data/brackets/str{}_weights..sobj" % i)
+    return FormsData(wts, [to_pol_over_z(p) for p in brs])
+
+
+def min_resolution_maybe_with3gens(coeffs, i=1):
+    F = FreeModule(R, 2)
+    e0, e1 = F.gens()
+    assert len(coeffs) == 3
+    a, b, c = coeffs
+    f = e0 * c
+    g = e1 * c
+    h = -(a * e0 + b * e1)
+    n = smodule(f, g, h)
+    idb = sideal(coeffs[i])
+    m = squotient(n, idb)
+    return slist(smres(m, 0))
+
+
+class FormsData(object):
+
+    def __init__(self, weights, brackets):
+        self._forms = list(enumerate(weights))
+        self._brackets_dict = {}
+        keys = [(a, b) for a in self._forms for b in self._forms if a[0] < b[0]]
+        self._brackets_dict = {(a, b): br for (a, b), br in zip(keys, brackets)}
+        for a in self._forms:
+            for b in self._forms:
+                if a[0] > b[0]:
+                    self._brackets_dict[(a, b)] = -self._brackets_dict[(b, a)]
+
+    @property
+    def forms(self):
+        return self._forms
+
+    @property
+    def brackets_dict(self):
+        return self._brackets_dict
+
+    def num_coeffs(self, x, basis):
+        f, g = basis
+        d = self.brackets_dict
+        return [-d[(g, x)], d[(f, x)]]
+
+    def relatively_prime_3forms_maybe(self):
+        l = ((f, g, h) for f in self.forms for g in self.forms if f[0] < g[0]
+             for h in self.forms if g[0] < h[0]
+             if R(gcd(self.brackets_dict[(f, g)],
+                      self.brackets_dict[(f, h)],)).degree() == 0)
+        for a in l:
+            return a
+        return None
+
+    def relatively_prime_4forms_maybe(self):
+        l = ((f, g, h, j) for f in self.forms for g in self.forms if f[0] < g[0]
+             for h in self.forms if g[0] < h[0]
+             for j in self.forms if h[0] < j[0]
+             if R((gcd(self.brackets_dict[(f, g)],
+                       self.brackets_dict[(h, j)],))).degree() == 0)
+        for t in l:
+            return t
+        return None
 
 
 def gens():
