@@ -425,10 +425,10 @@ pub fn monoms_of_g2_g5_f6(k: usize) -> Vec<MonomFormal> {
         .collect()
 }
 
-fn eval_relation(rel: &Relation, gens: &Vec<HmfGen<Sqrt5Mpz>>) -> HmfGen<Sqrt5Mpz> {
+fn linear_comb(coeffs: &Vec<PWtPoly>, gens: &Vec<HmfGen<Sqrt5Mpz>>) -> HmfGen<Sqrt5Mpz> {
     let prec = gens[0].prec;
     let mut res = HmfGen::<Sqrt5Mpz>::new(prec);
-    for (&ref p, f) in rel.iter().zip(gens.iter()) {
+    for (&ref p, f) in coeffs.iter().zip(gens.iter()) {
         let mut tmp = MonomFormal::eval(p, prec);
         tmp *= f;
         res += &tmp;
@@ -447,7 +447,7 @@ pub trait Structure {
         } else {
             let rels = Self::relations().unwrap();
             for rel in rels.iter() {
-                if !eval_relation(rel, &gens).is_zero() {
+                if !linear_comb(rel, &gens).is_zero() {
                     return false;
                 }
             }
