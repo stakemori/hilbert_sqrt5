@@ -261,21 +261,6 @@ mod str_exe {
         save_as_pickle((v, a), f);
     }
 
-    fn save_polys_over_z_pickle(xs: &[(PWtPolyZ, Mpz)], f: &mut File) {
-        let v: Vec<(Vec<_>, MpzWrapper)> = xs.iter()
-            .map(|x| {
-                (
-                    x.0
-                        .iter()
-                        .map(|elt| (elt.0.idx, Into::<MpzWrapper>::into(&elt.1)))
-                        .collect(),
-                    Into::into(&x.1),
-                )
-            })
-            .collect();
-        save_as_pickle(&v, f);
-    }
-
     fn save_star_norm_as_poly_pickle(f: &HmfGen<Sqrt5Mpz>, len: usize, fl: &mut File) {
         let mut res = HmfGen::new(f.prec);
         star_op(&mut res, f);

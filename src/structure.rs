@@ -11,7 +11,7 @@ use serde;
 use std::process::Command;
 use std::env;
 use bignum::Sqrt5Mpz;
-use diff_op::{rankin_cohen_sqrt5, bracket_inner_prod1};
+use diff_op::{rankin_cohen_sqrt5, bracket_inner_prod1, star_op};
 use misc::PowGen;
 use rand;
 use std::path::Path;
@@ -23,6 +23,7 @@ use flint::fmpz::Fmpz;
 use flint::fmpz_mat::FmpzMat;
 use std::convert::From;
 use std::ops::AddAssign;
+
 
 pub struct MpzWrapper {
     pub a: Mpz,
@@ -375,13 +376,127 @@ where
     f.write(&v).unwrap();
 }
 
-#[allow(dead_code)]
 fn load_pickle<'de, T>(f: &File) -> Result<Vec<T>, serde_pickle::Error>
 where
     T: serde::Deserialize<'de>,
 {
     let buf: Vec<u8> = f.bytes().map(|x| x.unwrap()).collect();
     serde_pickle::from_slice(&buf)
+}
+
+pub struct StrCand {
+    pub gens_num: Vec<(PWtPolyZ, PWtPolyZ)>,
+    pub rels: Vec<Vec<Vec<PWtPolyZ>>>,
+    pub gen_wts: Vec<u64>,
+    pub rel_wts: Vec<Vec<u64>>,
+    pub free_basis_wts: ((usize, u64), (usize, u64)),
+    pub gens_dnm: PWtPolyZ,
+}
+
+pub type PWtPolyZRaw = Vec<((usize, usize, usize), String)>;
+
+impl StrCand {
+    pub fn load(f: &File) -> Result<Self, serde_pickle::Error> {
+        let buf: Vec<u8> = f.bytes().map(|x| x.unwrap()).collect();
+        let data: (Vec<Vec<Vec<PWtPolyZRaw>>>,
+                   Vec<Vec<u64>>,
+                   ((usize, u64), (usize, u64), PWtPolyZRaw)) = serde_pickle::from_slice(&buf)?;
+
+        fn to_monom_formal_tpl(
+            xs: &Vec<((usize, usize, usize), String)>,
+        ) -> Vec<(MonomFormal, Mpz)> {
+            xs.iter()
+                .map(|x| {
+                    (
+                        MonomFormal { idx: x.0 },
+                        Mpz::from_str_radix(&x.1, 10).unwrap(),
+                    )
+                })
+                .collect()
+        }
+
+        let gens_nums: Vec<_> = data.0[0]
+            .iter()
+            .map(|v| {
+                let v: Vec<_> = v.iter().map(to_monom_formal_tpl).collect();
+                (v[0].clone(), v[1].clone())
+            })
+            .collect();
+        let rels: Vec<Vec<Vec<PWtPolyZ>>> = data.0
+            .clone()
+            .into_iter()
+            .skip(1)
+            .map(|l| {
+                l.iter()
+                    .map(|v| v.iter().map(to_monom_formal_tpl).collect())
+                    .collect()
+            })
+            .collect();
+        let mut wts = data.1.clone();
+        let gen_wts = wts.remove(0);
+        let rel_wts = wts;
+        let free_basis_wts = ((data.2).0, (data.2).1);
+        let gens_dnm = to_monom_formal_tpl(&(data.2).2);
+        Ok(StrCand {
+            gens_num: gens_nums,
+            rels: rels,
+            gen_wts: gen_wts,
+            rel_wts: rel_wts,
+            free_basis_wts: free_basis_wts,
+            gens_dnm: gens_dnm,
+        })
+    }
+
+    pub fn gens(&self, forms: &Vec<HmfGen<Sqrt5Mpz>>) -> Vec<HmfGen<Sqrt5Mpz>> {
+        fn to_pwtpoly(x: &PWtPolyZ) -> PWtPoly {
+            x.iter().map(|y| (y.0.clone(), From::from(&y.1))).collect()
+        }
+        let (idx_f, wt_f) = self.free_basis_wts.0;
+        let (idx_g, wt_g) = self.free_basis_wts.1;
+        let f = forms[idx_f].clone();
+        let g = forms[idx_g].clone();
+        assert_eq!(f.weight.unwrap().0 as u64, wt_f);
+        assert_eq!(g.weight.unwrap().0 as u64, wt_g);
+        let free_basis = [f, g];
+        self.gens_num
+            .iter()
+            .map(|nums| {
+                let v = [to_pwtpoly(&nums.0), to_pwtpoly(&nums.1)];
+                linear_comb(&v, &free_basis)
+            })
+            .collect()
+    }
+
+    pub fn save_star_norms(&self, forms: &Vec<HmfGen<Sqrt5Mpz>>, f: &mut File) {
+        let gens = self.gens(forms);
+        let mut pols = Vec::new();
+        for f in gens.iter() {
+            let mut nm = HmfGen::new(f.prec);
+            star_op(&mut nm, f);
+            nm *= f;
+            let wt = nm.weight.unwrap();
+            assert_eq!(wt.0, wt.1);
+            assert!(nm.ir_part().is_zero());
+            let poly = r_elt_as_pol_over_z(&nm.rt_part()).unwrap();
+            pols.push(poly);
+        }
+        save_polys_over_z_pickle(&pols, f);
+    }
+}
+
+pub fn save_polys_over_z_pickle(xs: &[(PWtPolyZ, Mpz)], f: &mut File) {
+    let v: Vec<(Vec<_>, MpzWrapper)> = xs.iter()
+        .map(|x| {
+            (
+                x.0
+                    .iter()
+                    .map(|elt| (elt.0.idx, Into::<MpzWrapper>::into(&elt.1)))
+                    .collect(),
+                Into::into(&x.1),
+            )
+        })
+        .collect();
+    save_as_pickle(&v, f);
 }
 
 /// Corresponds to g2^a * g5^b * f6^c where (a, b, c) = idx.

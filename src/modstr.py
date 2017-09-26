@@ -1,14 +1,16 @@
 # -*- coding: utf-8; mode: sage -*-
 from itertools import takewhile
-
+from pickle import Pickler
+from os.path import join
 from sage.all import (ZZ, FreeModule, PolynomialRing, QuadraticField,
-                      cached_method, flatten, gcd, load, TermOrder)
+                      TermOrder, cached_method, flatten, gcd, load)
 from sage.libs.singular.function import singular_function
 
 K = QuadraticField(5)
 R = PolynomialRing(K, names='g2, g5, g6', order=TermOrder('wdegrevlex', (2, 5, 6)))
 g2, g5, g6 = R.gens()
 
+DATA_DIR = "/home/sho/work/rust/hilbert_sqrt5/data/brackets"
 
 smodule = singular_function("module")
 sideal = singular_function("ideal")
@@ -20,8 +22,8 @@ ssyz = singular_function("syz")
 
 
 def load_wts_brs(i):
-    brs = load("/home/sho/work/rust/hilbert_sqrt5/data/brackets/str%s_brs.sobj" % i)
-    wts = load("/home/sho/work/rust/hilbert_sqrt5/data/brackets/str%s_weights.sobj" % i)
+    brs = load(join(DATA_DIR, "str%s_brs.sobj" % i))
+    wts = load(join(DATA_DIR, "str%s_weights.sobj" % i))
     return FormsData(wts, [to_pol_over_z(p) for p in brs])
 
 
@@ -97,6 +99,15 @@ def min_resol_to_primitive(m_rel):
             to_string_monoms(m_rel[0][1]),
             m_rel[1],
             (m_rel[2][0], m_rel[2][1], to_string_monom_formal(m_rel[2][2])))
+
+
+def save_min_resol_prim(i):
+    data = load_wts_brs(i)
+    resl = min_reol_maybe_with3gens(data)
+    resl_prim = min_resol_to_primitive(resl)
+    fname = join(DATA_DIR, "str%s_cand.sobj" % i)
+    with open(fname, "w") as fp:
+        Pickler(fp, 2).dump(resl_prim)
 
 
 def min_reol_maybe_with3gens(data):
