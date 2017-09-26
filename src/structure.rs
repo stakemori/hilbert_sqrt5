@@ -425,7 +425,7 @@ pub fn monoms_of_g2_g5_f6(k: usize) -> Vec<MonomFormal> {
         .collect()
 }
 
-fn linear_comb(coeffs: &Vec<PWtPoly>, gens: &Vec<HmfGen<Sqrt5Mpz>>) -> HmfGen<Sqrt5Mpz> {
+fn linear_comb(coeffs: &[PWtPoly], gens: &[HmfGen<Sqrt5Mpz>]) -> HmfGen<Sqrt5Mpz> {
     let prec = gens[0].prec;
     let mut res = HmfGen::<Sqrt5Mpz>::new(prec);
     for (&ref p, f) in coeffs.iter().zip(gens.iter()) {
