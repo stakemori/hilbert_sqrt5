@@ -679,9 +679,7 @@ mod str_exe {
                 forms
                     .iter()
                     .skip(i + 1)
-                    .map(|g| {
-                        bracket_inner_prod_as_pol_over_z_maybe(f, g).unwrap()
-                    })
+                    .map(|g| bracket_inner_prod_as_pol_over_z_maybe(f, g).unwrap())
                     .collect::<Vec<_>>()
             })
             .collect()
@@ -714,13 +712,17 @@ mod str_exe {
     fn test_save_rels_up_to_50() {
         for i in 36..51 {
             println!("{}", i);
-            let prec = (2*i + 6)/5 + 2;
+            let prec = (2 * i + 6) / 5 + 2;
             println!("{}", prec);
             let forms = mixed_weight_forms(i, prec, 6);
             let weight: Vec<_> = forms.iter().map(|f| f.weight.unwrap().0).collect();
             println!("{:?}", weight);
             let ref mut f = File::create(format!("./data/brackets/str{}_brs.sobj", i)).unwrap();
-            let ref mut f_wt = File::create(format!("./data/brackets/str{}_weights.sobj", i)).unwrap();
+            let ref mut forms_file = File::create(format!("./data/brackets/str{}_forms.sobj", i))
+                .unwrap();
+            let ref mut f_wt = File::create(format!("./data/brackets/str{}_weights.sobj", i))
+                .unwrap();
+            save_as_pickle(&forms, forms_file);
             save_as_pickle(weight, f_wt);
             let brs = brackets(&forms);
             save_polys_over_z_pickle(&brs, f);
