@@ -22,6 +22,7 @@ use libc::{c_ulong, c_long};
 use flint::fmpz::Fmpz;
 use flint::fmpz_mat::FmpzMat;
 use std::convert::From;
+use std::ops::AddAssign;
 
 pub struct MpzWrapper {
     pub a: Mpz,
@@ -393,7 +394,12 @@ impl MonomFormal {
     pub fn into_form(&self, prec: usize) -> HmfGen<Mpz> {
         monom_g2_g5_f6(prec, self.idx)
     }
-    pub fn eval(v: &PWtPoly, prec: usize) -> HmfGen<Sqrt5Mpz> {
+    pub fn eval<T>(v: &Vec<(MonomFormal, T)>, prec: usize) -> HmfGen<T>
+    where
+        T: BigNumber + Clone,
+        for<'b> T: From<&'b Mpz>,
+        for<'b> T: AddAssign<&'b T>,
+    {
         if v.is_empty() {
             HmfGen::new(prec)
         } else {
@@ -402,7 +408,7 @@ impl MonomFormal {
             let mut res = From::from(&res);
             res *= &v[0].1;
             for &(ref monom, ref a) in v.iter().skip(1) {
-                let mut tmp: HmfGen<Sqrt5Mpz> = From::from(&monom.into_form(prec));
+                let mut tmp: HmfGen<T> = From::from(&monom.into_form(prec));
                 tmp *= a;
                 res += &tmp;
             }
