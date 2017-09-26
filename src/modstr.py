@@ -54,11 +54,6 @@ class FormsData(object):
     def brackets_dict(self):
         return self._brackets_dict
 
-    def num_coeffs(self, x, basis):
-        f, g = basis
-        d = self.brackets_dict
-        return [-d[(g, x)], d[(f, x)]]
-
     # Up to 50 this returns some.
     @cached_method
     def relatively_prime_3forms_maybe(self):
