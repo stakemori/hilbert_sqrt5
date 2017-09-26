@@ -27,11 +27,19 @@ def load_wts_brs(i):
 
 def degree(p):
     p = R(p)
-    return p.weighted_degree([2, 5, 6])
+    return int(p.weighted_degree([2, 5, 6]))
 
 
 def degree_vec(v, wts):
-    return next(degree(p) + w for p, w in zip(v, wts) if p != 0)
+    return next(int(degree(p) + w) for p, w in zip(v, wts) if p != 0)
+
+
+def to_unicode(a):
+    return unicode(str(a), 'utf-8')
+
+
+def to_string_monom_formal(pl):
+    return [(k, to_unicode(a)) for (k, a) in pl.dict().items()]
 
 
 class FormsData(object):
@@ -82,6 +90,15 @@ class FormsData(object):
         return (f[1] - c_deg, g[1] - c_deg)
 
 
+def min_resol_to_primitive(m_rel):
+    def to_string_monoms(l):
+        return [[to_string_monom_formal(p) for p in v] for v in l]
+    return (to_string_monoms(m_rel[0][0]),
+            to_string_monoms(m_rel[0][1]),
+            m_rel[1],
+            (m_rel[2][0], m_rel[2][1], to_string_monom_formal(m_rel[2][2])))
+
+
 def min_reol_maybe_with3gens(data):
     forms = data.relatively_prime_3forms_maybe()
     d = data.brackets_dict
@@ -101,6 +118,7 @@ def min_reol_maybe_with3gens(data):
     m = squotient(n, idl)
     wts = data.weight_of_basis()
     mls = list(takewhile(lambda l: any(x != 0 for x in l), slist(smres(m, 0))))
+    mls = [[list(v) for v in list(l)] for l in mls]
     wts_of_mls = []
     wts_of_mls.append([degree_vec(v, wts) for v in mls[0]])
     for i, l in enumerate(mls[1:]):
