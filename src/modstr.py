@@ -22,20 +22,6 @@ def load_wts_brs(i):
     return FormsData(wts, [to_pol_over_z(p) for p in brs])
 
 
-def min_resolution_maybe_with3gens(coeffs, i=1):
-    F = FreeModule(R, 2)
-    e0, e1 = F.gens()
-    assert len(coeffs) == 3
-    a, b, c = coeffs
-    f = e0 * c
-    g = e1 * c
-    h = -(a * e0 + b * e1)
-    n = smodule(f, g, h)
-    idb = sideal(coeffs[i])
-    m = squotient(n, idb)
-    return slist(smres(m, 0))
-
-
 class FormsData(object):
 
     def __init__(self, weights, brackets):
