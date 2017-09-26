@@ -500,16 +500,20 @@ where
     T: BigNumber + Clone,
 {
     fn add_assign(&mut self, other: &HmfGen<T>) {
-        self.weight = weight_add(self.weight, other.weight);
-        let prec = min(self.prec, other.prec);
-        self.decrease_prec(prec);
-        v_u_bd_iter!((self.u_bds, v, u, bd) {
-            T::add_assign(
-                self.fcvec.fc_ref_mut(v, u, bd),
-                other.fcvec.fc_ref(v, u, bd),
-            );
-
-        })
+        if self.is_zero() {
+            self.set(other);
+            self.weight = other.weight;
+        } else {
+            self.weight = weight_add(self.weight, other.weight);
+            let prec = min(self.prec, other.prec);
+            self.decrease_prec(prec);
+            v_u_bd_iter!((self.u_bds, v, u, bd) {
+                T::add_assign(
+                    self.fcvec.fc_ref_mut(v, u, bd),
+                    other.fcvec.fc_ref(v, u, bd),
+                );
+            })
+        }
     }
 }
 

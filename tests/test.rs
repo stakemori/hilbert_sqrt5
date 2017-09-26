@@ -2,6 +2,7 @@ extern crate hilbert_sqrt5;
 extern crate gmp;
 extern crate bincode;
 extern crate libc;
+extern crate serde_pickle;
 
 use std::time::Instant;
 use hilbert_sqrt5::theta_chars::{theta, g5_normalized};
@@ -32,9 +33,11 @@ mod str_exe {
     use hilbert_sqrt5::theta_chars::g5_normalized;
     use hilbert_sqrt5::elements::HmfGen;
     use std::fs::File;
+    use std::io::Read;
     use hilbert_sqrt5::diff_op::{rankin_cohen_sqrt5, star_op};
     use hilbert_sqrt5::bignum::Sqrt5Mpz;
     use hilbert_sqrt5::bignum::BigNumber;
+    use serde_pickle;
     use super::*;
     #[test]
     fn test_tpls_of_wt() {
@@ -695,7 +698,7 @@ mod str_exe {
 
     #[test]
     fn test_save_rels_up_to_50() {
-        for i in 36..51 {
+        for i in 3..51 {
             println!("{}", i);
             let prec = (2 * i + 6) / 5 + 2;
             println!("{}", prec);
@@ -711,6 +714,22 @@ mod str_exe {
             save_as_pickle(weight, f_wt);
             let brs = brackets(&forms);
             save_polys_over_z_pickle(&brs, f);
+        }
+    }
+
+    #[test]
+    fn test_save_star_norms() {
+        for i in 3..4 {
+            println!("{}", i);
+            let f = File::open(format!("./data/brackets/str{}_forms.sobj", i)).unwrap();
+            let buf: Vec<u8> = f.bytes().map(|x| x.unwrap()).collect();
+            let forms: Vec<HmfGen<Sqrt5Mpz>> = serde_pickle::from_slice(&buf).unwrap();
+            let cand_f = File::open(format!("./data/brackets/str{}_cand.sobj", i)).unwrap();
+            let cand = StrCand::load(&cand_f).unwrap();
+            println!("{:?}", cand);
+            let mut stars_f = File::create(format!("./data/brackets/str{}_star_norms.sobj", i))
+                .unwrap();
+            cand.save_star_norms(&forms, &mut stars_f);
         }
     }
 }

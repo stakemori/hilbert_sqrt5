@@ -41,7 +41,7 @@ def to_unicode(a):
 
 
 def to_string_monom_formal(pl):
-    return [(k, to_unicode(a)) for (k, a) in pl.dict().items()]
+    return [((k[0], k[1], k[2]), to_unicode(a)) for (k, a) in pl.dict().items()]
 
 
 class FormsData(object):
@@ -95,8 +95,7 @@ class FormsData(object):
 def min_resol_to_primitive(m_rel):
     def to_string_monoms(l):
         return [[to_string_monom_formal(p) for p in v] for v in l]
-    return (to_string_monoms(m_rel[0][0]),
-            to_string_monoms(m_rel[0][1]),
+    return ([to_string_monoms(l) for l in m_rel[0]],
             m_rel[1],
             (m_rel[2][0], m_rel[2][1], to_string_monom_formal(m_rel[2][2])))
 
@@ -105,6 +104,7 @@ def save_min_resol_prim(i):
     data = load_wts_brs(i)
     resl = min_reol_maybe_with3gens(data)
     resl_prim = min_resol_to_primitive(resl)
+    return resl_prim
     fname = join(DATA_DIR, "str%s_cand.sobj" % i)
     with open(fname, "w") as fp:
         Pickler(fp, 2).dump(resl_prim)

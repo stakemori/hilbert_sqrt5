@@ -23,7 +23,7 @@ use flint::fmpz::Fmpz;
 use flint::fmpz_mat::FmpzMat;
 use std::convert::From;
 use std::ops::AddAssign;
-
+use std::fmt;
 
 pub struct MpzWrapper {
     pub a: Mpz,
@@ -384,6 +384,7 @@ where
     serde_pickle::from_slice(&buf)
 }
 
+#[derive(Debug)]
 pub struct StrCand {
     pub gens_num: Vec<(PWtPolyZ, PWtPolyZ)>,
     pub rels: Vec<Vec<Vec<PWtPolyZ>>>,
@@ -509,24 +510,37 @@ impl MonomFormal {
     pub fn into_form(&self, prec: usize) -> HmfGen<Mpz> {
         monom_g2_g5_f6(prec, self.idx)
     }
+
+    fn weight(&self) -> usize {
+        (2 * self.idx.0 + 5 * self.idx.1 + 6 * self.idx.2)
+    }
+
     pub fn eval<T>(v: &Vec<(MonomFormal, T)>, prec: usize) -> HmfGen<T>
     where
-        T: BigNumber + Clone,
+        T: BigNumber + Clone + fmt::Debug,
         for<'b> T: From<&'b Mpz>,
         for<'b> T: AddAssign<&'b T>,
     {
         if v.is_empty() {
             HmfGen::new(prec)
         } else {
+            let w = v[0].0.weight();
+            println!("{:?}", v);
+            let wt = if v.iter().all(|x| x.0.weight() == w) {
+                Some((w, w))
+            } else {
+                None
+            };
             let mut res = HmfGen::new(prec);
             res.set(&v[0].0.into_form(prec));
-            let mut res = From::from(&res);
+            let mut res: HmfGen<T> = From::from(&res);
             res *= &v[0].1;
             for &(ref monom, ref a) in v.iter().skip(1) {
                 let mut tmp: HmfGen<T> = From::from(&monom.into_form(prec));
                 tmp *= a;
                 res += &tmp;
             }
+            res.weight = wt;
             res
         }
     }
@@ -544,10 +558,13 @@ fn linear_comb(coeffs: &[PWtPoly], gens: &[HmfGen<Sqrt5Mpz>]) -> HmfGen<Sqrt5Mpz
     let prec = gens[0].prec;
     let mut res = HmfGen::<Sqrt5Mpz>::new(prec);
     for (&ref p, f) in coeffs.iter().zip(gens.iter()) {
-        let mut tmp = MonomFormal::eval(p, prec);
-        tmp *= f;
-        res += &tmp;
+        if !p.is_empty() {
+            let mut tmp = MonomFormal::eval(p, prec);
+            tmp *= f;
+            res += &tmp;
+        }
     }
+    assert!(res.weight.is_some());
     res
 }
 
