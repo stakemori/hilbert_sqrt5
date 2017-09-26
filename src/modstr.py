@@ -1,7 +1,10 @@
 # -*- coding: utf-8; mode: sage -*-
-from sage.all import (QuadraticField, PolynomialRing, ZZ, flatten, gcd, load, FreeModule,
-                      cached_method)
+from itertools import takewhile
+
+from sage.all import (ZZ, FreeModule, PolynomialRing, QuadraticField,
+                      cached_method, flatten, gcd, load)
 from sage.libs.singular.function import singular_function
+
 K = QuadraticField(5)
 R = PolynomialRing(K, names='g2, g5, g6')
 g2, g5, g6 = R.gens()
@@ -86,7 +89,7 @@ def min_reol_maybe_with3gens(data):
     n = smodule(f, g, h, b * e0, b * e1)
     sn = ssyz(n)
     m = apply(smodule, [F(x[-2] * e0 + x[-1] * e1) for x in sn])
-    return slist(smres(m, 0))
+    return list(takewhile(lambda l: any(x != 0 for x in l), slist(smres(m, 0))))
 
 
 def gens():
