@@ -2,11 +2,11 @@
 from itertools import takewhile
 
 from sage.all import (ZZ, FreeModule, PolynomialRing, QuadraticField,
-                      cached_method, flatten, gcd, load)
+                      cached_method, flatten, gcd, load, TermOrder)
 from sage.libs.singular.function import singular_function
 
 K = QuadraticField(5)
-R = PolynomialRing(K, names='g2, g5, g6')
+R = PolynomialRing(K, names='g2, g5, g6', order=TermOrder('wdegrevlex', (2, 5, 6)))
 g2, g5, g6 = R.gens()
 
 
@@ -23,6 +23,15 @@ def load_wts_brs(i):
     brs = load("/home/sho/work/rust/hilbert_sqrt5/data/brackets/str%s_brs.sobj" % i)
     wts = load("/home/sho/work/rust/hilbert_sqrt5/data/brackets/str%s_weights.sobj" % i)
     return FormsData(wts, [to_pol_over_z(p) for p in brs])
+
+
+def degree(p):
+    p = R(p)
+    return p.weighted_degree([2, 5, 6])
+
+
+def degree_vec(v, wts):
+    return next(degree(p) + w for p, w in zip(v, wts) if p != 0)
 
 
 class FormsData(object):
@@ -71,6 +80,12 @@ class FormsData(object):
             return t
         return None
 
+    def weight_of_basis(self):
+        f, g, _ = self.relatively_prime_3forms_maybe()
+        c = self.brackets_dict[(f, g)]
+        c_deg = degree(c)
+        return (f[1] - c_deg, g[1] - c_deg)
+
 
 def min_reol_maybe_with3gens(data):
     forms = data.relatively_prime_3forms_maybe()
@@ -89,7 +104,14 @@ def min_reol_maybe_with3gens(data):
     n = smodule(f, g, h, b * e0, b * e1)
     sn = ssyz(n)
     m = apply(smodule, [F(x[-2] * e0 + x[-1] * e1) for x in sn])
-    return list(takewhile(lambda l: any(x != 0 for x in l), slist(smres(m, 0))))
+    wts = data.weight_of_basis()
+    mls = list(takewhile(lambda l: any(x != 0 for x in l), slist(smres(m, 0))))
+    wts_of_mls = []
+    wts_of_mls.append([degree_vec(v, wts) for v in mls[0]])
+    for i, l in enumerate(mls[1:]):
+        wts = wts_of_mls[i]
+        wts_of_mls.append([degree_vec(v, wts) for v in l])
+    return (mls, wts_of_mls, (forms[0], forms[1], c))
 
 
 def gens():
