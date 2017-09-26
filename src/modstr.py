@@ -1,5 +1,6 @@
 # -*- coding: utf-8; mode: sage -*-
-from sage.all import QuadraticField, PolynomialRing, ZZ, flatten, gcd, load, FreeModule
+from sage.all import (QuadraticField, PolynomialRing, ZZ, flatten, gcd, load, FreeModule,
+                      cached_method)
 from sage.libs.singular.function import singular_function
 K = QuadraticField(5)
 R = PolynomialRing(K, names='g2, g5, g6')
@@ -11,6 +12,8 @@ sideal = singular_function("ideal")
 squotient = singular_function("quotient")
 smres = singular_function("mres")
 slist = singular_function("list")
+sintersect = singular_function("intersect")
+ssyz = singular_function("syz")
 
 
 def load_wts_brs(i):
@@ -59,6 +62,7 @@ class FormsData(object):
         return [-d[(g, x)], d[(f, x)]]
 
     # Up to 50 this returns some.
+    @cached_method
     def relatively_prime_3forms_maybe(self):
         l = ((f, g, h) for f in self.forms for g in self.forms if f[0] < g[0]
              for h in self.forms if g[0] < h[0]
@@ -78,24 +82,25 @@ class FormsData(object):
             return t
         return None
 
-    def min_reol_maybe_with3gens(self):
-        forms = self.relatively_prime_3forms_maybe()
-        d = self.brackets_dict
-        if forms is None:
-            return None
-        F = FreeModule(R, 2)
-        f, g, h = forms
-        e0, e1 = F.gens()
-        a = d[(g, h)]
-        b = -d[(f, h)]
-        c = d[(f, g)]
-        f = e0 * c
-        g = e1 * c
-        h = -(a * e0 + b * e1)
-        n = smodule(f, g, h)
-        idb = sideal(b)
-        m = squotient(n, idb)
-        return slist(smres(m, 0))
+
+def min_reol_maybe_with3gens(data):
+    forms = data.relatively_prime_3forms_maybe()
+    d = data.brackets_dict
+    if forms is None:
+        return None
+    F = FreeModule(R, 2)
+    f, g, h = forms
+    e0, e1 = F.gens()
+    a = d[(g, h)]
+    b = -d[(f, h)]
+    c = d[(f, g)]
+    f = e0 * c
+    g = e1 * c
+    h = -(a * e0 + b * e1)
+    n = smodule(f, g, h, b * e0, b * e1)
+    sn = ssyz(n)
+    m = apply(smodule, [F(x[-2] * e0 + x[-1] * e1) for x in sn])
+    return slist(smres(m, 0))
 
 
 def gens():
