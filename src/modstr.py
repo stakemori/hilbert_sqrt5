@@ -41,6 +41,7 @@ def to_unicode(a):
 
 
 def to_string_monom_formal(pl):
+    pl = pl.change_ring(ZZ)
     return [((k[0], k[1], k[2]), to_unicode(a)) for (k, a) in pl.dict().items()]
 
 
@@ -100,11 +101,14 @@ def min_resol_to_primitive(m_rel):
             (m_rel[2][0], m_rel[2][1], to_string_monom_formal(m_rel[2][2])))
 
 
+def load_star_norms(i):
+    return load(join(DATA_DIR, "str%s_star_norms.sobj" % i))
+
+
 def save_min_resol_prim(i):
     data = load_wts_brs(i)
     resl = min_reol_maybe_with3gens(data)
     resl_prim = min_resol_to_primitive(resl)
-    return resl_prim
     fname = join(DATA_DIR, "str%s_cand.sobj" % i)
     with open(fname, "w") as fp:
         Pickler(fp, 2).dump(resl_prim)
@@ -151,6 +155,10 @@ def to_pol_over_z(tpl):
     l, dnm = tpl
     dnm = ZZ(dnm)
     return sum(g2**a * g5**b * g6**c * ZZ(s) / ZZ(2) for (a, b, c), s in l) / dnm
+
+
+def to_pol_over_z_wo_dnm(l):
+    return sum(g2**a * g5**b * g6**c * ZZ(s) / ZZ(2) for (a, b, c), s in l)
 
 
 def to_pol1(tpl):

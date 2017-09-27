@@ -2,7 +2,6 @@ extern crate hilbert_sqrt5;
 extern crate gmp;
 extern crate bincode;
 extern crate libc;
-extern crate serde_pickle;
 
 use std::time::Instant;
 use hilbert_sqrt5::theta_chars::{theta, g5_normalized};
@@ -33,11 +32,9 @@ mod str_exe {
     use hilbert_sqrt5::theta_chars::g5_normalized;
     use hilbert_sqrt5::elements::HmfGen;
     use std::fs::File;
-    use std::io::Read;
     use hilbert_sqrt5::diff_op::{rankin_cohen_sqrt5, star_op};
     use hilbert_sqrt5::bignum::Sqrt5Mpz;
     use hilbert_sqrt5::bignum::BigNumber;
-    use serde_pickle;
     use super::*;
     #[test]
     fn test_tpls_of_wt() {
@@ -686,7 +683,7 @@ mod str_exe {
     fn test_save_rels5() {
         let prec = 15;
         let gens1 = mixed_weight_forms(5, prec, 5);
-        let gens = [gens1[0].clone(), gens1[1].clone(), gens1[4].clone()];
+        let gens = [gens1[0].0.clone(), gens1[1].0.clone(), gens1[4].0.clone()];
         for f in &gens {
             print!("{}, ", f.weight.unwrap().0);
         }
@@ -702,15 +699,17 @@ mod str_exe {
             println!("{}", i);
             let prec = (2 * i + 6) / 5 + 2;
             println!("{}", prec);
-            let forms = mixed_weight_forms(i, prec, 6);
-            let weight: Vec<_> = forms.iter().map(|f| f.weight.unwrap().0).collect();
+            let forms_w_monoms = mixed_weight_forms(i, prec, 6);
+            let forms: Vec<_> = forms_w_monoms.clone().into_iter().map(|f| f.0).collect();
+            let weight: Vec<_> = forms_w_monoms.iter().map(|f| f.0.weight.unwrap().0).collect();
+            let monoms: Vec<_> = forms_w_monoms.iter().map(|f_t| (f_t.1, f_t.2)).collect();
             println!("{:?}", weight);
             let ref mut f = File::create(format!("./data/brackets/str{}_brs.sobj", i)).unwrap();
-            let ref mut forms_file = File::create(format!("./data/brackets/str{}_forms.sobj", i))
+            let ref mut monms_file = File::create(format!("./data/brackets/str{}_monoms.sobj", i))
                 .unwrap();
             let ref mut f_wt = File::create(format!("./data/brackets/str{}_weights.sobj", i))
                 .unwrap();
-            save_as_pickle(&forms, forms_file);
+            save_as_pickle(&monoms, monms_file);
             save_as_pickle(weight, f_wt);
             let brs = brackets(&forms);
             save_polys_over_z_pickle(&brs, f);
@@ -721,15 +720,14 @@ mod str_exe {
     fn test_save_star_norms() {
         for i in 3..4 {
             println!("{}", i);
-            let f = File::open(format!("./data/brackets/str{}_forms.sobj", i)).unwrap();
-            let buf: Vec<u8> = f.bytes().map(|x| x.unwrap()).collect();
-            let forms: Vec<HmfGen<Sqrt5Mpz>> = serde_pickle::from_slice(&buf).unwrap();
+            let prec = ((2*i + 22)/5 + 3) as usize;
             let cand_f = File::open(format!("./data/brackets/str{}_cand.sobj", i)).unwrap();
-            let cand = StrCand::load(&cand_f).unwrap();
+            let monom_f = File::open(format!("./data/brackets/str{}_monoms.sobj", i)).unwrap();
+            let cand = StrCand::load(i, &cand_f, &monom_f).unwrap();
             println!("{:?}", cand);
             let mut stars_f = File::create(format!("./data/brackets/str{}_star_norms.sobj", i))
                 .unwrap();
-            cand.save_star_norms(&forms, &mut stars_f);
+            cand.save_star_norms(prec, &mut stars_f);
         }
     }
 }

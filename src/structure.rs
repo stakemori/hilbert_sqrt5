@@ -386,22 +386,42 @@ where
 
 #[derive(Debug)]
 pub struct StrCand {
+    pub df: u64,
     pub gens_num: Vec<(PWtPolyZ, PWtPolyZ)>,
     pub rels: Vec<Vec<Vec<PWtPolyZ>>>,
     pub gen_wts: Vec<u64>,
     pub rel_wts: Vec<Vec<u64>>,
     pub free_basis_wts: ((usize, u64), (usize, u64)),
     pub gens_dnm: PWtPolyZ,
+    pub monoms: ((MonomFormal, MonomFormal), (MonomFormal, MonomFormal)),
 }
 
 pub type PWtPolyZRaw = Vec<((usize, usize, usize), String)>;
 
 impl StrCand {
-    pub fn load(f: &File) -> Result<Self, serde_pickle::Error> {
-        let buf: Vec<u8> = f.bytes().map(|x| x.unwrap()).collect();
+    pub fn load(df: u64, f: &File, monom_fl: &File) -> Result<Self, serde_pickle::Error> {
         let data: (Vec<Vec<Vec<PWtPolyZRaw>>>,
                    Vec<Vec<u64>>,
-                   ((usize, u64), (usize, u64), PWtPolyZRaw)) = serde_pickle::from_slice(&buf)?;
+                   ((usize, u64), (usize, u64), PWtPolyZRaw)) = {
+            let buf: Vec<u8> = f.bytes().map(|x| x.unwrap()).collect();
+            serde_pickle::from_slice(&buf)?
+        };
+
+        let monom_data: Vec<((usize, usize, usize), (usize, usize, usize))> = {
+            let buf: Vec<u8> = monom_fl.bytes().map(|x| x.unwrap()).collect();
+            serde_pickle::from_slice(&buf)?
+        };
+
+        let monoms_vec: Vec<_> = monom_data
+            .into_iter()
+            .map(|x| (MonomFormal { idx: x.0 }, MonomFormal { idx: x.1 }))
+            .collect();
+        let free_basis_wts = ((data.2).0, (data.2).1);
+        let monoms = (
+            monoms_vec[(free_basis_wts.0).0].clone(),
+            monoms_vec[(free_basis_wts.1).0].clone(),
+        );
+
 
         fn to_monom_formal_tpl(
             xs: &Vec<((usize, usize, usize), String)>,
@@ -436,26 +456,30 @@ impl StrCand {
         let mut wts = data.1.clone();
         let gen_wts = wts.remove(0);
         let rel_wts = wts;
-        let free_basis_wts = ((data.2).0, (data.2).1);
         let gens_dnm = to_monom_formal_tpl(&(data.2).2);
         Ok(StrCand {
+            df: df,
             gens_num: gens_nums,
             rels: rels,
             gen_wts: gen_wts,
             rel_wts: rel_wts,
             free_basis_wts: free_basis_wts,
             gens_dnm: gens_dnm,
+            monoms: monoms,
         })
     }
 
-    pub fn gens(&self, forms: &Vec<HmfGen<Sqrt5Mpz>>) -> Vec<HmfGen<Sqrt5Mpz>> {
+    pub fn gens(&self, prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
         fn to_pwtpoly(x: &PWtPolyZ) -> PWtPoly {
             x.iter().map(|y| (y.0.clone(), From::from(&y.1))).collect()
         }
-        let (idx_f, wt_f) = self.free_basis_wts.0;
-        let (idx_g, wt_g) = self.free_basis_wts.1;
-        let f = forms[idx_f].clone();
-        let g = forms[idx_g].clone();
+        let (_, wt_f) = self.free_basis_wts.0;
+        let (_, wt_g) = self.free_basis_wts.1;
+        let ((ref m0, ref n0), (ref m1, ref n1)) = self.monoms;
+        let f = rankin_cohen_sqrt5(self.df as usize, &m0.into_form(prec), &n0.into_form(prec))
+            .unwrap();
+        let g = rankin_cohen_sqrt5(self.df as usize, &m1.into_form(prec), &n1.into_form(prec))
+            .unwrap();
         assert_eq!(f.weight.unwrap().0 as u64, wt_f);
         assert_eq!(g.weight.unwrap().0 as u64, wt_g);
         let free_basis = [f, g];
@@ -468,8 +492,8 @@ impl StrCand {
             .collect()
     }
 
-    pub fn save_star_norms(&self, forms: &Vec<HmfGen<Sqrt5Mpz>>, f: &mut File) {
-        let gens = self.gens(forms);
+    pub fn save_star_norms(&self, prec: usize, f: &mut File) {
+        let gens = self.gens(prec);
         let mut pols = Vec::new();
         for f in gens.iter() {
             let mut nm = HmfGen::new(f.prec);
@@ -525,7 +549,6 @@ impl MonomFormal {
             HmfGen::new(prec)
         } else {
             let w = v[0].0.weight();
-            println!("{:?}", v);
             let wt = if v.iter().all(|x| x.0.weight() == w) {
                 Some((w, w))
             } else {
@@ -710,7 +733,11 @@ pub fn three_forms(i: usize, prec: usize) -> Option<Vec<HmfGen<Sqrt5Mpz>>> {
 }
 
 /// Return a vector of length `len` of mixed weight modular forms.
-pub fn mixed_weight_forms(df: usize, prec: usize, len: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+pub fn mixed_weight_forms(
+    df: usize,
+    prec: usize,
+    len: usize,
+) -> Vec<(HmfGen<Sqrt5Mpz>, (usize, usize, usize), (usize, usize, usize))> {
     let mut num = 0;
     let mut res = Vec::new();
     for (i, m) in (2..).flat_map(monoms_of_g2_g5_f6).enumerate() {
@@ -726,7 +753,7 @@ pub fn mixed_weight_forms(df: usize, prec: usize, len: usize) -> Vec<HmfGen<Sqrt
             let f = rankin_cohen_sqrt5(df, &m.into_form(prec), &n.into_form(prec)).unwrap();
             if !f.is_zero() {
                 num += 1;
-                res.push(f);
+                res.push((f, m.idx, n.idx));
             }
         }
     }
