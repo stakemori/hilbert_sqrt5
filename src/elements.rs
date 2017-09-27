@@ -420,8 +420,27 @@ where
         res
     }
 
-    pub fn fc_vector_all(&self) -> Vec<T> where T: Clone{
+    pub fn fc_vector_all(&self) -> Vec<T>
+    where
+        T: Clone,
+    {
         self.fcvec.vec.clone().into_iter().flat_map(|v| v).collect()
+    }
+
+    pub fn fc_vector_u_nonneg(&self) -> Vec<T>
+    where
+        T: Clone,
+    {
+        let mut vu_vec = Vec::new();
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            if u >= 0 {
+                vu_vec.push((v, u));
+            }
+        });
+        vu_vec
+            .iter()
+            .map(|&(v, u)| self.fourier_coefficient(v, u))
+            .collect()
     }
 
     pub fn fc_vector_real_quad(&self, len: usize) -> Vec<(Mpz, Mpz)>
@@ -636,8 +655,8 @@ where
 }
 
 impl<'b, T> Mul<&'b Mpz> for HmfGen<T>
-    where
-    for <'c> T: From<&'c Mpz>,
+where
+    for<'c> T: From<&'c Mpz>,
     T: BigNumber + Clone + RealQuadElement<Mpz>,
 {
     type Output = HmfGen<T>;
