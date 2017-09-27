@@ -102,7 +102,23 @@ def min_resol_to_primitive(m_rel):
 
 
 def load_star_norms(i):
-    return load(join(DATA_DIR, "str%s_star_norms.sobj" % i))
+    return [to_pol_over_z(d) for d in load(join(DATA_DIR, "str%s_star_norms.sobj" % i))]
+
+
+def load_cand_dnm(i):
+    l = load(join(DATA_DIR, "str%s_cand.sobj" % i))
+    return to_pol_over_z_wo_dnm(l[-1][-1])
+
+
+def load_cand_wts(i):
+    l = load(join(DATA_DIR, "str%s_cand.sobj" % i))
+    return l[1]
+
+
+def check_construction(i):
+    l = load_star_norms(i)
+    dnm = load_cand_dnm(i)
+    return all((dnm**2).divides(a) for a in l)
 
 
 def save_min_resol_prim(i):

@@ -492,8 +492,28 @@ impl StrCand {
             .collect()
     }
 
-    pub fn save_star_norms(&self, prec: usize, f: &mut File) {
-        let gens = self.gens(prec);
+    pub fn gens_wts(&self) -> Vec<(u64, u64)> {
+        let (_, wt_f) = self.free_basis_wts.0;
+        let (_, wt_g) = self.free_basis_wts.1;
+        fn wt(m: &(PWtPolyZ, PWtPolyZ), wt_f: u64, wt_g: u64) -> u64 {
+            if m.0.is_empty() {
+                m.1.last().unwrap().0.weight() as u64 + wt_g
+            } else {
+                m.0.last().unwrap().0.weight() as u64 + wt_f
+            }
+        }
+        self.gens_num
+            .iter()
+            .map(|x| {
+                (
+                    wt(x, wt_f as u64, wt_g as u64),
+                    wt(x, wt_f as u64, wt_g as u64) + 2 * self.df as u64,
+                )
+            })
+            .collect()
+    }
+
+    pub fn save_star_norms(&self, gens: &[HmfGen<Sqrt5Mpz>], f: &mut File) {
         let mut pols = Vec::new();
         for f in gens.iter() {
             let mut nm = HmfGen::new(f.prec);
