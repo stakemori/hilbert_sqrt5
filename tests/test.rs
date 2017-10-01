@@ -695,7 +695,7 @@ mod str_exe {
 
     #[test]
     fn test_save_rels_up_to_50() {
-        for i in 3..51 {
+        for i in 3..21 {
             println!("{}", i);
             let prec = (2 * i + 6) / 5 + 2;
             println!("{}", prec);
