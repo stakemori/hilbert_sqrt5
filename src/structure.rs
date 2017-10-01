@@ -20,7 +20,8 @@ use serde::ser::{Serialize, Serializer};
 use serde::{Deserialize, Deserializer};
 use libc::{c_ulong, c_long};
 use flint::fmpz::Fmpz;
-use flint::fmpz_mat::FmpzMat;
+use flint::fmpq::Fmpq;
+use flint::fmpq_mat::FmpqMat;
 use std::convert::From;
 use std::ops::AddAssign;
 use std::fmt;
@@ -134,22 +135,41 @@ pub fn relations(len: usize, forms: &[HmfGen<Sqrt5Mpz>]) -> Vec<Vec<Sqrt5Mpz>> {
     res
 }
 
+fn to_int_vec(v: &[Fmpq]) -> Vec<Mpz> {
+    let lcm = v.iter().fold(Fmpz::from_ui(1), |acc, x| {
+        Fmpz::lcm(&acc, &x.den_new())
+    });
+    v.iter()
+        .map(|x| {
+            let mut y = Fmpq::new();
+            y.set(x);
+            y *= &lcm;
+            assert_eq!(y.den_new(), 1_i64);
+            From::from(&y.num_new())
+        })
+        .collect()
+}
+
 pub fn relations_over_z(forms: &[HmfGen<Mpz>]) -> Vec<Vec<Mpz>> {
     let vv: Vec<_> = forms.iter().map(|f| f.fc_vector_all()).collect();
-    let vv: Vec<Vec<Fmpz>> = vv.iter()
-        .map(|v| v.iter().map(From::from).collect())
+    let vv: Vec<Vec<Fmpq>> = vv.iter()
+        .map(|v| {
+            v.iter()
+                .map(|x| From::from(&Into::<Fmpz>::into(x)))
+                .collect()
+        })
         .collect();
     let n = forms.len();
     let m = vv[0].len();
-    let mut mat = FmpzMat::new(m as i64, n as i64);
+    let mut mat = FmpqMat::new(m as i64, n as i64);
     for (i, v) in vv.iter().enumerate() {
         for (j, x) in v.iter().enumerate() {
             mat.set_entry(j as isize, i as isize, x);
         }
     }
-    mat.nullspace_basis()
+    mat.right_kernel_basis()
         .iter()
-        .map(|v| v.iter().map(From::from).collect())
+        .map(|v| to_int_vec(v))
         .collect()
 }
 
