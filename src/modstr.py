@@ -117,6 +117,7 @@ def load_cand_wts(i):
 
 def check_construction(i):
     l = load_star_norms(i)
+    assert all(a != 0 for a in l)
     dnm = load_cand_dnm(i)
     return all((dnm**2).divides(a) for a in l)
 
