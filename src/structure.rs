@@ -533,7 +533,7 @@ impl StrCand {
             .collect()
     }
 
-    pub fn save_star_norms(&self, gens: &[HmfGen<Sqrt5Mpz>], f: &mut File) {
+    pub fn save_star_norms(&self, gens: &[HmfGen<Sqrt5Mpz>], path: &str) {
         let mut pols = Vec::new();
         for f in gens.iter() {
             let mut nm = HmfGen::new(f.prec);
@@ -545,7 +545,8 @@ impl StrCand {
             let poly = r_elt_as_pol_over_z(&nm.rt_part()).unwrap();
             pols.push(poly);
         }
-        save_polys_over_z_pickle(&pols, f);
+        let mut stars_f = File::create(path).unwrap();
+        save_polys_over_z_pickle(&pols, &mut stars_f);
     }
 }
 
