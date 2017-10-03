@@ -492,7 +492,7 @@ sm10[2]=[314741020*g2^3-3121333056000*g6,-3262642099516800*g5,1441*g2^3-15014592
 #+end_example
 
   
-#+BEGIN_SRC sage :results table
+#+BEGIN_SRC sage :results table :colnames '("i" "Weights of generators" "Weights of relations")
   max_wt = 49
   assert all(len(load_cand_wts(i)) == 2 for i in range(4, max_wt))
   wts_l = [load_cand_wts(i) for i in range(1, max_wt)]
@@ -504,6 +504,8 @@ sm10[2]=[314741020*g2^3-3121333056000*g6,-3262642099516800*g5,1441*g2^3-15014592
 #+END_SRC
 
 #+RESULTS:
+|  i | Weights of generators                               | Weights of relations                                     |
+|----+-----------------------------------------------------+----------------------------------------------------------|
 |  1 | [7, 8, 11]                                          | [13]                                                     |
 |  2 | [4, 7]                                              | []                                                       |
 |  3 | [3, 6]                                              | []                                                       |
