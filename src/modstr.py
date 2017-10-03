@@ -41,6 +41,7 @@ def to_unicode(a):
 
 
 def to_string_monom_formal(pl):
+    pl = R(pl)
     pl = pl.change_ring(ZZ)
     return [((k[0], k[1], k[2]), to_unicode(a)) for (k, a) in pl.dict().items()]
 
@@ -70,8 +71,9 @@ class FormsData(object):
     def relatively_prime_3forms_maybe(self):
         l = ((f, g, h) for f in self.forms for g in self.forms if f[0] < g[0]
              for h in self.forms if g[0] < h[0]
-             if R(gcd(self.brackets_dict[(f, g)],
-                      self.brackets_dict[(f, h)],)).degree() == 0)
+             if self.brackets_dict[(f, g)] != 0 and
+             R(gcd(self.brackets_dict[(f, g)],
+                   self.brackets_dict[(f, h)],)).degree() == 0)
         for a in l:
             return a
         return None
@@ -80,8 +82,9 @@ class FormsData(object):
         l = ((f, g, h, j) for f in self.forms for g in self.forms if f[0] < g[0]
              for h in self.forms if g[0] < h[0]
              for j in self.forms if h[0] < j[0]
-             if R((gcd(self.brackets_dict[(f, g)],
-                       self.brackets_dict[(h, j)],))).degree() == 0)
+             if self.brackets_dict[(f, g)] != 0 and
+             R((gcd(self.brackets_dict[(f, g)],
+                    self.brackets_dict[(h, j)],))).degree() == 0)
         for t in l:
             return t
         return None
@@ -119,6 +122,7 @@ def check_construction(i):
     l = load_star_norms(i)
     assert all(a != 0 for a in l)
     dnm = load_cand_dnm(i)
+    assert dnm != 0
     return all((dnm**2).divides(a) for a in l)
 
 
