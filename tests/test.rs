@@ -712,6 +712,7 @@ mod str_exe {
             save_as_pickle(&monoms, monms_file);
             save_as_pickle(weight, f_wt);
             let brs = brackets(&forms);
+            let ref mut f = File::create(format!("./data/brackets/str{}_brs.sobj", i)).unwrap();
             save_polys_over_z_pickle(&brs, f);
         }
     }
