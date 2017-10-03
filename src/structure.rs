@@ -223,6 +223,9 @@ pub fn bracket_inner_prod_as_pol_over_z_maybe(
     g: &HmfGen<Sqrt5Mpz>,
 ) -> Option<(PWtPolyZ, Mpz)> {
     let h = bracket_inner_prod1(f, g).unwrap();
+    if h.is_zero() {
+        return Some((vec![], From::from(1)));
+    }
     if !h.rt_part().is_zero() {
         None
     } else {
