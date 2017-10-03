@@ -495,14 +495,18 @@ sm10[2]=[314741020*g2^3-3121333056000*g6,-3262642099516800*g5,1441*g2^3-15014592
 #+BEGIN_SRC sage :results table
   max_wt = 49
   assert all(len(load_cand_wts(i)) == 2 for i in range(4, max_wt))
-  wts_l = [load_cand_wts(i) for i in range(4, max_wt)]
+  wts_l = [load_cand_wts(i) for i in range(1, max_wt)]
   for a in wts_l:
       a[0] = list(sorted(a[0]))
-      a[1] = list(sorted(a[1]))
-  [(i, a[0], a[1]) for i, a in zip(range(4, max_wt), wts_l)]
+      if len(a) > 1:
+          a[1] = list(sorted(a[1]))
+  [(i, a[0], a[1] if len(a) > 1 else []) for i, a in zip(range(1, max_wt), wts_l)]
 #+END_SRC
 
 #+RESULTS:
+|  1 | [7, 8, 11]                                          | [13]                                                     |
+|  2 | [4, 7]                                              | []                                                       |
+|  3 | [3, 6]                                              | []                                                       |
 |  4 | [4, 5, 8]                                           | [10]                                                     |
 |  5 | [5, 6, 7, 10]                                       | [11, 12]                                                 |
 |  6 | [2, 3, 6]                                           | [8]                                                      |
