@@ -704,7 +704,6 @@ mod str_exe {
             let weight: Vec<_> = forms_w_monoms.iter().map(|f| f.0.weight.unwrap().0).collect();
             let monoms: Vec<_> = forms_w_monoms.iter().map(|f_t| (f_t.1, f_t.2)).collect();
             println!("{:?}", weight);
-            let ref mut f = File::create(format!("./data/brackets/str{}_brs.sobj", i)).unwrap();
             let ref mut monms_file = File::create(format!("./data/brackets/str{}_monoms.sobj", i))
                 .unwrap();
             let ref mut f_wt = File::create(format!("./data/brackets/str{}_weights.sobj", i))
