@@ -7,8 +7,9 @@ from sage.all import (ZZ, FreeModule, PolynomialRing, QuadraticField,
 from sage.libs.singular.function import singular_function
 
 K = QuadraticField(5)
-R = PolynomialRing(K, names='g2, g5, g6', order=TermOrder('wdegrevlex', (2, 5, 6)))
-g2, g5, g6 = R.gens()
+Monomial_Wts = (6, 5, 2)
+R = PolynomialRing(K, names='g6, g5, g2', order=TermOrder('wdegrevlex', Monomial_Wts))
+g6, g5, g2 = R.gens()
 
 DATA_DIR = "/home/sho/work/rust/hilbert_sqrt5/data/brackets"
 
@@ -29,7 +30,7 @@ def load_wts_brs(i):
 
 def degree(p):
     p = R(p)
-    return int(p.weighted_degree([2, 5, 6]))
+    return int(p.weighted_degree(Monomial_Wts))
 
 
 def degree_vec(v, wts):
