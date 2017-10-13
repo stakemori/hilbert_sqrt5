@@ -727,13 +727,13 @@ mod str_exe {
                 let monom_f = File::open(format!("./data/brackets/str{}_monoms.sobj", i)).unwrap();
                 StrCand::load(i, &cand_f, &monom_f).unwrap()
             };
-            let wt_mx = cand.gens_wts()
+            let wt_mx = cand.gens_nums_wts()
                 .iter()
                 .map(|x| (x.0 + x.1) / 5)
                 .max()
                 .unwrap();
             let prec = wt_mx as usize;
-            let gens = cand.gens(prec);
+            let gens = cand.gens_nums_as_forms(prec);
             println!("i: {}, prec: {}", i, prec);
             let stars_f = format!("./data/brackets/str{}_star_norms.sobj", i);
             measure_time!(cand.save_star_norms(&gens, &stars_f));

@@ -472,7 +472,7 @@ impl StrCand {
         })
     }
 
-    pub fn gens(&self, prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+    pub fn gens_nums_as_forms(&self, prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
         fn to_pwtpoly(x: &PWtPolyZ) -> PWtPoly {
             x.iter().map(|y| (y.0.clone(), From::from(&y.1))).collect()
         }
@@ -495,7 +495,7 @@ impl StrCand {
             .collect()
     }
 
-    pub fn gens_wts(&self) -> Vec<(u64, u64)> {
+    pub fn gens_nums_wts(&self) -> Vec<(u64, u64)> {
         let (_, wt_f) = self.free_basis_wts.0;
         let (_, wt_g) = self.free_basis_wts.1;
         fn wt(m: &(PWtPolyZ, PWtPolyZ), wt_f: u64, wt_g: u64) -> u64 {
