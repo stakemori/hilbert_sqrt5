@@ -916,10 +916,11 @@ where
 }
 
 // Todo: make the denominator small.
-pub fn div_mut_with_denom<T>(res: &mut HmfGen<T>, f: &HmfGen<T>, g: &HmfGen<T>) -> T
+pub fn div_mut_with_denom<T>(res: &mut HmfGen<T>, f: &HmfGen<T>, g: &HmfGen<T>, check: bool) -> T
 where
-    T: BigNumber + Clone,
+    T: BigNumber + Clone + PartialEq + fmt::Debug,
     for<'a> T: SubAssign<&'a T>,
+    for<'a> T: AddAssign<&'a T>,
 {
     let mut dnm = T::new_g();
     let mut count = 0;
@@ -937,6 +938,12 @@ where
     let mut f = f.clone();
     f *= &dnm;
     div_mut(res, &f, g);
+    if check {
+        let f1 = res as &HmfGen<T> * g;
+        let mut f = f.clone();
+        f.decrease_prec(f1.prec);
+        assert_eq!(f, f1);
+    }
     dnm
 }
 

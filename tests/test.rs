@@ -794,7 +794,7 @@ mod div {
         let h = g5_normalized(prec);
         let f = &g * &h;
         let mut res = HmfGen::new(prec);
-        let dnm = div_mut_with_denom(&mut res, &f, &g);
+        let dnm = div_mut_with_denom(&mut res, &f, &g, true);
         println!("{}", dnm);
         assert_eq!(res, &h * &dnm);
         let a = res.gcd();
