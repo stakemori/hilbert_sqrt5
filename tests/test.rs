@@ -701,7 +701,10 @@ mod str_exe {
             println!("{}", prec);
             let forms_w_monoms = mixed_weight_forms(i, prec, 6);
             let forms: Vec<_> = forms_w_monoms.clone().into_iter().map(|f| f.0).collect();
-            let weight: Vec<_> = forms_w_monoms.iter().map(|f| f.0.weight.unwrap().0).collect();
+            let weight: Vec<_> = forms_w_monoms
+                .iter()
+                .map(|f| f.0.weight.unwrap().0)
+                .collect();
             let monoms: Vec<_> = forms_w_monoms.iter().map(|f_t| (f_t.1, f_t.2)).collect();
             println!("{:?}", weight);
             let ref mut monms_file = File::create(format!("./data/brackets/str{}_monoms.sobj", i))
@@ -724,7 +727,11 @@ mod str_exe {
                 let monom_f = File::open(format!("./data/brackets/str{}_monoms.sobj", i)).unwrap();
                 StrCand::load(i, &cand_f, &monom_f).unwrap()
             };
-            let wt_mx = cand.gens_wts().iter().map(|x| (x.0 + x.1)/5).max().unwrap();
+            let wt_mx = cand.gens_wts()
+                .iter()
+                .map(|x| (x.0 + x.1) / 5)
+                .max()
+                .unwrap();
             let prec = wt_mx as usize;
             let gens = cand.gens(prec);
             println!("i: {}, prec: {}", i, prec);
