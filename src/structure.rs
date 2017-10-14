@@ -1,7 +1,7 @@
 use gmp::mpz::Mpz;
 use eisenstein::{eisenstein_series, f6_normalized};
 use theta_chars::g5_normalized;
-use elements::{HmfGen, div_mut};
+use elements::{HmfGen, div_mut, div_mut_with_denom, initial_term};
 use serde_pickle;
 use std::fs::File;
 use std::io::Write;
@@ -491,6 +491,32 @@ impl StrCand {
             .map(|nums| {
                 let v = [to_pwtpoly(&nums.0), to_pwtpoly(&nums.1)];
                 linear_comb(&v, &free_basis)
+            })
+            .collect()
+    }
+
+    pub fn gens(&self, prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+        let v = self.gens_nums_as_forms(prec);
+        let mut prec_small = 5;
+        let mut prec = prec;
+        loop {
+            let dnm_form = MonomFormal::eval(&self.gens_dnm, prec_small);
+            let a = initial_term(&dnm_form);
+            if let Some((v, _, _)) = a {
+                prec += v;
+                break;
+            } else {
+                prec_small += 1;
+            }
+        }
+        let dnm_form = From::from(&MonomFormal::eval(&self.gens_dnm, prec));
+        v.iter()
+            .map(|f| {
+                let mut res = HmfGen::new(prec);
+                div_mut_with_denom(&mut res, f, &dnm_form, true);
+                let a = From::from(&res.gcd());
+                res /= &a;
+                res
             })
             .collect()
     }

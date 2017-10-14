@@ -501,6 +501,23 @@ impl HmfGen<Mpz> {
     }
 }
 
+impl<T> HmfGen<T>
+where
+    T: BigNumber + RealQuadElement<Mpz>,
+{
+    pub fn gcd(&self) -> Mpz {
+        let mut res = Mpz::new();
+        let mut tmp = Mpz::new();
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            tmp.set(&res);
+            res.gcd_mut(&tmp, &self.fcvec.fc_ref(v, u, bd).ir_part());
+            tmp.set(&res);
+            res.gcd_mut(&tmp, &self.fcvec.fc_ref(v, u, bd).rt_part());
+        });
+        res
+    }
+}
+
 impl<'a, T> DivAssign<&'a T> for HmfGen<T>
 where
     T: BigNumber,
@@ -835,7 +852,7 @@ where
     }
 }
 
-fn initial_term<T>(f: &HmfGen<T>) -> Option<(usize, i64, &T)>
+pub fn initial_term<T>(f: &HmfGen<T>) -> Option<(usize, i64, &T)>
 where
     T: BigNumber,
 {
