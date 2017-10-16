@@ -746,8 +746,7 @@ mod str_exe {
 
     fn write_csv_form(f: &HmfGen<Sqrt5Mpz>, p: &String) {
         let mut wtr = csv::Writer::from_path(p).unwrap();
-        wtr.write_record(&["weight".to_string(), format!("{:?}", f.weight.unwrap())])
-            .unwrap();
+        wtr.write_record(&["(v, u)", "a(v, u)"]).unwrap();
         for (v, &bd) in f.u_bds.vec.iter().enumerate() {
             let bd = bd as i64;
             let v_i = v as i64;
