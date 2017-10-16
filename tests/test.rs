@@ -2,6 +2,7 @@ extern crate hilbert_sqrt5;
 extern crate gmp;
 extern crate bincode;
 extern crate libc;
+extern crate csv;
 
 use std::time::Instant;
 use hilbert_sqrt5::theta_chars::{theta, g5_normalized};
@@ -11,6 +12,9 @@ use hilbert_sqrt5::misc::prime_sieve;
 use gmp::mpz::Mpz;
 use hilbert_sqrt5::diff_op::{g15_normalized, rankin_cohen_sqrt5, bracket_inner_prod,
                              bracket_inner_prod1};
+macro_rules! is_even {
+    ($expr: expr) => {($expr) & 1 == 0}
+}
 
 
 // Taken from http://qiita.com/pseudo_foxkeh/items/5d5226e3ffa27631e80d
@@ -737,6 +741,67 @@ mod str_exe {
             println!("i: {}, prec: {}", i, prec);
             let stars_f = format!("./data/brackets/str{}_star_norms.sobj", i);
             measure_time!(cand.save_star_norms(&gens, &stars_f));
+        }
+    }
+
+    fn write_csv_form(f: &HmfGen<Sqrt5Mpz>, p: &String) {
+        let mut wtr = csv::Writer::from_path(p).unwrap();
+        wtr.write_record(&["weight".to_string(), format!("{:?}", f.weight.unwrap())])
+            .unwrap();
+        for (v, &bd) in f.u_bds.vec.iter().enumerate() {
+            let bd = bd as i64;
+            let v_i = v as i64;
+            for u in (-bd..(bd + 1)).filter(|&x| is_even!(x + v_i)) {
+                wtr.write_record(
+                    &[
+                        format!("{:?}", (v, u)),
+                        format!("{}", f.fourier_coefficient(v, u)),
+                    ],
+                ).unwrap();
+            }
+        }
+    }
+
+    #[test]
+    fn write_gens_parallel_wt() {
+        let prec = 15;
+        let g2 = eisenstein_series(2, prec);
+        let g5 = g5_normalized(prec);
+        let f6 = f6_normalized(prec);
+        let g15 = g15_normalized(prec);
+        let gens = vec![
+            From::from(&g2),
+            From::from(&g5),
+            From::from(&f6),
+            From::from(&g15),
+        ];
+        let paths = vec![
+            "./forms_csv/A0/g2.csv",
+            "./forms_csv/A0/g5.csv",
+            "./forms_csv/A0/g6.csv",
+            "./forms_csv/A0/g15.csv",
+        ];
+        for (p, f) in paths.into_iter().zip(gens.iter()) {
+            write_csv_form(f, &p.to_string());
+        }
+    }
+
+    #[test]
+    fn write_gens_cands() {
+        for i in 1..51 {
+            let cand = {
+                let cand_f = File::open(format!("./data/brackets/str{}_cand.sobj", i)).unwrap();
+                let monom_f = File::open(format!("./data/brackets/str{}_monoms.sobj", i)).unwrap();
+                StrCand::load(i, &cand_f, &monom_f).unwrap()
+            };
+            let prec = 15;
+            let gens = cand.gens(prec);
+            println!("{}", i);
+            for (n, f) in gens.iter().enumerate() {
+                let (w1, w2) = f.weight.unwrap();
+                let path = format!("./forms_csv/A{}/gen{}_wt_{}_{}.csv", i, n, w1, w2);
+                write_csv_form(f, &path);
+            }
         }
     }
 }
