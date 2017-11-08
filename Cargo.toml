@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = ["Sho Takemori <stakemorii@gmail.com>"]
 
 [dependencies]
-flint = { path = "/home/sho/work/rust/flint-rust/" }
+flint = { git = "https://github.com/stakemori/flint-rust.git"}
 rust-gmp = { git = "https://github.com/stakemori/rust-gmp.git", branch = "develop"}
 libc = "0.2"
 serde = "1.0"
