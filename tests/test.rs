@@ -747,11 +747,11 @@ mod str_exe {
 
 
     fn save_star_norms(diffs: &[u64]) {
-        let mut map_g2 = HashMap::new();
-        let mut map_g5 = HashMap::new();
-        let mut map_g6 = HashMap::new();
 
         for &i in diffs {
+            let mut map_g2 = HashMap::new();
+            let mut map_g5 = HashMap::new();
+            let mut map_g6 = HashMap::new();
             let cand = {
                 let cand_f = File::open(format!("./data/brackets/str{}_cand.sobj", i)).unwrap();
                 let monom_f = File::open(format!("./data/brackets/str{}_monoms.sobj", i)).unwrap();
