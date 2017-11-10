@@ -40,6 +40,8 @@ mod str_exe {
     use hilbert_sqrt5::bignum::Sqrt5Mpz;
     use hilbert_sqrt5::bignum::BigNumber;
     use super::*;
+    use std::collections::HashMap;
+
     #[test]
     fn test_tpls_of_wt() {
         assert_eq!(tpls_of_wt(30).len(), 13);
@@ -724,8 +726,32 @@ mod str_exe {
     }
 
     #[test]
+    fn test_into_form() {
+        let prec = 10;
+        let monoms = monoms_of_g2_g5_f6(40);
+        let monoms1 = monoms_of_g2_g5_f6(42);
+        let mut map_g2 = HashMap::new();
+        let mut map_g5 = HashMap::new();
+        let mut map_g6 = HashMap::new();
+        for m in monoms.iter() {
+            let f = m.into_form(prec);
+            let g = m.into_form_cached(prec, &mut map_g2, &mut map_g5, &mut map_g6);
+            assert_eq!(f, g);
+        }
+        for m in monoms1.iter() {
+            let f = m.into_form(prec);
+            let g = m.into_form_cached(prec, &mut map_g2, &mut map_g5, &mut map_g6);
+            assert_eq!(f, g);
+        }
+    }
+
+    #[test]
     fn test_save_star_norms() {
-        for i in 21..22 {
+        let mut map_g2 = HashMap::new();
+        let mut map_g5 = HashMap::new();
+        let mut map_g6 = HashMap::new();
+
+        for i in 31..32 {
             let cand = {
                 let cand_f = File::open(format!("./data/brackets/str{}_cand.sobj", i)).unwrap();
                 let monom_f = File::open(format!("./data/brackets/str{}_monoms.sobj", i)).unwrap();
@@ -737,10 +763,16 @@ mod str_exe {
                 .max()
                 .unwrap();
             let prec = wt_mx as usize;
-            let gens = cand.gens_nums_as_forms(prec);
+            let gens = cand.gens_nums_as_forms(prec, &mut map_g2, &mut map_g5, &mut map_g6);
             println!("i: {}, prec: {}", i, prec);
             let stars_f = format!("./data/brackets/str{}_star_norms.sobj", i);
-            measure_time!(cand.save_star_norms(&gens, &stars_f));
+            measure_time!(cand.save_star_norms(
+                &gens,
+                &stars_f,
+                &mut map_g2,
+                &mut map_g5,
+                &mut map_g6,
+            ));
         }
     }
 
@@ -787,6 +819,9 @@ mod str_exe {
 
     #[test]
     fn write_gens_cands() {
+        let mut map_g2 = HashMap::new();
+        let mut map_g5 = HashMap::new();
+        let mut map_g6 = HashMap::new();
         for i in 1..51 {
             let cand = {
                 let cand_f = File::open(format!("./data/brackets/str{}_cand.sobj", i)).unwrap();
@@ -794,7 +829,7 @@ mod str_exe {
                 StrCand::load(i, &cand_f, &monom_f).unwrap()
             };
             let prec = 15;
-            let gens = cand.gens(prec);
+            let gens = cand.gens(prec, &mut map_g2, &mut map_g5, &mut map_g6);
             println!("{}", i);
             for (n, f) in gens.iter().enumerate() {
                 let (w1, w2) = f.weight.unwrap();

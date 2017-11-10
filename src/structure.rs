@@ -24,6 +24,7 @@ use flint::fmpz_mat::FmpzMat;
 use std::convert::From;
 use std::ops::AddAssign;
 use std::fmt;
+use std::collections::HashMap;
 
 pub struct MpzWrapper {
     pub a: Mpz,
@@ -173,6 +174,32 @@ pub fn r_elt_as_pol_over_z(f: &HmfGen<Mpz>) -> Option<(Vec<(MonomFormal, Mpz)>, 
     }
 }
 
+pub fn r_elt_as_pol_over_z_cached_gens(
+    f: &HmfGen<Mpz>,
+    map_g2: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+    map_g5: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+    map_g6: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+) -> Option<(Vec<(MonomFormal, Mpz)>, Mpz)> {
+    let f = f.clone();
+    let prec = f.prec;
+    let monoms = monoms_of_g2_g5_f6(f.weight.unwrap().0);
+    let mut forms: Vec<_> = monoms
+        .iter()
+        .map(|x| x.into_form_cached(prec, map_g2, map_g5, map_g6))
+        .collect();
+    forms.insert(0, f);
+    let mut rels = relations_over_z(&forms);
+    if rels.len() == 1 && !rels[0][0].is_zero() {
+        let cfs: Vec<_> = rels[0].iter().skip(1).map(|x| -x).collect();
+        Some((
+            monoms.into_iter().zip(cfs.into_iter()).collect(),
+            rels.remove(0).remove(0),
+        ))
+    } else {
+        None
+    }
+}
+
 /// f: polynomial of `g2, g5, g6` as q-expansion. Return the corresponding
 /// polynomia. The second element is a denominator.
 pub fn r_elt_as_pol(f: &HmfGen<Sqrt5Mpz>, len: usize) -> Option<(PWtPoly, Sqrt5Mpz)> {
@@ -308,6 +335,53 @@ fn monom_g2_g5_f6(prec: usize, expts: (usize, usize, usize)) -> HmfGen<Mpz> {
         res *= &tmp;
     }
     res
+}
+
+fn pow_cached(
+    prec: usize,
+    expt: usize,
+    f: &HmfGen<Mpz>,
+    cached_map: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+) -> HmfGen<Mpz> {
+    if let Some(v) = cached_map.get(&(prec, expt)) {
+        return v.clone();
+    }
+    let mut tmp = HmfGen::new(prec);
+    if let Some(k) = cached_map
+        .keys()
+        .map(|k| k.clone())
+        .filter(|&k| k.0 == prec && k.1 < expt)
+        .max()
+    {
+        tmp.pow_mut(f, expt - k.1);
+        let v = {
+            cached_map.get(&k).unwrap().clone()
+        };
+        tmp *= &v;
+        cached_map.insert((prec, expt), tmp.clone());
+        return tmp;
+    }
+    tmp.pow_mut(f, expt);
+    cached_map.insert((prec, expt), tmp.clone());
+    tmp
+}
+
+fn monom_g2_g5_g6_cached(
+    prec: usize,
+    expts: (usize, usize, usize),
+    map_g2: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+    map_g5: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+    map_g6: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+) -> HmfGen<Mpz> {
+    let g2 = eisenstein_series(2, prec);
+    let g5 = g5_normalized(prec);
+    let g6 = f6_normalized(prec);
+    let mut g2_pow = pow_cached(prec, expts.0, &g2, map_g2);
+    let g5_pow = pow_cached(prec, expts.1, &g5, map_g5);
+    let g6_pow = pow_cached(prec, expts.2, &g6, map_g6);
+    g2_pow *= &g5_pow;
+    g2_pow *= &g6_pow;
+    g2_pow
 }
 
 #[allow(dead_code)]
@@ -472,17 +546,29 @@ impl StrCand {
         })
     }
 
-    pub fn gens_nums_as_forms(&self, prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+    pub fn gens_nums_as_forms(
+        &self,
+        prec: usize,
+        map_g2: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+        map_g5: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+        map_g6: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+    ) -> Vec<HmfGen<Sqrt5Mpz>> {
         fn to_pwtpoly(x: &PWtPolyZ) -> PWtPoly {
             x.iter().map(|y| (y.0.clone(), From::from(&y.1))).collect()
         }
         let (_, wt_f) = self.free_basis_wts.0;
         let (_, wt_g) = self.free_basis_wts.1;
         let ((ref m0, ref n0), (ref m1, ref n1)) = self.monoms;
-        let f = rankin_cohen_sqrt5(self.df as usize, &m0.into_form(prec), &n0.into_form(prec))
-            .unwrap();
-        let g = rankin_cohen_sqrt5(self.df as usize, &m1.into_form(prec), &n1.into_form(prec))
-            .unwrap();
+        let f = rankin_cohen_sqrt5(
+            self.df as usize,
+            &m0.into_form_cached(prec, map_g2, map_g5, map_g6),
+            &n0.into_form_cached(prec, map_g2, map_g5, map_g6),
+        ).unwrap();
+        let g = rankin_cohen_sqrt5(
+            self.df as usize,
+            &m1.into_form_cached(prec, map_g2, map_g5, map_g6),
+            &n1.into_form_cached(prec, map_g2, map_g5, map_g6),
+        ).unwrap();
         assert_eq!(f.weight.unwrap().0 as u64, wt_f);
         assert_eq!(g.weight.unwrap().0 as u64, wt_g);
         let free_basis = [f, g];
@@ -490,17 +576,24 @@ impl StrCand {
             .iter()
             .map(|nums| {
                 let v = [to_pwtpoly(&nums.0), to_pwtpoly(&nums.1)];
-                linear_comb(&v, &free_basis)
+                linear_comb_cached(&v, &free_basis, map_g2, map_g5, map_g6)
             })
             .collect()
     }
 
-    pub fn gens(&self, prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
-        let v = self.gens_nums_as_forms(prec);
+    pub fn gens(
+        &self,
+        prec: usize,
+        map_g2: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+        map_g5: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+        map_g6: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+    ) -> Vec<HmfGen<Sqrt5Mpz>> {
+        let v = self.gens_nums_as_forms(prec, map_g2, map_g5, map_g6);
         let mut prec_small = 5;
         let mut prec = prec;
         loop {
-            let dnm_form = MonomFormal::eval(&self.gens_dnm, prec_small);
+            let dnm_form =
+                MonomFormal::eval_cached(&self.gens_dnm, prec_small, map_g2, map_g5, map_g6);
             let a = initial_term(&dnm_form);
             if let Some((v, _, _)) = a {
                 prec += v;
@@ -509,7 +602,13 @@ impl StrCand {
                 prec_small += 1;
             }
         }
-        let dnm_form = From::from(&MonomFormal::eval(&self.gens_dnm, prec));
+        let dnm_form = From::from(&MonomFormal::eval_cached(
+            &self.gens_dnm,
+            prec,
+            map_g2,
+            map_g5,
+            map_g6,
+        ));
         v.iter()
             .map(|f| {
                 let mut res = HmfGen::new(prec);
@@ -542,7 +641,14 @@ impl StrCand {
             .collect()
     }
 
-    pub fn save_star_norms(&self, gens: &[HmfGen<Sqrt5Mpz>], path: &str) {
+    pub fn save_star_norms(
+        &self,
+        gens: &[HmfGen<Sqrt5Mpz>],
+        path: &str,
+        map_g2: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+        map_g5: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+        map_g6: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+    ) {
         let mut pols = Vec::new();
         for f in gens.iter() {
             let mut nm = HmfGen::new(f.prec);
@@ -551,7 +657,8 @@ impl StrCand {
             let wt = nm.weight.unwrap();
             assert_eq!(wt.0, wt.1);
             assert!(nm.ir_part().is_zero());
-            let poly = r_elt_as_pol_over_z(&nm.rt_part()).unwrap();
+            let poly = r_elt_as_pol_over_z_cached_gens(&nm.rt_part(), map_g2, map_g5, map_g6)
+                .unwrap();
             pols.push(poly);
         }
         let mut stars_f = File::create(path).unwrap();
@@ -583,6 +690,16 @@ pub struct MonomFormal {
 impl MonomFormal {
     pub fn into_form(&self, prec: usize) -> HmfGen<Mpz> {
         monom_g2_g5_f6(prec, self.idx)
+    }
+
+    pub fn into_form_cached(
+        &self,
+        prec: usize,
+        map_g2: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+        map_g5: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+        map_g6: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+    ) -> HmfGen<Mpz> {
+        monom_g2_g5_g6_cached(prec, self.idx, map_g2, map_g5, map_g6)
     }
 
     fn weight(&self) -> usize {
@@ -617,6 +734,42 @@ impl MonomFormal {
             res
         }
     }
+
+    pub fn eval_cached<T>(
+        v: &Vec<(MonomFormal, T)>,
+        prec: usize,
+        map_g2: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+        map_g5: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+        map_g6: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+    ) -> HmfGen<T>
+    where
+        T: BigNumber + Clone + fmt::Debug,
+        for<'b> T: From<&'b Mpz>,
+        for<'b> T: AddAssign<&'b T>,
+    {
+        if v.is_empty() {
+            HmfGen::new(prec)
+        } else {
+            let w = v[0].0.weight();
+            let wt = if v.iter().all(|x| x.0.weight() == w) {
+                Some((w, w))
+            } else {
+                None
+            };
+            let mut res = HmfGen::new(prec);
+            res.set(&v[0].0.into_form_cached(prec, map_g2, map_g5, map_g6));
+            let mut res: HmfGen<T> = From::from(&res);
+            res *= &v[0].1;
+            for &(ref monom, ref a) in v.iter().skip(1) {
+                let mut tmp: HmfGen<T> =
+                    From::from(&monom.into_form_cached(prec, map_g2, map_g5, map_g6));
+                tmp *= a;
+                res += &tmp;
+            }
+            res.weight = wt;
+            res
+        }
+    }
 }
 
 
@@ -633,6 +786,26 @@ fn linear_comb(coeffs: &[PWtPoly], gens: &[HmfGen<Sqrt5Mpz>]) -> HmfGen<Sqrt5Mpz
     for (&ref p, f) in coeffs.iter().zip(gens.iter()) {
         if !p.is_empty() {
             let mut tmp = MonomFormal::eval(p, prec);
+            tmp *= f;
+            res += &tmp;
+        }
+    }
+    assert!(res.weight.is_some());
+    res
+}
+
+fn linear_comb_cached(
+    coeffs: &[PWtPoly],
+    gens: &[HmfGen<Sqrt5Mpz>],
+    map_g2: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+    map_g5: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+    map_g6: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
+) -> HmfGen<Sqrt5Mpz> {
+    let prec = gens[0].prec;
+    let mut res = HmfGen::<Sqrt5Mpz>::new(prec);
+    for (&ref p, f) in coeffs.iter().zip(gens.iter()) {
+        if !p.is_empty() {
+            let mut tmp = MonomFormal::eval_cached(p, prec, map_g2, map_g5, map_g6);
             tmp *= f;
             res += &tmp;
         }
