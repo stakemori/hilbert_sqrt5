@@ -749,9 +749,6 @@ mod str_exe {
     fn save_star_norms(diffs: &[u64]) {
 
         for &i in diffs {
-            let mut map_g2 = HashMap::new();
-            let mut map_g5 = HashMap::new();
-            let mut map_g6 = HashMap::new();
             let cand = {
                 let cand_f = File::open(format!("./data/brackets/str{}_cand.sobj", i)).unwrap();
                 let monom_f = File::open(format!("./data/brackets/str{}_monoms.sobj", i)).unwrap();
@@ -763,16 +760,10 @@ mod str_exe {
                 .max()
                 .unwrap();
             let prec = wt_mx as usize;
-            let gens = cand.gens_nums_as_forms(prec, &mut map_g2, &mut map_g5, &mut map_g6);
+            let gens = cand.gens_nums_as_forms(prec);
             println!("i: {}, prec: {}", i, prec);
             let stars_f = format!("./data/brackets/str{}_star_norms.sobj", i);
-            measure_time!(cand.save_star_norms(
-                &gens,
-                &stars_f,
-                &mut map_g2,
-                &mut map_g5,
-                &mut map_g6,
-            ));
+            measure_time!(cand.save_star_norms(&gens, &stars_f));
         }
     }
 

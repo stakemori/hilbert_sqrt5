@@ -549,9 +549,6 @@ impl StrCand {
     pub fn gens_nums_as_forms(
         &self,
         prec: usize,
-        map_g2: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
-        map_g5: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
-        map_g6: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
     ) -> Vec<HmfGen<Sqrt5Mpz>> {
         fn to_pwtpoly(x: &PWtPolyZ) -> PWtPoly {
             x.iter().map(|y| (y.0.clone(), From::from(&y.1))).collect()
@@ -561,13 +558,13 @@ impl StrCand {
         let ((ref m0, ref n0), (ref m1, ref n1)) = self.monoms;
         let f = rankin_cohen_sqrt5(
             self.df as usize,
-            &m0.into_form_cached(prec, map_g2, map_g5, map_g6),
-            &n0.into_form_cached(prec, map_g2, map_g5, map_g6),
+            &m0.into_form(prec),
+            &n0.into_form(prec),
         ).unwrap();
         let g = rankin_cohen_sqrt5(
             self.df as usize,
-            &m1.into_form_cached(prec, map_g2, map_g5, map_g6),
-            &n1.into_form_cached(prec, map_g2, map_g5, map_g6),
+            &m1.into_form(prec),
+            &n1.into_form(prec),
         ).unwrap();
         assert_eq!(f.weight.unwrap().0 as u64, wt_f);
         assert_eq!(g.weight.unwrap().0 as u64, wt_g);
@@ -576,7 +573,7 @@ impl StrCand {
             .iter()
             .map(|nums| {
                 let v = [to_pwtpoly(&nums.0), to_pwtpoly(&nums.1)];
-                linear_comb_cached(&v, &free_basis, map_g2, map_g5, map_g6)
+                linear_comb(&v, &free_basis)
             })
             .collect()
     }
@@ -588,7 +585,7 @@ impl StrCand {
         map_g5: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
         map_g6: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
     ) -> Vec<HmfGen<Sqrt5Mpz>> {
-        let v = self.gens_nums_as_forms(prec, map_g2, map_g5, map_g6);
+        let v = self.gens_nums_as_forms(prec);
         let mut prec_small = 5;
         let mut prec = prec;
         loop {
@@ -645,9 +642,6 @@ impl StrCand {
         &self,
         gens: &[HmfGen<Sqrt5Mpz>],
         path: &str,
-        map_g2: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
-        map_g5: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
-        map_g6: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
     ) {
         let mut pols = Vec::new();
         for f in gens.iter() {
@@ -657,7 +651,7 @@ impl StrCand {
             let wt = nm.weight.unwrap();
             assert_eq!(wt.0, wt.1);
             assert!(nm.ir_part().is_zero());
-            let poly = r_elt_as_pol_over_z_cached_gens(&nm.rt_part(), map_g2, map_g5, map_g6)
+            let poly = r_elt_as_pol_over_z(&nm.rt_part())
                 .unwrap();
             pols.push(poly);
         }
@@ -794,6 +788,7 @@ fn linear_comb(coeffs: &[PWtPoly], gens: &[HmfGen<Sqrt5Mpz>]) -> HmfGen<Sqrt5Mpz
     res
 }
 
+#[allow(dead_code)]
 fn linear_comb_cached(
     coeffs: &[PWtPoly],
     gens: &[HmfGen<Sqrt5Mpz>],
