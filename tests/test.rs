@@ -745,13 +745,13 @@ mod str_exe {
         }
     }
 
-    #[test]
-    fn test_save_star_norms() {
+
+    fn save_star_norms(diffs: &[u64]) {
         let mut map_g2 = HashMap::new();
         let mut map_g5 = HashMap::new();
         let mut map_g6 = HashMap::new();
 
-        for i in 31..32 {
+        for &i in diffs {
             let cand = {
                 let cand_f = File::open(format!("./data/brackets/str{}_cand.sobj", i)).unwrap();
                 let monom_f = File::open(format!("./data/brackets/str{}_monoms.sobj", i)).unwrap();
@@ -776,6 +776,22 @@ mod str_exe {
         }
     }
 
+    #[test]
+    fn test_save_star_norms0() {
+        save_star_norms(&(32..51).filter(|i| i % 4 == 0).collect::<Vec<_>>());
+    }
+    #[test]
+    fn test_save_star_norms1() {
+        save_star_norms(&(32..51).filter(|i| i % 4 == 1).collect::<Vec<_>>());
+    }
+    #[test]
+    fn test_save_star_norms2() {
+        save_star_norms(&(32..51).filter(|i| i % 4 == 2).collect::<Vec<_>>());
+    }
+    #[test]
+    fn test_save_star_norms3() {
+        save_star_norms(&(32..51).filter(|i| i % 4 == 3).collect::<Vec<_>>());
+    }
     fn write_csv_form(f: &HmfGen<Sqrt5Mpz>, p: &String) {
         let mut wtr = csv::Writer::from_path(p).unwrap();
         wtr.write_record(&["(v, u)", "a(v, u)"]).unwrap();
