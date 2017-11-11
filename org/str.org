@@ -426,7 +426,7 @@ sm10[2]=[314741020*g2^3-3121333056000*g6,-3262642099516800*g5,1441*g2^3-15014592
 : 2^17 * 3^4 * 5^4 * 7 * 11 * g5 * (-11*g2^3 + 10800*g6)
 : 2^8 * 3^3 * 5^2 * 7 * (-11*g2^6 + 3960*g2^3*g6 - 432000*g2*g5^2 + 8553600*g6^2)
 
-* Structure 3-20 check construction
+* Structure 3-34 check construction
 #+BEGIN_SRC sage
   all(check_construction(i) for i in range(3, 31))
 #+END_SRC
@@ -435,7 +435,7 @@ sm10[2]=[314741020*g2^3-3121333056000*g6,-3262642099516800*g5,1441*g2^3-15014592
 : True
 
 #+BEGIN_SRC sage
-  all(check_construction(i) for i in range(31, 32))
+  all(check_construction(i) for i in range(31, 35))
 #+END_SRC
 
 #+RESULTS:
