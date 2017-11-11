@@ -546,26 +546,17 @@ impl StrCand {
         })
     }
 
-    pub fn gens_nums_as_forms(
-        &self,
-        prec: usize,
-    ) -> Vec<HmfGen<Sqrt5Mpz>> {
+    pub fn gens_nums_as_forms(&self, prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
         fn to_pwtpoly(x: &PWtPolyZ) -> PWtPoly {
             x.iter().map(|y| (y.0.clone(), From::from(&y.1))).collect()
         }
         let (_, wt_f) = self.free_basis_wts.0;
         let (_, wt_g) = self.free_basis_wts.1;
         let ((ref m0, ref n0), (ref m1, ref n1)) = self.monoms;
-        let f = rankin_cohen_sqrt5(
-            self.df as usize,
-            &m0.into_form(prec),
-            &n0.into_form(prec),
-        ).unwrap();
-        let g = rankin_cohen_sqrt5(
-            self.df as usize,
-            &m1.into_form(prec),
-            &n1.into_form(prec),
-        ).unwrap();
+        let f = rankin_cohen_sqrt5(self.df as usize, &m0.into_form(prec), &n0.into_form(prec))
+            .unwrap();
+        let g = rankin_cohen_sqrt5(self.df as usize, &m1.into_form(prec), &n1.into_form(prec))
+            .unwrap();
         assert_eq!(f.weight.unwrap().0 as u64, wt_f);
         assert_eq!(g.weight.unwrap().0 as u64, wt_g);
         let free_basis = [f, g];
@@ -638,11 +629,7 @@ impl StrCand {
             .collect()
     }
 
-    pub fn save_star_norms(
-        &self,
-        gens: &[HmfGen<Sqrt5Mpz>],
-        path: &str,
-    ) {
+    pub fn save_star_norms(&self, gens: &[HmfGen<Sqrt5Mpz>], path: &str) {
         let mut pols = Vec::new();
         for f in gens.iter() {
             let mut nm = HmfGen::new(f.prec);
@@ -651,8 +638,7 @@ impl StrCand {
             let wt = nm.weight.unwrap();
             assert_eq!(wt.0, wt.1);
             assert!(nm.ir_part().is_zero());
-            let poly = r_elt_as_pol_over_z(&nm.rt_part())
-                .unwrap();
+            let poly = r_elt_as_pol_over_z(&nm.rt_part()).unwrap();
             pols.push(poly);
         }
         let mut stars_f = File::create(path).unwrap();
