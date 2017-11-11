@@ -769,7 +769,7 @@ mod str_exe {
 
     #[test]
     fn test_save_star_norms0() {
-        save_star_norms(&(35..51).collect::<Vec<_>>());
+        save_star_norms(&(36..51).collect::<Vec<_>>());
     }
 
     fn write_csv_form(f: &HmfGen<Sqrt5Mpz>, p: &String) {
