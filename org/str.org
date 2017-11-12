@@ -435,7 +435,7 @@ sm10[2]=[314741020*g2^3-3121333056000*g6,-3262642099516800*g5,1441*g2^3-15014592
 : True
 
 #+BEGIN_SRC sage
-  all(check_construction(i) for i in range(31, 36))
+  all(check_construction(i) for i in range(31, 41))
 #+END_SRC
 
 #+RESULTS:
