@@ -30,6 +30,19 @@ macro_rules! measure_time {
   };
 }
 
+mod diag_res {
+    use hilbert_sqrt5::eisenstein::{eisenstein_series, f6_normalized};
+
+    #[test]
+    fn test_res() {
+        let prec = 10;
+        let g2 = eisenstein_series(2, prec);
+        let g6 = f6_normalized(prec);
+        println!("{:?}", g2.diagonal_restriction());
+        println!("{:?}", g6.diagonal_restriction());
+    }
+}
+
 mod str_exe {
     use hilbert_sqrt5::structure::*;
     use hilbert_sqrt5::eisenstein::{eisenstein_series, f6_normalized};

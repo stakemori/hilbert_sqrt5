@@ -3,7 +3,7 @@ from itertools import takewhile
 from pickle import Pickler
 from os.path import join
 from sage.all import (ZZ, FreeModule, PolynomialRing, QuadraticField,
-                      TermOrder, cached_method, flatten, gcd, load)
+                      TermOrder, cached_method, flatten, gcd, load, QQ)
 from sage.libs.singular.function import singular_function
 
 K = QuadraticField(5)
@@ -20,6 +20,14 @@ smres = singular_function("mres")
 slist = singular_function("list")
 sintersect = singular_function("intersect")
 ssyz = singular_function("syz")
+
+
+def diag_res(f):
+    R_el = PolynomialRing(QQ, "E4, E6")
+    E4, E6 = R_el.gens()
+    Delta = (E4**3 - E6**2) / 1728
+    d = {g2: E4, g5: 0, g6: 2 * Delta}
+    return f.subs(d)
 
 
 def load_wts_brs(i):
