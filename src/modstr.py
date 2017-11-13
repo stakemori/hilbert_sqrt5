@@ -3,7 +3,7 @@ from itertools import takewhile
 from pickle import Pickler
 from os.path import join
 from sage.all import (ZZ, FreeModule, PolynomialRing, QuadraticField,
-                      TermOrder, cached_method, flatten, gcd, load, QQ)
+                      TermOrder, cached_method, flatten, gcd, load, QQ, cached_function)
 from sage.libs.singular.function import singular_function
 
 K = QuadraticField(5)
@@ -30,6 +30,7 @@ def diag_res(f):
     return f.subs(d)
 
 
+@cached_function
 def load_wts_brs(i):
     brs = load(join(DATA_DIR, "str%s_brs.sobj" % i))
     wts = load(join(DATA_DIR, "str%s_weights.sobj" % i))
@@ -113,15 +114,18 @@ def min_resol_to_primitive(m_rel):
             (m_rel[2][0], m_rel[2][1], to_string_monom_formal(m_rel[2][2])))
 
 
+@cached_function
 def load_star_norms(i):
     return [to_pol_over_z(d) for d in load(join(DATA_DIR, "str%s_star_norms.sobj" % i))]
 
 
+@cached_function
 def load_cand_dnm(i):
     l = load(join(DATA_DIR, "str%s_cand.sobj" % i))
     return to_pol_over_z_wo_dnm(l[-1][-1])
 
 
+@cached_function
 def load_cand_wts(i):
     l = load(join(DATA_DIR, "str%s_cand.sobj" % i))
     return l[1]
@@ -246,3 +250,59 @@ def syzygy(f, g):
     g = R(g)
     d = gcd(f.lt(), g.lt())
     return (f.lt() / d) * g - (g.lt() / d) * f
+
+
+def c_km2_1_01(k):
+    k1, k2 = [a % 4 for a in k]
+    if (k1, k2) in [(0, 0), (2, 2)]:
+        return 1
+    if k1 % 2 == 1 or k2 % 2 == 1:
+        return 0
+    if (k1, k2) in [(0, 2), (2, 0)]:
+        return -1
+
+
+def c_km2_1_11(k):
+    k1, k2 = [a % 3 for a in k]
+    if (k1, k2) in [(0, 0), (2, 2)]:
+        return 1
+    if k1 == 1 or k2 == 1:
+        return 0
+    if (k1, k2) in [(0, 2), (2, 0)]:
+        return -1
+
+
+def c_km2_1_rho(k, rho):
+    k1, k2 = [a % 5 for a in k]
+    k = (k1, k2)
+    if k in [(0, 0), (2, 2), (4, 3), (3, 4)]:
+        return 1
+    if k in [(3, 0), (4, 2)]:
+        return rho
+    if k in [(2, 4), (0, 3)]:
+        return rho.galois_conjugate()
+    if k1 == 1 or k2 == 1:
+        return 0
+    if k in [(2, 3), (0, 4)]:
+        return -(rho.galois_conjugate())
+    if k in [(3, 2), (4, 0)]:
+        return -rho
+    if k in [(0, 2), (2, 0), (3, 3), (4, 4)]:
+        return -1
+
+
+def dimension_cuspforms_sqrt5(k1, k2):
+    '''
+    Return the dimension of hilbert cusp forms of
+    weight (k1, k2) where k1 > 2 and k2 > 2.
+
+    cf. K. Takase, on the trace formula of the Hecke operators and the special
+    values of the second L-functions attached to the Hilbert modular forms.
+    manuscripta math. 55, 137 --  170 (1986).
+    '''
+    k = (k1, k2)
+    F = QuadraticField(5)
+    rho = (1 + F.gen()) / 2
+    a = c_km2_1_rho(k, rho)
+    return ((k1 - 1) * (k2 - 1) / 60 + c_km2_1_01(k) / 4 + c_km2_1_11(k) / 3 +
+            (a + F(a).galois_conjugate()) / 5)
