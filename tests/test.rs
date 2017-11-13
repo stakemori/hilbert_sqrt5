@@ -832,9 +832,6 @@ mod str_exe {
 
     #[test]
     fn write_gens_cands() {
-        let mut map_g2 = HashMap::new();
-        let mut map_g5 = HashMap::new();
-        let mut map_g6 = HashMap::new();
         for i in 1..51 {
             let cand = {
                 let cand_f = File::open(format!("./data/brackets/str{}_cand.sobj", i)).unwrap();
@@ -842,7 +839,7 @@ mod str_exe {
                 StrCand::load(i, &cand_f, &monom_f).unwrap()
             };
             let prec = 15;
-            let gens = cand.gens(prec, &mut map_g2, &mut map_g5, &mut map_g6);
+            let gens = cand.gens(prec);
             println!("{}", i);
             for (n, f) in gens.iter().enumerate() {
                 let (w1, w2) = f.weight.unwrap();

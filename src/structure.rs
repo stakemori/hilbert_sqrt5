@@ -569,19 +569,12 @@ impl StrCand {
             .collect()
     }
 
-    pub fn gens(
-        &self,
-        prec: usize,
-        map_g2: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
-        map_g5: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
-        map_g6: &mut HashMap<(usize, usize), HmfGen<Mpz>>,
-    ) -> Vec<HmfGen<Sqrt5Mpz>> {
+    pub fn gens(&self, prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
         let v = self.gens_nums_as_forms(prec);
         let mut prec_small = 5;
         let mut prec = prec;
         loop {
-            let dnm_form =
-                MonomFormal::eval_cached(&self.gens_dnm, prec_small, map_g2, map_g5, map_g6);
+            let dnm_form = MonomFormal::eval(&self.gens_dnm, prec_small);
             let a = initial_term(&dnm_form);
             if let Some((v, _, _)) = a {
                 prec += v;
@@ -590,13 +583,7 @@ impl StrCand {
                 prec_small += 1;
             }
         }
-        let dnm_form = From::from(&MonomFormal::eval_cached(
-            &self.gens_dnm,
-            prec,
-            map_g2,
-            map_g5,
-            map_g6,
-        ));
+        let dnm_form = From::from(&MonomFormal::eval(&self.gens_dnm, prec));
         v.iter()
             .map(|f| {
                 let mut res = HmfGen::new(prec);
