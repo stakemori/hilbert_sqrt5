@@ -758,6 +758,30 @@ mod str_exe {
         }
     }
 
+    /// Test if weight 2 forms are holomorphic by multplying g5.
+    #[test]
+    fn test_weight2_hol() {
+        let prec = 10;
+        let g5 = g5_normalized(prec);
+        for i in 3..51 {
+            println!("{}", i);
+            let cand = {
+                let cand_f = File::open(format!("./data/brackets/str{}_cand.sobj", i)).unwrap();
+                let monom_f = File::open(format!("./data/brackets/str{}_monoms.sobj", i)).unwrap();
+                StrCand::load(i, &cand_f, &monom_f).unwrap()
+            };
+            if cand.gen_wts.iter().any(|&x| x == 2) {
+                let gens = cand.gens(prec);
+                for f in &gens {
+                    if f.weight.unwrap().0 == 2 {
+                        let g7 = f * &Into::<HmfGen<Sqrt5Mpz>>::into(&g5);
+                        assert!(g7.diagonal_restriction().iter().all(|x| x.is_zero_g()));
+                    }
+                }
+            }
+            println!("{}: {:?}", i, cand.gen_wts);
+        }
+    }
 
     fn save_star_norms(diffs: &[u64]) {
 
