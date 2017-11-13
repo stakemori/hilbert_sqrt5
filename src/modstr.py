@@ -3,7 +3,8 @@ from itertools import takewhile
 from pickle import Pickler
 from os.path import join
 from sage.all import (ZZ, FreeModule, PolynomialRing, QuadraticField,
-                      TermOrder, cached_method, flatten, gcd, load, QQ, cached_function)
+                      TermOrder, cached_method, flatten, gcd, load, QQ, cached_function,
+                      PowerSeriesRing, O)
 from sage.libs.singular.function import singular_function
 
 K = QuadraticField(5)
@@ -302,7 +303,41 @@ def dimension_cuspforms_sqrt5(k1, k2):
     '''
     k = (k1, k2)
     F = QuadraticField(5)
-    rho = (1 + F.gen()) / 2
+    rho = (1 + F.gen()) / ZZ(2)
     a = c_km2_1_rho(k, rho)
-    return ((k1 - 1) * (k2 - 1) / 60 + c_km2_1_01(k) / 4 + c_km2_1_11(k) / 3 +
-            (a + F(a).galois_conjugate()) / 5)
+    return (ZZ((k1 - 1) * (k2 - 1)) / ZZ(60) + ZZ(c_km2_1_01(k)) / ZZ(4) +
+            ZZ(c_km2_1_11(k)) / ZZ(3) +
+            ZZ(a + F(a).galois_conjugate()) / ZZ(5))
+
+
+def hilbert_series_using_cand_wts(i, prec=None):
+    wts = load_cand_wts(i)
+    if prec is None:
+        prec = max(wts[0])
+    ps = PowerSeriesRing(QQ, names='t', default_prec=prec + 1)
+    t = ps.gen()
+    num = sum(t**a for a in wts[0])
+    if len(wts) > 1:
+        num -= sum(t**a for a in wts[1])
+    dnm = (1 - t**2) * (1 - t**5) * (1 - t**6)
+    return num / dnm
+
+
+def hilbert_series_using_dimension_formula(i, prec=10):
+    '''
+    This assumes dimension formula is true for weight (2, k) where k > 2
+    and the dimesion for (1, k) k > 2 is zero.
+    If one believes magma, the assumption for (2, k) can be checked for some cases.
+    And the assumption for (1, k) can be checked by the construction.
+    '''
+    ps = PowerSeriesRing(QQ, names='t', default_prec=prec + 1)
+    t = ps.gen()
+    return (sum(dimension_cuspforms_sqrt5(a, a + 2 * i) * t**a for a in range(2, prec + 1)) +
+            O(t**(prec + 1)))
+
+
+def check_hilbert_series(i):
+    s1 = hilbert_series_using_cand_wts(i)
+    prec = s1.prec()
+    s2 = hilbert_series_using_dimension_formula(i, prec=prec + 1)
+    return s1 == s2

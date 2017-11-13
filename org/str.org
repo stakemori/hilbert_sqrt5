@@ -441,6 +441,13 @@ sm10[2]=[314741020*g2^3-3121333056000*g6,-3262642099516800*g5,1441*g2^3-15014592
 #+RESULTS:
 : True
 
+#+BEGIN_SRC sage
+  all(check_hilbert_series(i) for i in range(3, 51))
+#+END_SRC
+
+#+RESULTS:
+: True
+
 * Structure 3-20
 #+BEGIN_SRC sage
   [load_cand_wts(i) for i in range(3, 42)]
