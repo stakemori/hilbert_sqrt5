@@ -140,6 +140,12 @@ def check_construction(i):
     return all((dnm**2).divides(a) for a in l)
 
 
+@cached_function
+def load_min_resol_prim(i):
+    fname = join(DATA_DIR, "str%s_cand.sobj" % i)
+    return load(fname)
+
+
 def save_min_resol_prim(i):
     data = load_wts_brs(i)
     resl = min_reol_maybe_with3gens(data)
