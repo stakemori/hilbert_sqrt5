@@ -193,7 +193,7 @@ def to_pol_over_z(tpl):
 
 
 def to_pol_over_z_wo_dnm(l):
-    return sum(g2**a * g5**b * g6**c * ZZ(s) / ZZ(2) for (a, b, c), s in l)
+    return sum(g2**a * g5**b * g6**c * ZZ(s) for (a, b, c), s in l)
 
 
 def to_pol1(tpl):
