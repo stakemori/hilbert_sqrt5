@@ -167,9 +167,8 @@ def min_reol_maybe_with3gens(data):
     b = -d[(f, h)]
     c = d[(f, g)]
     f = e0 * c
-    g = e1 * c
     h = -(a * e0 + b * e1)
-    n = smodule(f, g, h)
+    n = smodule(f, h)
     idl = sideal(b)
     m = squotient(n, idl)
     wts = data.weight_of_basis()
