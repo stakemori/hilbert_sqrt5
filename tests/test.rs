@@ -887,6 +887,15 @@ mod str_test {
         let rels = relations_over_z(&forms);
         assert_eq!(rels.len(), 1);
     }
+
+    #[test]
+    fn test_relations() {
+        for i in 1..11 {
+            let cand = load_cand(i);
+            println!("{}", i);
+            cand.test_relations(10);
+        }
+    }
 }
 
 mod div {

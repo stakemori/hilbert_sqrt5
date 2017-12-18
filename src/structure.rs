@@ -636,9 +636,26 @@ impl StrCand {
         save_polys_over_z_pickle(&pols, &mut stars_f);
     }
 
-    pub fn relations_as_forms(&self, prec: usize) {
-
+    pub fn test_relations(&self, prec: usize) {
+        assert!(self.rels.len() <= 1);
+        fn to_pwtpoly(x: &PWtPolyZ) -> PWtPoly {
+            x.iter().map(|y| (y.0.clone(), From::from(&y.1))).collect()
+        }
+        let num_gens = self.gens_nums_as_forms(prec);
+        if self.rels.len() > 0 {
+            for rel in &self.rels[0] {
+                let rel: Vec<_> = rel.iter().map(to_pwtpoly).collect();
+                let rel_form = linear_comb(&rel, &num_gens);
+                assert!(rel_form.is_zero());
+            }
+        }
     }
+}
+
+pub fn load_cand(i: u64) -> StrCand {
+    let cand_f = File::open(format!("./data/brackets/str{}_cand.sobj", i)).unwrap();
+    let monom_f = File::open(format!("./data/brackets/str{}_monoms.sobj", i)).unwrap();
+    StrCand::load(i, &cand_f, &monom_f).unwrap()
 }
 
 pub fn save_polys_over_z_pickle(xs: &[(PWtPolyZ, Mpz)], f: &mut File) {
