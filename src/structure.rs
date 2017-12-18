@@ -550,6 +550,17 @@ impl StrCand {
         fn to_pwtpoly(x: &PWtPolyZ) -> PWtPoly {
             x.iter().map(|y| (y.0.clone(), From::from(&y.1))).collect()
         }
+        let free_basis = self.free_basis_nums(prec);
+        self.gens_num
+            .iter()
+            .map(|nums| {
+                let v = [to_pwtpoly(&nums.0), to_pwtpoly(&nums.1)];
+                linear_comb(&v, &free_basis)
+            })
+            .collect()
+    }
+
+    pub fn free_basis_nums(&self, prec: usize) -> [HmfGen<Sqrt5Mpz>; 2] {
         let (_, wt_f) = self.free_basis_wts.0;
         let (_, wt_g) = self.free_basis_wts.1;
         let ((ref m0, ref n0), (ref m1, ref n1)) = self.monoms;
@@ -559,14 +570,7 @@ impl StrCand {
             .unwrap();
         assert_eq!(f.weight.unwrap().0 as u64, wt_f);
         assert_eq!(g.weight.unwrap().0 as u64, wt_g);
-        let free_basis = [f, g];
-        self.gens_num
-            .iter()
-            .map(|nums| {
-                let v = [to_pwtpoly(&nums.0), to_pwtpoly(&nums.1)];
-                linear_comb(&v, &free_basis)
-            })
-            .collect()
+        [f, g]
     }
 
     pub fn gens(&self, prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
@@ -630,6 +634,10 @@ impl StrCand {
         }
         let mut stars_f = File::create(path).unwrap();
         save_polys_over_z_pickle(&pols, &mut stars_f);
+    }
+
+    pub fn relations_as_forms(&self, prec: usize) {
+
     }
 }
 
