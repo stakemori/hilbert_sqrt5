@@ -514,7 +514,21 @@ where
             tmp.set(&res);
             res.gcd_mut(&tmp, &self.fcvec.fc_ref(v, u, bd).rt_part());
         });
-        res
+        let mut a = false;
+        v_u_bd_iter!((self.u_bds, v, u, bd) {
+            tmp.add_mut(&self.fcvec.fc_ref(v, u, bd).ir_part(),
+                        &self.fcvec.fc_ref(v, u, bd).rt_part());
+            tmp /= &res;
+            if tmp.is_congruent_to_ui(1, 2) {
+                a = true;
+                break;
+            }
+        });
+        if a {
+            res >> 1
+        } else {
+            res
+        }
     }
 }
 
