@@ -159,6 +159,16 @@ impl<'a> From<&'a (Mpz, Mpz)> for Sqrt5Mpz {
     }
 }
 
+impl From<(i64, i64)> for Sqrt5Mpz {
+    fn from(a: (i64, i64)) -> Self {
+        let mut rt = Mpz::new();
+        let mut ir = Mpz::new();
+        rt.set_si(a.0);
+        ir.set_si(a.1);
+        Self { rt: rt, ir: ir }
+    }
+}
+
 impl Sqrt5Mpz {
     pub fn conj_mut(&mut self) {
         self.ir.negate();
