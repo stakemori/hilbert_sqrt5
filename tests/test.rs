@@ -32,14 +32,17 @@ macro_rules! measure_time {
 
 mod diag_res {
     use hilbert_sqrt5::eisenstein::{eisenstein_series, f6_normalized};
+    use hilbert_sqrt5::diff_op::g15_normalized;
 
     #[test]
     fn test_res() {
         let prec = 10;
         let g2 = eisenstein_series(2, prec);
         let g6 = f6_normalized(prec);
+        let g15 = g15_normalized(prec);
         println!("{:?}", g2.diagonal_restriction());
         println!("{:?}", g6.diagonal_restriction());
+        println!("{:?}", g15.diagonal_restriction());
     }
 }
 
@@ -714,7 +717,7 @@ mod str_exe {
 
     #[test]
     fn test_save_rels_up_to_50() {
-        for i in 3..21 {
+        for i in 1..61 {
             println!("{}", i);
             let prec = (2 * i + 6) / 5 + 2;
             println!("{}", prec);
@@ -856,7 +859,7 @@ mod str_exe {
 
     #[test]
     fn write_gens_cands() {
-        for i in 1..51 {
+        for i in 1..4 {
             let cand = {
                 let cand_f = File::open(format!("./data/brackets/str{}_cand.sobj", i)).unwrap();
                 let monom_f = File::open(format!("./data/brackets/str{}_monoms.sobj", i)).unwrap();
@@ -877,6 +880,8 @@ mod str_exe {
 mod str_test {
     use hilbert_sqrt5::structure::*;
     use hilbert_sqrt5::eisenstein::eisenstein_series;
+    use hilbert_sqrt5::bignum::RealQuadElement;
+    use super::*;
 
     #[test]
     fn test_relations_over_z() {
@@ -894,6 +899,32 @@ mod str_test {
             let cand = load_cand(i);
             println!("{}", i);
             cand.test_relations(10);
+        }
+    }
+
+    #[test]
+    fn test_bracket_as_form() {
+        for i in 1..11 {
+            println!("{}", i);
+            let prec = 10;
+            let cand = load_cand(i);
+            let gens = cand.gens(prec);
+            let f = &gens[0];
+            let g = &gens[1];
+            let br = bracket_inner_prod1(&f, &g).unwrap();
+            let f1 = br.ir_part();
+            let f2 = br.rt_part();
+            if !f1.is_zero() {
+                let pl = r_elt_as_pol_over_z(&f1);
+                assert!(pl.is_some());
+                println!("{:?}", pl.unwrap());
+            }
+            if !f2.is_zero() {
+                let pl = r_elt_as_pol_over_z(&f2);
+                assert!(pl.is_some());
+                println!("{:?}", pl.unwrap());
+
+            }
         }
     }
 }
