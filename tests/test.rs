@@ -1383,3 +1383,49 @@ mod misc {
         assert_eq!(v.len(), 169);
     }
 }
+
+
+mod rankin_cohen_1 {
+    use super::*;
+    use hilbert_sqrt5::bignum::Sqrt5Mpz;
+    use std::fs::File;
+    use hilbert_sqrt5::structure::*;
+
+    #[test]
+    fn test_gens_a2() {
+        let prec = 3;
+        let g2 = eisenstein_series(2, prec);
+        let g5 = g5_normalized(prec);
+        let mut g_4_8 = rankin_cohen_sqrt5(2, &g2, &g2).unwrap();
+        let mut g_7_11 = rankin_cohen_sqrt5(2, &g2, &g5).unwrap();
+        println!("{}", g_4_8);
+        println!("\n");
+        println!("{}", g_7_11);
+        println!("\n");
+        g_4_8 /= &Into::<Sqrt5Mpz>::into(&Mpz::from_ui(360));
+        g_7_11 <<= 1;
+        g_7_11 /= &Into::<Sqrt5Mpz>::into(&Mpz::from_ui(3));
+        let br = bracket_inner_prod1(&g_4_8, &g_7_11).unwrap();
+        println!("{}", br);
+    }
+
+    #[test]
+    fn test_gens_a3() {
+        let i = 3;
+        let prec = 5;
+        let cand = {
+            let cand_f = File::open(format!("./data/brackets/str{}_cand.sobj", i)).unwrap();
+            let monom_f = File::open(format!("./data/brackets/str{}_monoms.sobj", i)).unwrap();
+            StrCand::load(i, &cand_f, &monom_f).unwrap()
+        };
+        println!("{:?}", cand);
+        let gens = cand.gens(prec);
+        for f in &gens {
+            println!("{:?}", f.weight.unwrap());
+        }
+        let f3 = &gens[0];
+        let f6 = &gens[1];
+        let br = bracket_inner_prod1(&f3, &f6).unwrap();
+        println!("{}", br);
+    }
+}
