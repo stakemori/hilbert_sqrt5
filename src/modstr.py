@@ -54,7 +54,7 @@ def to_unicode(a):
 def to_string_monom_formal(pl):
     pl = R(pl)
     pl = pl.change_ring(ZZ)
-    return [((k[0], k[1], k[2]), to_unicode(a)) for (k, a) in pl.dict().items()]
+    return [((k[2], k[1], k[0]), to_unicode(a)) for (k, a) in pl.dict().items()]
 
 
 class FormsData(object):
