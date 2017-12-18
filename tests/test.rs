@@ -859,7 +859,7 @@ mod str_exe {
 
     #[test]
     fn write_gens_cands() {
-        for i in 1..4 {
+        for i in 1..20 {
             let cand = {
                 let cand_f = File::open(format!("./data/brackets/str{}_cand.sobj", i)).unwrap();
                 let monom_f = File::open(format!("./data/brackets/str{}_monoms.sobj", i)).unwrap();
