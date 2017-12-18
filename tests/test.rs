@@ -895,18 +895,18 @@ mod str_test {
 
     #[test]
     fn test_relations() {
-        for i in 1..11 {
+        for i in 1..21 {
             let cand = load_cand(i);
             println!("{}", i);
-            cand.test_relations(10);
+            cand.test_relations(15);
         }
     }
 
     #[test]
     fn test_bracket_as_form() {
-        for i in 1..11 {
+        for i in 1..21 {
             println!("{}", i);
-            let prec = 10;
+            let prec = 15;
             let cand = load_cand(i);
             let gens = cand.gens(prec);
             let f = &gens[0];
@@ -917,12 +917,12 @@ mod str_test {
             if !f1.is_zero() {
                 let pl = r_elt_as_pol_over_z(&f1);
                 assert!(pl.is_some());
-                println!("{:?}", pl.unwrap());
+                // println!("{:?}", pl.unwrap());
             }
             if !f2.is_zero() {
                 let pl = r_elt_as_pol_over_z(&f2);
                 assert!(pl.is_some());
-                println!("{:?}", pl.unwrap());
+                // println!("{:?}", pl.unwrap());
 
             }
         }
