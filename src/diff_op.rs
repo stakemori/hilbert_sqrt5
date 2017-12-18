@@ -200,6 +200,10 @@ fn diff_mul_mut_ir(
     *res >>= 1;
 }
 
+/// When f = sum a(u, v) exp(Tr alpha/sqrt(5)),where alpha = (u + v sqrt(5))/2
+/// and `expt = (a, b)`,
+/// `(res_rt + res_ir sqrt5)/2 = sum a(u, v) alpha^a beta^b exp(Tr alpha/sqrt5)`.
+/// Here beta = (-u + vsqrt5)/2.
 fn diff_mut(
     res_rt: &mut HmfGen<Mpz>,
     res_ir: &mut HmfGen<Mpz>,
@@ -514,5 +518,17 @@ mod tests {
         diff_mul_mut_ir(&mut res1, (0, 0), (0, 1), &g2, &g2);
         diff_mul_mut_ir(&mut res2, (0, 1), (0, 0), &g2, &g2);
         assert_eq!(res1, res2);
+    }
+
+    #[test]
+    fn test_diff_mut() {
+        let prec = 5;
+        let mut f1 = HmfGen::new(prec);
+        let mut f2 = HmfGen::new(prec);
+        let g5 = g5_normalized(prec);
+        diff_mut(&mut f1, &mut f2, (0, 3), &g5);
+        println!("{}", f1);
+        println!("\n");
+        println!("{}", f2);
     }
 }
