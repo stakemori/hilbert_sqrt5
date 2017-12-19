@@ -1423,7 +1423,6 @@ mod misc {
 mod paper {
     use super::*;
     use hilbert_sqrt5::bignum::Sqrt5Mpz;
-    use std::fs::File;
     use hilbert_sqrt5::structure::*;
 
     #[test]
