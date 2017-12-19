@@ -895,7 +895,7 @@ mod str_test {
 
     #[test]
     fn test_relations() {
-        for i in 1..21 {
+        for i in 21..51 {
             let cand = load_cand(i);
             println!("{}", i);
             cand.test_relations(15);
@@ -904,10 +904,14 @@ mod str_test {
 
     #[test]
     fn test_bracket_as_form() {
-        for i in 1..21 {
+        for i in 21..41 {
             println!("{}", i);
-            let prec = 15;
+            let prec = 5;
             let cand = load_cand(i);
+            let gens = cand.gens(prec);
+            let f = &gens[0];
+            let g = &gens[1];
+            let prec = (f.weight.unwrap().0 + g.weight.unwrap().1 - 15)/5 + 5;
             let gens = cand.gens(prec);
             let f = &gens[0];
             let g = &gens[1];
