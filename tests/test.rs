@@ -911,7 +911,7 @@ mod str_test {
             let gens = cand.gens(prec);
             let f = &gens[0];
             let g = &gens[1];
-            let prec = (f.weight.unwrap().0 + g.weight.unwrap().1 - 15)/5 + 5;
+            let prec = (f.weight.unwrap().0 + g.weight.unwrap().1 - 15) / 5 + 5;
             let gens = cand.gens(prec);
             let f = &gens[0];
             let g = &gens[1];
@@ -1483,25 +1483,61 @@ mod paper {
         assert_eq!(f7.fourier_coefficient(2, 4), From::from((20, -8)));
         assert_eq!(f7.fourier_coefficient(2, 2), From::from((2000, -400)));
         assert_eq!(f7.fourier_coefficient(2, 0), From::from((0, 840 * 2)));
+
+        assert_eq!(f8.fourier_coefficient(0, 0), From::from((0, 0)));
+        assert_eq!(f8.fourier_coefficient(1, 1), From::from((-10, 2)));
+        assert_eq!(f8.fourier_coefficient(1, -1), From::from((-10, -2)));
+        assert_eq!(f8.fourier_coefficient(2, 4), From::from((-20, 8)));
+        assert_eq!(f8.fourier_coefficient(2, 2), From::from((2000, -400)));
+        assert_eq!(f8.fourier_coefficient(2, 0), From::from((2 * 3300, 0)));
+
+        assert_eq!(f11.fourier_coefficient(0, 0), From::from((0, 0)));
+        assert_eq!(f11.fourier_coefficient(1, 1), From::from((0, 0)));
+        assert_eq!(f11.fourier_coefficient(1, -1), From::from((0, 0)));
+        assert_eq!(f11.fourier_coefficient(2, 4), From::from((0, 0)));
+        assert_eq!(f11.fourier_coefficient(2, 2), From::from((10, -2)));
+        assert_eq!(f11.fourier_coefficient(2, 0), From::from((0, -44)));
+
+        let br7_8 = bracket_inner_prod1(&f7, &f8).unwrap();
+        let br8_11 = bracket_inner_prod1(&f8, &f11).unwrap();
+        let br11_7 = bracket_inner_prod1(&f11, &f7).unwrap();
+        println!("br7_8: {}", br7_8.fourier_coefficient(0, 0));
+        println!("br8_11: {}", br8_11.fourier_coefficient(1, 1));
+        println!("br11_7: {}", br11_7.fourier_coefficient(1, 1));
     }
 
     #[test]
     fn test_gens_a3() {
-        let i = 3;
         let prec = 5;
-        let cand = {
-            let cand_f = File::open(format!("./data/brackets/str{}_cand.sobj", i)).unwrap();
-            let monom_f = File::open(format!("./data/brackets/str{}_monoms.sobj", i)).unwrap();
-            StrCand::load(i, &cand_f, &monom_f).unwrap()
-        };
-        println!("{:?}", cand);
+        let cand = load_cand(3);
         let gens = cand.gens(prec);
-        for f in &gens {
-            println!("{:?}", f.weight.unwrap());
-        }
-        let f3 = &gens[0];
-        let f6 = &gens[1];
-        let br = bracket_inner_prod1(&f3, &f6).unwrap();
-        println!("{}", br);
+        let g2: HmfGen<Sqrt5Mpz> = From::from(&eisenstein_series(2, prec));
+        let g5: HmfGen<Sqrt5Mpz> = From::from(&g5_normalized(prec));
+        let mut f3 = gens[0].clone();
+        let mut f6 = gens[1].clone();
+        f3 *= &Into::<Sqrt5Mpz>::into((0, 2));
+        f6 *= &Into::<Sqrt5Mpz>::into((0, 2));
+        let f8: HmfGen<Sqrt5Mpz> = &(&(&f3 * &g5) * &Into::<Sqrt5Mpz>::into((840 * 2, 0))) -
+            &f6 * &g2;
+        assert_eq!(f6.fourier_coefficient(0, 0), From::from((0, 0)));
+        assert_eq!(f6.fourier_coefficient(1, 1), From::from((10, -4)));
+        assert_eq!(f6.fourier_coefficient(1, -1), From::from((10, 4)));
+        assert_eq!(f6.fourier_coefficient(2, 4), From::from((85 * 2, -38 * 2)));
+        assert_eq!(f6.fourier_coefficient(2, 2), From::from((-2200 * 2, 880 * 2)));
+        assert_eq!(f6.fourier_coefficient(2, 0), From::from((-1050 * 2, 0)));
+
+        assert_eq!(f8.fourier_coefficient(0, 0), From::from((0, 0)));
+        assert_eq!(f8.fourier_coefficient(1, 1), From::from((-10, 4)));
+        assert_eq!(f8.fourier_coefficient(1, -1), From::from((-10, -4)));
+        assert_eq!(f8.fourier_coefficient(2, 4), From::from((-85 * 2, 38 * 2)));
+        assert_eq!(f8.fourier_coefficient(2, 2), From::from((-2600 * 2, 1040 * 2)));
+        assert_eq!(f8.fourier_coefficient(2, 0), From::from((8250 * 2, 0)));
+
+        assert_eq!(f3.fourier_coefficient(0, 0), From::from((0, 0)));
+        assert_eq!(f3.fourier_coefficient(1, 1), From::from((-10, 4)));
+        assert_eq!(f3.fourier_coefficient(1, -1), From::from((10, 4)));
+        assert_eq!(f3.fourier_coefficient(2, 4), From::from((170, -76)));
+        assert_eq!(f3.fourier_coefficient(2, 2), From::from((-100, 40)));
+        assert_eq!(f3.fourier_coefficient(2, 0), From::from((0, -120)));
     }
 }
