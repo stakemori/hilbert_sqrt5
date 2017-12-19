@@ -859,7 +859,7 @@ mod str_exe {
 
     #[test]
     fn write_gens_cands() {
-        for i in 1..20 {
+        for i in 1..51 {
             let cand = {
                 let cand_f = File::open(format!("./data/brackets/str{}_cand.sobj", i)).unwrap();
                 let monom_f = File::open(format!("./data/brackets/str{}_monoms.sobj", i)).unwrap();
@@ -1420,7 +1420,7 @@ mod misc {
 }
 
 
-mod rankin_cohen_1 {
+mod paper {
     use super::*;
     use hilbert_sqrt5::bignum::Sqrt5Mpz;
     use std::fs::File;
@@ -1437,11 +1437,52 @@ mod rankin_cohen_1 {
         println!("\n");
         println!("{}", g_7_11);
         println!("\n");
+
         g_4_8 /= &Into::<Sqrt5Mpz>::into(&Mpz::from_ui(360));
         g_7_11 <<= 1;
         g_7_11 /= &Into::<Sqrt5Mpz>::into(&Mpz::from_ui(3));
         let br = bracket_inner_prod1(&g_4_8, &g_7_11).unwrap();
-        println!("{}", br);
+        println!("br: {}", br);
+
+        println!("diag {:?}", g_4_8.diagonal_restriction());
+        println!("diag {:?}", g_7_11.diagonal_restriction());
+
+        assert_eq!(g_4_8.fourier_coefficient(0, 0), From::from((0, 0)));
+        assert_eq!(g_4_8.fourier_coefficient(1, 1), From::from((6, -2)));
+        assert_eq!(g_4_8.fourier_coefficient(1, -1), From::from((6, 2)));
+        assert_eq!(g_4_8.fourier_coefficient(2, 4), From::from((36, -16)));
+        assert_eq!(g_4_8.fourier_coefficient(2, 2), From::from((-240, 80)));
+        assert_eq!(g_4_8.fourier_coefficient(2, 0), From::from((120, 0)));
+
+        assert_eq!(g_7_11.fourier_coefficient(0, 0), From::from((0, 0)));
+        assert_eq!(g_7_11.fourier_coefficient(1, 1), From::from((6, -2)));
+        assert_eq!(g_7_11.fourier_coefficient(1, -1), From::from((-6, -2)));
+        assert_eq!(g_7_11.fourier_coefficient(2, 4), From::from((-36, 16)));
+        assert_eq!(g_7_11.fourier_coefficient(2, 2), From::from((-240, 80)));
+        assert_eq!(g_7_11.fourier_coefficient(2, 0), From::from((0, 960 * 2)));
+    }
+
+    #[test]
+    fn test_gens_a1() {
+        let prec = 5;
+        let cand = load_cand(1);
+        let gens = cand.gens(prec);
+        let mut f7 = gens[0].clone();
+        let mut f8 = gens[1].clone();
+        let mut f11 = gens[2].clone();
+        assert_eq!(f7.weight.unwrap().0, 7);
+        assert_eq!(f8.weight.unwrap().0, 8);
+        assert_eq!(f11.weight.unwrap().0, 11);
+
+        f7 *= &Into::<Sqrt5Mpz>::into((0, 4));
+        f8 *= &Into::<Sqrt5Mpz>::into((0, 4));
+        f11 *= &Into::<Sqrt5Mpz>::into((0, -4));
+        assert_eq!(f7.fourier_coefficient(0, 0), From::from((0, 0)));
+        assert_eq!(f7.fourier_coefficient(1, 1), From::from((-10, 2)));
+        assert_eq!(f7.fourier_coefficient(1, -1), From::from((10, 2)));
+        assert_eq!(f7.fourier_coefficient(2, 4), From::from((20, -8)));
+        assert_eq!(f7.fourier_coefficient(2, 2), From::from((2000, -400)));
+        assert_eq!(f7.fourier_coefficient(2, 0), From::from((0, 840 * 2)));
     }
 
     #[test]
