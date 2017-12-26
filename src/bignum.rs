@@ -121,7 +121,7 @@ impl BigNumber for Mpz {
 }
 
 /// (rt + ir sqrt(5))/2
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Sqrt5Mpz {
     pub rt: Mpz,
     pub ir: Mpz,
@@ -342,6 +342,12 @@ impl fmt::Display for Sqrt5Mpz {
         } else {
             write!(f, "({}, {})", self.rt, self.ir)
         }
+    }
+}
+
+impl fmt::Debug for Sqrt5Mpz {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Display::fmt(self, f)
     }
 }
 
