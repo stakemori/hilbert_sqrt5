@@ -1424,6 +1424,7 @@ mod paper {
     use super::*;
     use hilbert_sqrt5::bignum::Sqrt5Mpz;
     use hilbert_sqrt5::structure::*;
+    use hilbert_sqrt5::bignum::BigNumber;
 
     #[test]
     fn test_generators_parallel() {
@@ -1438,7 +1439,10 @@ mod paper {
         print_fc(&g15);
     }
 
-    fn print_fc(f: &HmfGen<Mpz>) {
+    fn print_fc<T>(f: &HmfGen<T>)
+    where
+        T: BigNumber + ::std::fmt::Debug,
+    {
         println!(
             "{:?}",
             f.fourier_coefficients(&vec![(0, 0), (1, 1), (1, -1), (2, 4), (2, 2), (2, 0)])
@@ -1486,6 +1490,20 @@ mod paper {
         let prec = 5;
         let cand = load_cand(1);
         let gens = cand.gens(prec);
+
+        let g2 = eisenstein_series(2, prec);
+        let g5 = g5_normalized(prec);
+        let g6 = f6_normalized(prec);
+        let g_7_9 = rankin_cohen_sqrt5(1, &g2, &g5).unwrap();
+        let g_8_10 = rankin_cohen_sqrt5(1, &g6, &g2).unwrap();
+        let g_11_14 = rankin_cohen_sqrt5(1, &g5, &g6).unwrap();
+        print!("g_7_9:");
+        print_fc(&g_7_9);
+        print!("g_8_10:");
+        print_fc(&g_8_10);
+        print!("g_11_14:");
+        print_fc(&g_11_14);
+
         let mut f7 = gens[0].clone();
         let mut f8 = gens[1].clone();
         let mut f11 = gens[2].clone();
@@ -1496,6 +1514,11 @@ mod paper {
         f7 *= &Into::<Sqrt5Mpz>::into((0, 4));
         f8 *= &Into::<Sqrt5Mpz>::into((0, 4));
         f11 *= &Into::<Sqrt5Mpz>::into((0, -4));
+
+        println!("diag {:?}", f7.diagonal_restriction());
+        println!("diag {:?}", f8.diagonal_restriction());
+        println!("diag {:?}", f11.diagonal_restriction());
+
         assert_eq!(f7.fourier_coefficient(0, 0), From::from((0, 0)));
         assert_eq!(f7.fourier_coefficient(1, 1), From::from((-10, 2)));
         assert_eq!(f7.fourier_coefficient(1, -1), From::from((10, 2)));
