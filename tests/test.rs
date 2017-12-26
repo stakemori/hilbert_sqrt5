@@ -1432,17 +1432,17 @@ mod paper {
         let g5 = g5_normalized(prec);
         let g6 = f6_normalized(prec);
         let g15 = g15_normalized(prec);
-        fn print_fc(f: &HmfGen<Mpz>) {
-            println!(
-                "{:?}",
-                f.fourier_coefficients(&vec![(0, 0), (1, 1), (1, -1), (2, 4), (2, 2), (2, 0)])
-            );
-
-        }
         print_fc(&g2);
         print_fc(&g5);
         print_fc(&g6);
         print_fc(&g15);
+    }
+
+    fn print_fc(f: &HmfGen<Mpz>) {
+        println!(
+            "{:?}",
+            f.fourier_coefficients(&vec![(0, 0), (1, 1), (1, -1), (2, 4), (2, 2), (2, 0)])
+        );
     }
 
     #[test]
@@ -1517,6 +1517,9 @@ mod paper {
         assert_eq!(f11.fourier_coefficient(2, 2), From::from((10, -2)));
         assert_eq!(f11.fourier_coefficient(2, 0), From::from((0, -44)));
 
+        // let g2: HmfGen<Sqrt5Mpz> = From::from(&eisenstein_series(2, prec));
+        // let f11_1 = &f7 * &g2.pow(2);
+        // println!("{}", f11_1);
         let br7_8 = bracket_inner_prod1(&f7, &f8).unwrap();
         let br8_11 = bracket_inner_prod1(&f8, &f11).unwrap();
         let br11_7 = bracket_inner_prod1(&f11, &f7).unwrap();
@@ -1542,14 +1545,20 @@ mod paper {
         assert_eq!(f6.fourier_coefficient(1, 1), From::from((10, -4)));
         assert_eq!(f6.fourier_coefficient(1, -1), From::from((10, 4)));
         assert_eq!(f6.fourier_coefficient(2, 4), From::from((85 * 2, -38 * 2)));
-        assert_eq!(f6.fourier_coefficient(2, 2), From::from((-2200 * 2, 880 * 2)));
+        assert_eq!(
+            f6.fourier_coefficient(2, 2),
+            From::from((-2200 * 2, 880 * 2))
+        );
         assert_eq!(f6.fourier_coefficient(2, 0), From::from((-1050 * 2, 0)));
 
         assert_eq!(f8.fourier_coefficient(0, 0), From::from((0, 0)));
         assert_eq!(f8.fourier_coefficient(1, 1), From::from((-10, 4)));
         assert_eq!(f8.fourier_coefficient(1, -1), From::from((-10, -4)));
         assert_eq!(f8.fourier_coefficient(2, 4), From::from((-85 * 2, 38 * 2)));
-        assert_eq!(f8.fourier_coefficient(2, 2), From::from((-2600 * 2, 1040 * 2)));
+        assert_eq!(
+            f8.fourier_coefficient(2, 2),
+            From::from((-2600 * 2, 1040 * 2))
+        );
         assert_eq!(f8.fourier_coefficient(2, 0), From::from((8250 * 2, 0)));
 
         assert_eq!(f3.fourier_coefficient(0, 0), From::from((0, 0)));
