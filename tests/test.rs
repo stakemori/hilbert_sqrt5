@@ -1426,6 +1426,26 @@ mod paper {
     use hilbert_sqrt5::structure::*;
 
     #[test]
+    fn test_generators_parallel() {
+        let prec = 2;
+        let g2 = eisenstein_series(2, prec);
+        let g5 = g5_normalized(prec);
+        let g6 = f6_normalized(prec);
+        let g15 = g15_normalized(prec);
+        fn print_fc(f: &HmfGen<Mpz>) {
+            println!(
+                "{:?}",
+                f.fourier_coefficients(&vec![(0, 0), (1, 1), (1, -1), (2, 4), (2, 2), (2, 0)])
+            );
+
+        }
+        print_fc(&g2);
+        print_fc(&g5);
+        print_fc(&g6);
+        print_fc(&g15);
+    }
+
+    #[test]
     fn test_gens_a2() {
         let prec = 3;
         let g2 = eisenstein_series(2, prec);
