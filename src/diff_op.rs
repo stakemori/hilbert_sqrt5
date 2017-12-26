@@ -372,6 +372,7 @@ macro_rules! define_rankin_cohen {
 define_rankin_cohen!(rankin_cohen_rt, diff_mul_mut_rt);
 define_rankin_cohen!(rankin_cohen_ir, diff_mul_mut_ir);
 // TODO: make this function generic
+/// Note that this returns `sqrt5^m * (-1)^m [f, g]_{0, m}` in the paper.
 pub fn rankin_cohen_sqrt5(
     m: usize,
     f: &HmfGen<Mpz>,
