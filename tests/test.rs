@@ -1425,7 +1425,7 @@ mod paper {
     use hilbert_sqrt5::bignum::Sqrt5Mpz;
     use hilbert_sqrt5::structure::*;
     use hilbert_sqrt5::bignum::BigNumber;
-
+    use hilbert_sqrt5::bignum::RealQuadElement;
     #[test]
     fn test_generators_parallel() {
         let prec = 2;
@@ -1447,6 +1447,14 @@ mod paper {
             "{:?}",
             f.fourier_coefficients(&vec![(0, 0), (1, 1), (1, -1), (2, 4), (2, 2), (2, 0)])
         );
+    }
+
+    fn g_4_8(prec: usize) -> HmfGen<Sqrt5Mpz> {
+        let g2 = eisenstein_series(2, prec);
+        let mut g_4_8 = rankin_cohen_sqrt5(2, &g2, &g2).unwrap();
+        g_4_8 /= &Into::<Sqrt5Mpz>::into(&Mpz::from_ui(360));
+        assert_eq!(g_4_8.fourier_coefficient(0, 0), From::from((0, 0)));
+        g_4_8
     }
 
     #[test]
@@ -1494,9 +1502,12 @@ mod paper {
         let g2 = eisenstein_series(2, prec);
         let g5 = g5_normalized(prec);
         let g6 = f6_normalized(prec);
-        let g_7_9 = rankin_cohen_sqrt5(1, &g2, &g5).unwrap();
-        let g_8_10 = rankin_cohen_sqrt5(1, &g6, &g2).unwrap();
-        let g_11_14 = rankin_cohen_sqrt5(1, &g5, &g6).unwrap();
+        let mut g_7_9 = rankin_cohen_sqrt5(1, &g2, &g5).unwrap();
+        let mut g_8_10 = rankin_cohen_sqrt5(1, &g6, &g2).unwrap();
+        let mut g_11_14 = rankin_cohen_sqrt5(1, &g5, &g6).unwrap();
+        g_7_9 *= &Into::<Sqrt5Mpz>::into((0, -2));
+        g_8_10 *= &Into::<Sqrt5Mpz>::into((0, -2));
+        g_11_14 *= &Into::<Sqrt5Mpz>::into((0, -4));
         print!("g_7_9:");
         print_fc(&g_7_9);
         print!("g_8_10:");
@@ -1554,10 +1565,31 @@ mod paper {
     #[test]
     fn test_gens_a3() {
         let prec = 5;
+
         let cand = load_cand(3);
         let gens = cand.gens(prec);
         let g2: HmfGen<Sqrt5Mpz> = From::from(&eisenstein_series(2, prec));
         let g5: HmfGen<Sqrt5Mpz> = From::from(&g5_normalized(prec));
+
+        let g_4_8 = g_4_8(prec);
+
+        {
+            let g2 = eisenstein_series(2, prec);
+            let g6 = f6_normalized(prec);
+            let mut g_6_12 = rankin_cohen_sqrt5(1, &g_4_8.ir_part(), &g2).unwrap();
+            g_6_12 *= &Into::<Sqrt5Mpz>::into((0, 2));
+            g_6_12 += &rankin_cohen_sqrt5(1, &g_4_8.rt_part(), &g2).unwrap();
+            g_6_12 /= &Into::<Sqrt5Mpz>::into((4, 0));
+            g_6_12 *= &Into::<Sqrt5Mpz>::into((0, -2));
+            g_6_12 /= &Into::<Sqrt5Mpz>::into((8, 0));
+            print_fc(&g_6_12);
+
+            let mut g_8_14 = rankin_cohen_sqrt5(3, &g2, &g6).unwrap();
+            g_8_14 *= &Into::<Sqrt5Mpz>::into((0, -2));
+            g_8_14 /= &Into::<Sqrt5Mpz>::into((8, 0));
+            print_fc(&g_8_14);
+        }
+
         let mut f3 = gens[0].clone();
         let mut f6 = gens[1].clone();
         f3 *= &Into::<Sqrt5Mpz>::into((0, 2));
@@ -1573,6 +1605,7 @@ mod paper {
             From::from((-2200 * 2, 880 * 2))
         );
         assert_eq!(f6.fourier_coefficient(2, 0), From::from((-1050 * 2, 0)));
+        println!("{:?}", f6.diagonal_restriction());
 
         assert_eq!(f8.fourier_coefficient(0, 0), From::from((0, 0)));
         assert_eq!(f8.fourier_coefficient(1, 1), From::from((-10, 4)));
@@ -1583,6 +1616,7 @@ mod paper {
             From::from((-2600 * 2, 1040 * 2))
         );
         assert_eq!(f8.fourier_coefficient(2, 0), From::from((8250 * 2, 0)));
+        println!("{:?}", f8.diagonal_restriction());
 
         assert_eq!(f3.fourier_coefficient(0, 0), From::from((0, 0)));
         assert_eq!(f3.fourier_coefficient(1, 1), From::from((-10, 4)));
@@ -1590,5 +1624,8 @@ mod paper {
         assert_eq!(f3.fourier_coefficient(2, 4), From::from((170, -76)));
         assert_eq!(f3.fourier_coefficient(2, 2), From::from((-100, 40)));
         assert_eq!(f3.fourier_coefficient(2, 0), From::from((0, -120)));
+        println!("{:?}", f3.diagonal_restriction());
+        let a = &g2 * &f6 + &f8 - &g5 * &(&f3 * &Into::<Sqrt5Mpz>::into((840 * 2, 0)));
+        assert!(a.is_zero());
     }
 }
