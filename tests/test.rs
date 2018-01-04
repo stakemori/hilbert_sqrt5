@@ -1437,6 +1437,11 @@ mod paper {
         print_fc(&g5);
         print_fc(&g6);
         print_fc(&g15);
+
+        println!("diag: {:?}", g2.diagonal_restriction());
+        println!("diag: {:?}", g5.diagonal_restriction());
+        println!("diag: {:?}", g6.diagonal_restriction());
+        println!("diag: {:?}", g15.diagonal_restriction());
     }
 
     fn print_fc<T>(f: &HmfGen<T>)
@@ -1453,7 +1458,7 @@ mod paper {
         let g2 = eisenstein_series(2, prec);
         let mut g_4_8 = rankin_cohen_sqrt5(2, &g2, &g2).unwrap();
         g_4_8 /= &Into::<Sqrt5Mpz>::into(&Mpz::from_ui(360));
-        assert_eq!(g_4_8.fourier_coefficient(0, 0), From::from((0, 0)));
+        assert_eq!(g_4_8.fourier_coefficient(1, 1), From::from((6, -2)));
         g_4_8
     }
 
@@ -1627,5 +1632,8 @@ mod paper {
         println!("{:?}", f3.diagonal_restriction());
         let a = &g2 * &f6 + &f8 - &g5 * &(&f3 * &Into::<Sqrt5Mpz>::into((840 * 2, 0)));
         assert!(a.is_zero());
+
+        let br3_6 = bracket_inner_prod1(&f3, &f6).unwrap();
+        println!("br:{}", br3_6);
     }
 }
