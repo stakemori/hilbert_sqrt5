@@ -904,7 +904,7 @@ mod str_test {
 
     #[test]
     fn test_bracket_as_form() {
-        for i in 21..41 {
+        for i in 3..41 {
             println!("{}", i);
             let prec = 5;
             let cand = load_cand(i);
