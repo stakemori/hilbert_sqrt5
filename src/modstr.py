@@ -122,13 +122,13 @@ def load_star_norms(i):
 
 @cached_function
 def load_cand_dnm(i):
-    l = load(join(DATA_DIR, "str%s_cand.sobj" % i))
+    l = load_min_resol_prim(i)
     return to_pol_over_z_wo_dnm(l[-1][-1])
 
 
 @cached_function
 def load_cand_wts(i):
-    l = load(join(DATA_DIR, "str%s_cand.sobj" % i))
+    l = load_min_resol_prim(i)
     return l[1]
 
 
