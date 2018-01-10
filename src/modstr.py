@@ -56,6 +56,8 @@ def to_string_monom_formal(pl):
     pl = pl.change_ring(ZZ)
     return [((k[2], k[1], k[0]), to_unicode(a)) for (k, a) in pl.dict().items()]
 
+def from_string_monom_formal(l):
+    return sum(QQ(coeff) * g2**a * g5 ** b * g6**c for (a, b, c), coeff in l)
 
 class FormsData(object):
 
@@ -131,6 +133,12 @@ def load_cand_wts(i):
     l = load_min_resol_prim(i)
     return l[1]
 
+def load_cand_relations(i):
+    '''
+    This assumes the projective dimension of As <= 1.
+    '''
+    l = load_min_resol_prim(i)[0][1]
+    return [[from_string_monom_formal(a) for a in rel] for rel in l]
 
 def check_construction(i):
     l = load_star_norms(i)
