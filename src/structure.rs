@@ -573,6 +573,7 @@ impl StrCand {
         [f, g]
     }
 
+    /// Note that this generators is not exactly same as generators using Singular.
     pub fn gens(&self, prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
         let v = self.gens_nums_as_forms(prec);
         let mut prec_small = 5;
