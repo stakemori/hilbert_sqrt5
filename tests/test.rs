@@ -774,7 +774,7 @@ mod str_exe {
                 StrCand::load(i, &cand_f, &monom_f).unwrap()
             };
             if cand.gen_wts.iter().any(|&x| x == 2) {
-                let gens = cand.gens(prec);
+                let gens = cand.gens_normalized(prec);
                 for f in &gens {
                     if f.weight.unwrap().0 == 2 {
                         let g7 = f * &Into::<HmfGen<Sqrt5Mpz>>::into(&g5);
@@ -866,7 +866,7 @@ mod str_exe {
                 StrCand::load(i, &cand_f, &monom_f).unwrap()
             };
             let prec = 15;
-            let gens = cand.gens(prec);
+            let gens = cand.gens_normalized(prec);
             println!("{}", i);
             for (n, f) in gens.iter().enumerate() {
                 let (w1, w2) = f.weight.unwrap();
@@ -908,11 +908,11 @@ mod str_test {
             println!("{}", i);
             let prec = 5;
             let cand = load_cand(i);
-            let gens = cand.gens(prec);
+            let gens = cand.gens_normalized(prec);
             let f = &gens[0];
             let g = &gens[1];
             let prec = (f.weight.unwrap().0 + g.weight.unwrap().1 - 15) / 5 + 5;
-            let gens = cand.gens(prec);
+            let gens = cand.gens_normalized(prec);
             let f = &gens[0];
             let g = &gens[1];
             let br = bracket_inner_prod1(&f, &g).unwrap();
@@ -1502,7 +1502,7 @@ mod paper {
     fn test_gens_a1() {
         let prec = 5;
         let cand = load_cand(1);
-        let gens = cand.gens(prec);
+        let gens = cand.gens_normalized(prec);
 
         let g2 = eisenstein_series(2, prec);
         let g5 = g5_normalized(prec);
@@ -1572,7 +1572,7 @@ mod paper {
         let prec = 5;
 
         let cand = load_cand(3);
-        let gens = cand.gens(prec);
+        let gens = cand.gens_normalized(prec);
         let g2: HmfGen<Sqrt5Mpz> = From::from(&eisenstein_series(2, prec));
         let g5: HmfGen<Sqrt5Mpz> = From::from(&g5_normalized(prec));
 
