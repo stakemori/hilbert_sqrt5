@@ -573,8 +573,7 @@ impl StrCand {
         [f, g]
     }
 
-    /// Note that this generators is not exactly same as generators using Singular.
-    pub fn gens_normalized(&self, prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+    pub fn gens_with_denoms(&self, prec: usize) -> Vec<(HmfGen<Sqrt5Mpz>, Sqrt5Mpz)> {
         let v = self.gens_nums_as_forms(prec);
         let mut prec_small = 5;
         let mut prec = prec;
@@ -588,15 +587,29 @@ impl StrCand {
                 prec_small += 1;
             }
         }
+        let mut tmp = Mpz::new();
         let dnm_form = From::from(&MonomFormal::eval(&self.gens_dnm, prec));
         v.iter()
             .map(|f| {
                 let mut res = HmfGen::new(prec);
                 div_mut_with_denom(&mut res, f, &dnm_form, true);
-                let a = From::from(&res.gcd());
+                let mut a = From::from(&res.gcd());
                 res /= &a;
-                res
+                let a11 = res.fourier_coefficient(1, 1);
+                if !a11.is_zero_g() && res.is_divisible_by_const(&a11) {
+                    res /= &a11;
+                    a.mul_assign_g(&a11, &mut tmp);
+                }
+                (res, a)
             })
+            .collect()
+    }
+
+    /// Note that this generators is not exactly same as generators using Singular.
+    pub fn gens_normalized(&self, prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+        self.gens_with_denoms(prec)
+            .iter()
+            .map(|x| x.0.clone())
             .collect()
     }
 
