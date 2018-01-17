@@ -192,6 +192,13 @@ impl Sqrt5Mpz {
             ir: Mpz::from_si(ir),
         }
     }
+
+    // Return maximum positive integer `a` such that `self/a` is integral.
+    pub fn content(&self) -> Mpz {
+        let a = self.rt.gcd(&self.ir);
+        let b = &(&self.rt - &self.ir) / &a;
+        if !b.is_multiple_of_ui(2) { a >> 1 } else { a }
+    }
 }
 
 impl BigNumber for Sqrt5Mpz {
@@ -519,5 +526,13 @@ mod tests {
         println!("{}", a);
         let a: Sqrt5Mpz = From::from((2, -2));
         println!("{}", a);
+    }
+
+    #[test]
+    fn test_content() {
+        let a: Sqrt5Mpz = From::from((3, 3));
+        assert_eq!(a.content(), 3_i64);
+        let a: Sqrt5Mpz = From::from((10, 4));
+        assert_eq!(a.content(), 1_i64);
     }
 }
