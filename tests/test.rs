@@ -1501,14 +1501,12 @@ mod paper {
     #[test]
     fn test_gens_a1() {
         let prec = 5;
-        let cand = load_cand(1);
-        let gens = cand.gens_normalized(prec);
 
         let g2 = eisenstein_series(2, prec);
         let g5 = g5_normalized(prec);
         let g6 = f6_normalized(prec);
         let mut g_7_9 = rankin_cohen_sqrt5(1, &g2, &g5).unwrap();
-        let mut g_8_10 = rankin_cohen_sqrt5(1, &g6, &g2).unwrap();
+        let mut g_8_10 = rankin_cohen_sqrt5(1, &g2, &g6).unwrap();
         let mut g_11_14 = rankin_cohen_sqrt5(1, &g5, &g6).unwrap();
         g_7_9 *= &Into::<Sqrt5Mpz>::into((0, -2));
         g_8_10 *= &Into::<Sqrt5Mpz>::into((0, -2));
@@ -1520,16 +1518,9 @@ mod paper {
         print!("g_11_14:");
         print_fc(&g_11_14);
 
-        let mut f7 = gens[0].clone();
-        let mut f8 = gens[1].clone();
-        let mut f11 = gens[2].clone();
-        assert_eq!(f7.weight.unwrap().0, 7);
-        assert_eq!(f8.weight.unwrap().0, 8);
-        assert_eq!(f11.weight.unwrap().0, 11);
-
-        f7 *= &Into::<Sqrt5Mpz>::into((0, 4));
-        f8 *= &Into::<Sqrt5Mpz>::into((0, 4));
-        f11 *= &Into::<Sqrt5Mpz>::into((0, -4));
+        let f7 = g_7_9;
+        let f8 = g_8_10;
+        let f11 = g_11_14;
 
         println!("diag {:?}", f7.diagonal_restriction());
         println!("diag {:?}", f8.diagonal_restriction());
@@ -1597,8 +1588,8 @@ mod paper {
 
         let mut f3 = gens[0].clone();
         let mut f6 = gens[1].clone();
-        f3 *= &Into::<Sqrt5Mpz>::into((0, 2));
-        f6 *= &Into::<Sqrt5Mpz>::into((0, 2));
+        f3 *= &Into::<Sqrt5Mpz>::into((-10, 4));
+        f6 *= &Into::<Sqrt5Mpz>::into((10, -4));
         let f8: HmfGen<Sqrt5Mpz> = &(&(&f3 * &g5) * &Into::<Sqrt5Mpz>::into((840 * 2, 0))) -
             &f6 * &g2;
         assert_eq!(f6.fourier_coefficient(0, 0), From::from((0, 0)));
