@@ -3,6 +3,7 @@ use gmp::mpz::Mpz;
 use std::fmt;
 use std::ops::{AddAssign, SubAssign, ShlAssign, ShrAssign, MulAssign};
 use std;
+use flint::fmpz_poly::FmpzPoly;
 
 pub trait RealQuadElement<S> {
     fn rt_part(&self) -> S;
@@ -340,7 +341,16 @@ impl fmt::Display for Sqrt5Mpz {
         if self.ir.is_zero() {
             write!(f, "{}", &self.rt >> 1)
         } else {
-            write!(f, "({}, {})", self.rt, self.ir)
+            let mut tmp_ply = FmpzPoly::new();
+            if self.ir.is_multiple_of_ui(2) {
+                tmp_ply.set_coeff(&From::from(&(&self.rt >> 1)), 0);
+                tmp_ply.set_coeff(&From::from(&(&self.ir >> 1)), 1);
+                write!(f, "{}", tmp_ply)
+            } else {
+                tmp_ply.set_coeff(&From::from(&self.rt), 0);
+                tmp_ply.set_coeff(&From::from(&self.ir), 1);
+                write!(f, "({})/2", tmp_ply)
+            }
         }
     }
 }
@@ -499,5 +509,15 @@ mod tests {
         a.pow_mut(&b, 10);
         assert_eq!(a.rt_part().to_str_radix(10), "322355827");
         assert_eq!(a.ir_part().to_str_radix(10), "142989825");
+    }
+
+    #[test]
+    fn test_fmt() {
+        let a: Sqrt5Mpz = From::from((1, -1));
+        println!("{}", a);
+        let a: Sqrt5Mpz = From::from((1, 1));
+        println!("{}", a);
+        let a: Sqrt5Mpz = From::from((2, -2));
+        println!("{}", a);
     }
 }
