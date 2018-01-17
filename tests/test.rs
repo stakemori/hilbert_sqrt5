@@ -816,8 +816,19 @@ mod str_exe {
         save_star_norms(&(36..51).filter(|i| i % 2 == 1).collect::<Vec<_>>());
     }
 
-    fn write_csv_form(f: &HmfGen<Sqrt5Mpz>, p: &String) {
+    fn write_csv_form(
+        f: &HmfGen<Sqrt5Mpz>,
+        p: &String,
+        num: Option<Sqrt5Mpz>,
+        den: Option<Sqrt5Mpz>,
+    ) {
         let mut wtr = csv::Writer::from_path(p).unwrap();
+        if let Some(num_val) = num {
+            wtr.write_record(&["numerator", &format!("{}", num_val)])
+                .unwrap();
+            wtr.write_record(&["denominator", &format!("{}", den.unwrap())])
+                .unwrap();
+        }
         wtr.write_record(&["(v, u)", "a(v, u)"]).unwrap();
         for (v, &bd) in f.u_bds.vec.iter().enumerate() {
             let bd = bd as i64;
@@ -853,7 +864,7 @@ mod str_exe {
             "./forms_csv/A0/g15.csv",
         ];
         for (p, f) in paths.into_iter().zip(gens.iter()) {
-            write_csv_form(f, &p.to_string());
+            write_csv_form(f, &p.to_string(), None, None);
         }
     }
 
@@ -866,12 +877,12 @@ mod str_exe {
                 StrCand::load(i, &cand_f, &monom_f).unwrap()
             };
             let prec = 15;
-            let gens = cand.gens_normalized(prec);
+            let gens = cand.gens_with_const(prec);
             println!("{}", i);
-            for (n, f) in gens.iter().enumerate() {
+            for (n, &(ref f, ref num, ref den)) in gens.iter().enumerate() {
                 let (w1, w2) = f.weight.unwrap();
                 let path = format!("./forms_csv/A{}/gen{}_wt_{}_{}.csv", i, n, w1, w2);
-                write_csv_form(f, &path);
+                write_csv_form(f, &path, Some(num.clone()), Some(den.clone()));
             }
         }
     }
@@ -895,7 +906,7 @@ mod str_test {
 
     #[test]
     fn test_relations() {
-        for i in 21..51 {
+        for i in 3..21 {
             let cand = load_cand(i);
             println!("{}", i);
             cand.test_relations(15);

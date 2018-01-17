@@ -573,7 +573,7 @@ impl StrCand {
         [f, g]
     }
 
-    pub fn gens_with_denoms(&self, prec: usize) -> Vec<(HmfGen<Sqrt5Mpz>, Sqrt5Mpz)> {
+    pub fn gens_with_const(&self, prec: usize) -> Vec<(HmfGen<Sqrt5Mpz>, Sqrt5Mpz, Sqrt5Mpz)> {
         let v = self.gens_nums_as_forms(prec);
         let mut prec_small = 5;
         let mut prec = prec;
@@ -592,21 +592,24 @@ impl StrCand {
         v.iter()
             .map(|f| {
                 let mut res = HmfGen::new(prec);
-                div_mut_with_denom(&mut res, f, &dnm_form, true);
-                let mut a = From::from(&res.gcd());
-                res /= &a;
+                let mut dnm = div_mut_with_denom(&mut res, f, &dnm_form, true);
+                let mut num = From::from(&res.gcd());
+                res /= &num;
                 let a11 = res.fourier_coefficient(1, 1);
                 if !a11.is_zero_g() && res.is_divisible_by_const(&a11) {
                     res /= &a11;
-                    a.mul_assign_g(&a11, &mut tmp);
+                    num.mul_assign_g(&a11, &mut tmp);
                 }
-                (res, a)
+                let a: Sqrt5Mpz = From::from(&(num.content().gcd(&dnm.content())));
+                num.set_divexact_g(&a, &mut tmp);
+                dnm.set_divexact_g(&a, &mut tmp);
+                (res, num, dnm)
             })
             .collect()
     }
 
     pub fn gens_normalized(&self, prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
-        self.gens_with_denoms(prec)
+        self.gens_with_const(prec)
             .iter()
             .map(|x| x.0.clone())
             .collect()
@@ -649,16 +652,37 @@ impl StrCand {
         save_polys_over_z_pickle(&pols, &mut stars_f);
     }
 
+    fn gens_normalized1(&self, prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
+        let mut gens_wconst = self.gens_with_const(prec);
+        let mut tmp = Mpz::new();
+        let m = gens_wconst.iter().map(|x| x.2.clone()).fold(
+            From::from((2, 0)),
+            |acc, x| {
+                let mut a = Sqrt5Mpz::new_g();
+                a.set_g(&acc);
+                a.mul_assign_g(&x, &mut tmp);
+                a
+            },
+        );
+        for x in gens_wconst.iter_mut() {
+            let mut m1 = m.clone();
+            m1.set_divexact_g(&x.2, &mut tmp);
+            m1.mul_assign_g(&x.1, &mut tmp);
+            x.0 *= &m1;
+        }
+        gens_wconst.iter().map(|x| x.0.clone()).collect()
+    }
+
     pub fn test_relations(&self, prec: usize) {
         assert!(self.rels.len() <= 1);
         fn to_pwtpoly(x: &PWtPolyZ) -> PWtPoly {
             x.iter().map(|y| (y.0.clone(), From::from(&y.1))).collect()
         }
-        let num_gens = self.gens_nums_as_forms(prec);
+        let gens = self.gens_normalized1(prec);
         if self.rels.len() > 0 {
             for rel in &self.rels[0] {
                 let rel: Vec<_> = rel.iter().map(to_pwtpoly).collect();
-                let rel_form = linear_comb(&rel, &num_gens);
+                let rel_form = linear_comb(&rel, &gens);
                 assert!(rel_form.is_zero());
             }
         }
