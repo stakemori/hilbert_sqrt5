@@ -842,6 +842,7 @@ mod str_exe {
                 ).unwrap();
             }
         }
+        wtr.flush().unwrap();
     }
 
     #[test]
