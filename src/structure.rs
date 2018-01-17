@@ -605,7 +605,6 @@ impl StrCand {
             .collect()
     }
 
-    /// Note that this generators is not exactly same as generators using Singular.
     pub fn gens_normalized(&self, prec: usize) -> Vec<HmfGen<Sqrt5Mpz>> {
         self.gens_with_denoms(prec)
             .iter()
