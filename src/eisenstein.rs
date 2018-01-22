@@ -36,7 +36,7 @@ pub fn eisenstein_series(k: u64, prec: usize) -> HmfGen<Mpz> {
 }
 
 /// Return Eisenstein series of weight k. Asumes l_val_num and l_val_denom are
-/// numerator and denominator of 4 * L(1-k, 𝛘) 𝛇(1-k) where 𝛘 is the quadratic
+/// numerator and denominator of 4 / (L(1-k, 𝛘) 𝛇(1-k)) where 𝛘 is the quadratic
 /// Diriechlet char of modulo 5.
 pub fn eisenstein_series_from_lvals(
     k: u64,
