@@ -524,11 +524,7 @@ where
                 break;
             }
         });
-        if a {
-            res >> 1
-        } else {
-            res
-        }
+        if a { res >> 1 } else { res }
     }
 }
 
