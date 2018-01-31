@@ -350,12 +350,12 @@ impl fmt::Display for Sqrt5Mpz {
         } else {
             let mut tmp_ply = FmpzPoly::new();
             if self.ir.is_multiple_of_ui(2) {
-                tmp_ply.set_coeff(&From::from(&(&self.rt >> 1)), 0);
-                tmp_ply.set_coeff(&From::from(&(&self.ir >> 1)), 1);
+                tmp_ply.set_coeff(0, &From::from(&(&self.rt >> 1)));
+                tmp_ply.set_coeff(1, &From::from(&(&self.ir >> 1)));
                 write!(f, "{}", tmp_ply)
             } else {
-                tmp_ply.set_coeff(&From::from(&self.rt), 0);
-                tmp_ply.set_coeff(&From::from(&self.ir), 1);
+                tmp_ply.set_coeff(0, &From::from(&self.rt));
+                tmp_ply.set_coeff(1, &From::from(&self.ir));
                 write!(f, "({})/2", tmp_ply)
             }
         }

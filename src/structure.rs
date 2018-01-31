@@ -24,6 +24,7 @@ use std::convert::From;
 use std::ops::AddAssign;
 use std::fmt;
 use std::collections::HashMap;
+use flint::traits::*;
 
 pub struct MpzWrapper {
     pub a: Mpz,
